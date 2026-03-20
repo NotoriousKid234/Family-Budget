@@ -11,35 +11,32 @@
     <style>
         :root { 
             --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            --secondary: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            --secondary: #1e293b;
             --brandon: #3b82f6; --gina: #ec4899; 
-            --need: #10b981; --want: #f59e0b;
             --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); 
             --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); }
         #loginScreen, #app, #subManager { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; box-sizing: border-box; }
         #app, #subManager { display: none; } 
         
-        .header-stack { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%; margin-bottom: 25px; }
+        .header-stack { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; margin-bottom: 25px; }
         .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.15); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(129, 140, 248, 0.4); box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); color: #818cf8; }
         .logo-glow svg { fill: #818cf8; }
 
-        .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; margin-bottom: 5px; }
-        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 25px auto; }
+        .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; }
+        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 10px auto 25px auto; }
 
         .chart-container { position: relative; height: 180px; margin-bottom: 25px; }
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); margin-bottom: 10px; }
-        .btn-manage { background: var(--secondary); color: white; border: 1px solid var(--border); padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; transition: 0.3s; }
-        .btn-manage:hover { background: #334155; }
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); margin-bottom: 12px; }
+        .btn-manage { background: var(--secondary); color: white; border: 1px solid var(--border); padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; }
 
-        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-        .item-main { flex: 1; }
-        .item-note { font-size: 0.7rem; color: #94a3b8; font-style: italic; display: block; margin-top: 2px; }
-        .item-date { font-size: 0.65rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .item-label { font-weight: 700; display: block; }
+        .item-sub { font-size: 0.75rem; color: #94a3b8; }
         
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 1rem; box-sizing: border-box; }
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; }
@@ -85,9 +82,9 @@
     </div>
 
     <div id="subManager">
-        <div class="header-stack"><h3>Recurring Control</h3></div>
+        <div class="header-stack"><h3>Recurring Bills</h3></div>
         <div id="subList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
-        <button class="btn-manage" onclick="toggleManager()">Back to Ledger</button>
+        <button class="btn-manage" style="width:100%" onclick="toggleManager()">Back to Ledger</button>
     </div>
 
 <script>
@@ -112,7 +109,7 @@
 
     function initChart() {
         const ctx = document.getElementById('budgetChart').getContext('2d');
-        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Mortgage', 'Car', 'Utilities', 'Food', 'Misc'], datasets: [{ data: [INCOME, 0, 0, 0, 0, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#8b5cf6', '#10b981', '#94a3b8'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } });
+        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Bills'], datasets: [{ data: [INCOME, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } });
     }
 
     async function fetchData() {
@@ -128,19 +125,21 @@
     async function addEntry() {
         const amt = parseFloat(document.getElementById('amount').value);
         const cat = document.getElementById('category').value;
+        const mem = document.getElementById('memberSelect').value;
         if (isNaN(amt) || amt <= 0) return;
 
-        let note = prompt(`Optional Note (e.g. "Water", "Netflix"):`);
+        let note = prompt("Optional Note (e.g. Water, Rent):");
         
         if (cat === 'Subscription') {
-            const billDay = prompt(`Billing Day (1-31):`, CYCLE_START_DAY);
+            const billDay = prompt("Billing Day (1-31):", CYCLE_START_DAY);
             if (note && billDay) {
-                await _supabase.from('recurring_expenses').insert([{ name: note, amount: amt, billing_day: parseInt(billDay), member: document.getElementById('memberSelect').value }]);
+                await _supabase.from('recurring_expenses').insert([{ name: note, amount: amt, billing_day: parseInt(billDay), member: mem }]);
             }
         }
 
-        await _supabase.from('transactions').insert([{ amount: amt, member: document.getElementById('memberSelect').value, category: cat, note: note || '', intent: currentType, created_at: new Date().toISOString() }]);
-        document.getElementById('amount').value = ''; await fetchData();
+        const { error } = await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note || '', intent: currentType, created_at: new Date().toISOString() }]);
+        if (error) { alert("Sync Error: " + error.message); }
+        else { document.getElementById('amount').value = ''; await fetchData(); }
     }
 
     async function deleteEntry(id) { if (confirm("Delete?")) { await _supabase.from('transactions').delete().eq('id', id); await fetchData(); } }
@@ -150,14 +149,13 @@
         const list = document.getElementById('subList'); list.innerHTML = '';
         recurring.forEach(sub => {
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><b>${sub.name}</b><br><small>Day ${sub.billing_day}</small></div><div>$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
+            div.innerHTML = `<div><span class="item-label">${sub.name}</span><span class="item-sub">Day ${sub.billing_day}</span></div><div>$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
             list.appendChild(div);
         });
     }
 
     function updateUI() {
         const { start, end } = getCycleDates();
-        let catTotals = { Mortgage:0, Car:0, Utilities:0, Food:0, Misc:0 };
         let bSpend = 0, gSpend = 0, totalSpent = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
 
@@ -165,34 +163,14 @@
             totalSpent += item.amount;
             if (item.member === 'Brandon') bSpend += item.amount; else gSpend += item.amount;
             
-            // Categorize for Chart
-            if (item.category === 'Mortgage') catTotals.Mortgage += item.amount;
-            else if (item.category === 'Car') catTotals.Car += item.amount;
-            else if (item.category === 'Utilities') catTotals.Utilities += item.amount;
-            else if (['Groceries', 'Dining'].includes(item.category)) catTotals.Food += item.amount;
-            else catTotals.Misc += item.amount;
-
-            // Date Formatting
-            const d = new Date(item.created_at);
-            const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
-
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div class="item-main"><span class="item-date">${dateStr}</span> — <b>${item.category}</b><span class="item-note">${item.note ? item.note : ''} (${item.member})</span></div><div>-$${item.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteEntry('${item.id}')"></i></div>`;
+            div.innerHTML = `<div><span class="item-label">${item.note ? item.note : item.category}</span><span class="item-sub">${item.member}</span></div><div>-$${item.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
         });
 
         const recurTotal = recurring.reduce((sum, sub) => {
             let billDate = new Date(new Date().getFullYear(), new Date().getMonth(), sub.billing_day);
-            if (billDate >= start && billDate < end) {
-                // If the bill day is TODAY or earlier in this cycle, show it in history
-                if (billDate <= new Date()) {
-                    const subDiv = document.createElement('div'); subDiv.className = 'history-item';
-                    subDiv.style.opacity = '0.7';
-                    subDiv.innerHTML = `<div class="item-main"><span class="item-date">${billDate.getMonth()+1}/${billDate.getDate()}</span> — <b>${sub.name}</b><span class="item-note">Auto-Subscription</span></div><div>-$${sub.amount.toFixed(2)}</div>`;
-                    list.appendChild(subDiv);
-                }
-                return sum + sub.amount;
-            }
+            if (billDate >= start && billDate < end) return sum + sub.amount;
             return sum;
         }, 0);
 
@@ -204,10 +182,7 @@
         const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
         document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
         
-        if(myChart) {
-            myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, catTotals.Mortgage, catTotals.Car, catTotals.Utilities, catTotals.Food, catTotals.Misc];
-            myChart.update();
-        }
+        if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totalSpent + recurTotal]; myChart.update(); }
     }
 </script>
 </body>
