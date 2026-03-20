@@ -30,9 +30,12 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px;
         }
 
+        /* CRITICAL FIX: Ensure app is hidden and doesn't take up space */
+        #app { display: none; } 
+
         .hero-section { text-align: center; margin-bottom: 30px; }
         .balance-label { font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
-        .balance-amount { font-size: 3.2rem; font-weight: 700; background: #fff; -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -2px; }
+        .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; letter-spacing: -2px; }
 
         .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin-top: 10px; }
 
@@ -44,18 +47,16 @@
         input, select { 
             width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 16px; 
             border: 1px solid var(--border); background: rgba(0,0,0,0.2); 
-            color: white; font-size: 1rem; outline: none; transition: border 0.3s;
+            color: white; font-size: 1rem; outline: none; box-sizing: border-box;
         }
-        input:focus { border-color: #6366f1; }
 
         .btn-elite { 
             background: var(--primary); color: white; border: none; padding: 18px; 
             border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer;
-            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); transition: transform 0.2s;
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5);
         }
-        .btn-elite:active { transform: scale(0.97); }
 
-        .history-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
+        .history-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -70,7 +71,7 @@
         <button class="btn-elite" onclick="checkPin()">Unlock Vault</button>
     </div>
 
-    <div id="app" class="hidden">
+    <div id="app">
         <div class="hero-section">
             <div class="balance-label">Household Remaining</div>
             <div id="balance" class="balance-amount">$7,400</div>
@@ -125,10 +126,10 @@
                 datasets: [{
                     data: [INCOME, 0, 0, 0, 0, 0],
                     backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#10b981', '#f43f5e', '#94a3b8'],
-                    borderWidth: 0, hoverOffset: 15
+                    borderWidth: 0
                 }]
             },
-            options: { cutout: '80%', plugins: { legend: { display: false } }, animation: { animateRotate: true } }
+            options: { cutout: '80%', plugins: { legend: { display: false } } }
         });
     }
 
@@ -136,13 +137,11 @@
         const amt = document.getElementById('amount');
         const val = parseFloat(amt.value);
         if (isNaN(val) || val <= 0) return;
-
         history.unshift({
             amount: val, member: document.getElementById('memberSelect').value,
             category: document.getElementById('category').value,
             date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
         });
-        
         localStorage.setItem('fam_history', JSON.stringify(history));
         updateDisplay();
         amt.value = '';
@@ -153,30 +152,23 @@
         let bSpend = 0, gSpend = 0, totalSpent = 0;
         const list = document.getElementById('historyList');
         list.innerHTML = '';
-
         history.forEach(item => {
             totalSpent += item.amount;
             if (item.member === "Brandon") bSpend += item.amount; else gSpend += item.amount;
             let catName = item.category.replace(/[^\w\s]/gi, '').trim().split(' ')[0];
             if(totals.hasOwnProperty(catName)) totals[catName] += item.amount; else totals.Misc += item.amount;
-
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.innerHTML = `<div><div style="font-weight:600; font-size:0.85rem;">${item.category}</div><div style="font-size:0.7rem; color:#94a3b8;">${item.member}</div></div><div style="font-weight:700;">-$${item.amount.toFixed(2)}</div>`;
+            div.innerHTML = `<div><b>${item.category}</b><br><small>${item.member}</small></div><div>-$${item.amount.toFixed(2)}</div>`;
             list.appendChild(div);
         });
-
         const remaining = INCOME - totalSpent;
         document.getElementById('balance').innerText = "$" + (remaining < 0 ? 0 : remaining).toLocaleString();
         document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
         document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
-
-        // Calculate Pace
         const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-        const daysLeft = daysInMonth - new Date().getDate() + 1;
-        const pace = remaining / daysLeft;
-        document.getElementById('paceDisplay').innerText = `Daily Pace: $${pace.toFixed(2)}`;
-
+        const pace = remaining / (daysInMonth - new Date().getDate() + 1);
+        document.getElementById('paceDisplay').innerText = `Pace: $${pace.toFixed(2)} / day`;
         if(myChart) {
             myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totals.Mortgage, totals.Car, totals.Groceries, totals.Dining, totals.Misc];
             myChart.update();
