@@ -11,10 +11,23 @@
     <style>
         :root { --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); --brandon: #3b82f6; --gina: #ec4899; --need: #10b981; --want: #f59e0b; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); --text: #f8fafc; --border: rgba(255, 255, 255, 0.1); }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); overflow-x: hidden; }
+        
         #loginScreen, #app, #subManager { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; box-sizing: border-box; }
         #app, #subManager { display: none; } 
+
+        /* CSS SHIELD LOGO - NO EXTERNAL IMAGES NEEDED */
         .header-stack { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%; margin-bottom: 25px; }
-        .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.1); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(99, 102, 241, 0.3); box-shadow: 0 0 30px rgba(99, 102, 241, 0.2); color: #818cf8; }
+        .neon-shield {
+            width: 80px; height: 80px;
+            background: rgba(99, 102, 241, 0.15);
+            border-radius: 22px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(129, 140, 248, 0.4);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3), inset 0 0 10px rgba(99, 102, 241, 0.2);
+            margin-bottom: 15px;
+        }
+        .neon-shield svg { fill: #818cf8; filter: drop-shadow(0 0 5px #6366f1); }
+
         .hero-section { text-align: center; margin-bottom: 25px; }
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; letter-spacing: -2px; }
         .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin-top: 10px; }
@@ -28,17 +41,20 @@
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); }
         .btn-secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 12px; width: 100%; cursor: pointer; margin-top: 10px; font-size: 0.8rem; }
         .history-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-        .action-icons { display: flex; gap: 12px; align-items: center; margin-left: 10px; }
+        .action-icons { display: flex; gap: 12px; align-items: center; }
         .edit-btn { color: #818cf8; cursor: pointer; opacity: 0.6; }
         .delete-btn { color: #ef4444; cursor: pointer; opacity: 0.6; }
-        .edit-btn:hover, .delete-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
 
     <div id="loginScreen">
         <div class="header-stack">
-            <div class="logo-glow"><i class="fa-solid fa-shield-halved fa-3x"></i></div>
+            <div class="neon-shield">
+                <svg width="40" height="40" viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                </svg>
+            </div>
             <h2 style="margin:0; font-size: 1.5rem; font-weight: 700;">Montoya Ledger</h2>
             <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">Elite Spending Control</p>
         </div>
@@ -72,10 +88,7 @@
     </div>
 
     <div id="subManager">
-        <div class="header-stack">
-            <h3 style="margin-top:0;">Recurring Bills</h3>
-            <p style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 20px;">Cycle Control Panel</p>
-        </div>
+        <div class="header-stack"><h3>Recurring Bills</h3><p style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 20px;">Cycle Control Panel</p></div>
         <div id="subList" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px;"></div>
         <button class="btn-secondary" onclick="toggleManager()">Back to Dashboard</button>
     </div>
@@ -89,21 +102,8 @@
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
     function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Groceries','CreditCard','Subscription'].includes(c) ? 'Need' : 'Want'); }
-    
-    async function toggleManager() { 
-        const app = document.getElementById('app');
-        const manager = document.getElementById('subManager');
-        if (app.style.display === 'none') { app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); } 
-        else { app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); }
-    }
-    
-    function getCycleDates() {
-        let now = new Date();
-        let start = new Date(now.getFullYear(), now.getMonth(), CYCLE_START_DAY, 0, 0, 0);
-        if (now.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1);
-        let end = new Date(start); end.setMonth(end.getMonth() + 1);
-        return { start, end };
-    }
+    async function toggleManager() { const app = document.getElementById('app'); const manager = document.getElementById('subManager'); if (app.style.display === 'none') { app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); } else { app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); } }
+    function getCycleDates() { let now = new Date(); let start = new Date(now.getFullYear(), now.getMonth(), CYCLE_START_DAY); if (now.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); let end = new Date(start); end.setMonth(end.getMonth() + 1); return { start, end }; }
 
     async function checkPin() {
         if (document.getElementById('pinField').value === MY_PIN) {
@@ -114,10 +114,7 @@
         } else { alert("Access Denied"); }
     }
 
-    function initChart() {
-        const ctx = document.getElementById('budgetChart').getContext('2d');
-        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Spent'], datasets: [{ data: [INCOME, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } });
-    }
+    function initChart() { const ctx = document.getElementById('budgetChart').getContext('2d'); myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Spent'], datasets: [{ data: [INCOME, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } }); }
 
     async function fetchData() {
         const { start } = getCycleDates();
@@ -130,25 +127,16 @@
     }
 
     async function addEntry() {
-        const amtInput = document.getElementById('amount');
-        const catInput = document.getElementById('category');
-        const val = parseFloat(amtInput.value);
+        const amtInput = document.getElementById('amount'); const catInput = document.getElementById('category'); const val = parseFloat(amtInput.value);
         if (isNaN(val) || val <= 0) return;
         document.getElementById('recordBtn').innerText = "Syncing...";
-
         if (catInput.value === 'Subscription') {
-            const subName = prompt("Enter Subscription Name (e.g. Netflix, Gym):");
+            const subName = prompt("Enter Subscription Name:");
             const billDay = prompt(`What day of the month is this billed? (1-31):`, CYCLE_START_DAY);
             if (subName && billDay) {
-                await _supabase.from('recurring_expenses').insert([{ 
-                    name: subName, 
-                    amount: val, 
-                    billing_day: parseInt(billDay), 
-                    member: document.getElementById('memberSelect').value 
-                }]);
+                await _supabase.from('recurring_expenses').insert([{ name: subName, amount: val, billing_day: parseInt(billDay), member: document.getElementById('memberSelect').value }]);
             }
         }
-
         await _supabase.from('transactions').insert([{ amount: val, member: document.getElementById('memberSelect').value, category: catInput.value, intent: currentType, created_at: new Date().toISOString() }]);
         amtInput.value = ''; await fetchData();
         document.getElementById('recordBtn').innerText = "Sync Transaction";
@@ -158,15 +146,9 @@
     async function deleteSub(id) { if (confirm("Remove Bill?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); await fetchData(); } }
 
     async function editSub(sub) {
-        const newName = prompt("Edit Name:", sub.name);
-        const newAmt = prompt("Edit Amount:", sub.amount);
-        const newDay = prompt("Edit Billing Day:", sub.billing_day);
+        const newName = prompt("Edit Name:", sub.name); const newAmt = prompt("Edit Amount:", sub.amount); const newDay = prompt("Edit Billing Day:", sub.billing_day);
         if (newName && newAmt && newDay) {
-            await _supabase.from('recurring_expenses').update({ 
-                name: newName, 
-                amount: parseFloat(newAmt), 
-                billing_day: parseInt(newDay) 
-            }).eq('id', sub.id);
+            await _supabase.from('recurring_expenses').update({ name: newName, amount: parseFloat(newAmt), billing_day: parseInt(newDay) }).eq('id', sub.id);
             await fetchData();
         }
     }
@@ -175,13 +157,7 @@
         const list = document.getElementById('subList'); list.innerHTML = '';
         recurring.forEach(sub => {
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `
-                <div style="flex:1;"><b>${sub.name}</b><br><small>Day ${sub.billing_day}</small></div>
-                <div>$${sub.amount.toFixed(2)}</div>
-                <div class="action-icons">
-                    <i class="fa-solid fa-pen-to-square edit-btn" onclick='editSub(${JSON.stringify(sub)})'></i>
-                    <i class="fa-solid fa-trash-can delete-btn" onclick="deleteSub('${sub.id}')"></i>
-                </div>`;
+            div.innerHTML = `<div style="flex:1;"><b>${sub.name}</b><br><small>Day ${sub.billing_day}</small></div><div>$${sub.amount.toFixed(2)}</div><div class="action-icons"><i class="fa-solid fa-pen-to-square edit-btn" onclick='editSub(${JSON.stringify(sub)})'></i><i class="fa-solid fa-trash-can delete-btn" onclick="deleteSub('${sub.id}')"></i></div>`;
             list.appendChild(div);
         });
     }
@@ -191,28 +167,23 @@
         let totalSpent = history.reduce((sum, item) => sum + item.amount, 0);
         let bSpend = history.filter(i => i.member === 'Brandon').reduce((sum, i) => sum + i.amount, 0);
         let gSpend = history.filter(i => i.member === 'Gina').reduce((sum, i) => sum + i.amount, 0);
-        
         const recurTotal = recurring.reduce((sum, sub) => {
             let billDate = new Date(new Date().getFullYear(), new Date().getMonth(), sub.billing_day);
             if (billDate >= start && billDate < end) return sum + sub.amount;
             return sum;
         }, 0);
-
         const remaining = INCOME - totalSpent - recurTotal;
         document.getElementById('balance').innerText = "$" + (remaining < 0 ? 0 : remaining).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
-
         const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
         document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
-        
-        const list = document.getElementById('historyList'); list.innerHTML = '';
+        const hList = document.getElementById('historyList'); hList.innerHTML = '';
         history.forEach(item => {
             const div = document.createElement('div'); div.className = 'history-item';
             div.innerHTML = `<div style="flex:1;"><b>${item.category}</b><br><small>${item.member}</small></div><div>-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-trash-can delete-btn" onclick="deleteEntry('${item.id}')"></i>`;
-            list.appendChild(div);
+            hList.appendChild(div);
         });
-
         if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totalSpent + recurTotal]; myChart.update(); }
     }
     document.getElementById('pinField').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPin(); });
