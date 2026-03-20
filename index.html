@@ -23,11 +23,10 @@
 
         body { 
             font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; 
-            display: flex; justify-content: center; align-items: center; /* Vertical & Horizontal Center */
+            display: flex; justify-content: center; align-items: center; 
             min-height: 100vh; color: var(--text); transition: all 0.3s ease;
         }
 
-        /* Container logic for Login vs App */
         #loginScreen { 
             background: var(--card); padding: 40px; border-radius: 28px; 
             width: 340px; text-align: center; 
@@ -40,7 +39,6 @@
             width: 440px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); margin: 20px;
         }
 
-        /* Elements */
         .balance-hero { background: var(--input); padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 20px; border: 1px solid var(--border); }
         .chart-container { position: relative; height: 220px; margin-bottom: 25px; }
         .family-stats { display: flex; gap: 10px; margin-bottom: 20px; }
@@ -54,18 +52,16 @@
         
         .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: center; }
         .hidden { display: none !important; }
-        .cap-warning { color: #ef4444; font-size: 0.7rem; font-weight: bold; margin-bottom: 10px; display: none; text-align: left; width: 100%; }
     </style>
 </head>
 <body>
 
     <div id="loginScreen">
         <div style="background: #6366f1; width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);">
-            <i class="fa-solid fa-fingerprint fa-2x" style="color: white;"></i>
+            <i class="fa-solid fa-calendar-check fa-2x" style="color: white;"></i>
         </div>
         <h2 style="margin: 0 0 8px 0;">Family Vault</h2>
-        <p style="color: #94a3b8; font-size: 0.85rem; margin: 0 0 25px 0;">Secure Household Budget</p>
-        
+        <p style="color: #94a3b8; font-size: 0.85rem; margin: 0 0 25px 0;">Automated Budget Tracking</p>
         <input type="password" id="pinField" placeholder="••••" style="text-align:center; font-size: 2rem; letter-spacing:8px; border-radius:15px; margin-bottom:20px;">
         <button class="btn-primary" onclick="checkPin()">Unlock Dashboard</button>
     </div>
@@ -74,7 +70,7 @@
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <button onclick="toggleTheme()" style="background:none; border:none; color:var(--text); cursor:pointer;"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
             <span style="font-weight: 800; font-size: 1.1rem;">Budget Analytics</span>
-            <button onclick="archiveMonth()" style="background:none; border:none; color:#10b981; cursor:pointer;"><i class="fa-solid fa-box-archive"></i></button>
+            <button onclick="location.reload()" style="background:none; border:none; color:#64748b; cursor:pointer;"><i class="fa-solid fa-rotate"></i></button>
         </div>
 
         <div class="balance-hero">
@@ -94,28 +90,22 @@
                 <div><label>Amount</label><input type="number" id="amount" placeholder="0.00"></div>
             </div>
             <label>Category</label>
-            <select id="category" onchange="checkCap()">
+            <select id="category">
                 <option value="Mortgage">🏠 Mortgage</option>
                 <option value="Car">🚗 Car Payment</option>
                 <option value="Groceries">🛒 Groceries</option>
                 <option value="Dining">🍔 Dining / Takeout</option>
                 <option value="Misc">📦 Miscellaneous</option>
             </select>
-            <div id="capNotice" class="cap-warning">⚠️ MONTHLY LIMIT REACHED</div>
             <button class="btn-primary" onclick="addEntry()">Record Expense</button>
         </div>
 
-        <div style="display:flex; justify-content:space-between; margin-bottom: 10px;">
-            <span style="font-weight:700; font-size:0.8rem;">Recent Activity</span>
-            <span onclick="clearHistory()" style="font-size:0.7rem; color:#ef4444; cursor:pointer;">Clear All</span>
-        </div>
-        <div id="historyList" style="max-height: 180px; overflow-y: auto;"></div>
+        <div id="historyList" style="max-height: 200px; overflow-y: auto;"></div>
     </div>
 
 <script>
     const MY_PIN = "1991";
     const INCOME = 7400.00;
-    const CAPS = { Dining: 500, Misc: 300 };
     
     let history = JSON.parse(localStorage.getItem('fam_history')) || [];
     let myChart;
@@ -124,13 +114,42 @@
         if (document.getElementById('pinField').value === MY_PIN) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
-            
-            // Adjust body alignment for the dashboard scrolling
             document.body.style.alignItems = 'flex-start';
             document.body.style.paddingTop = '40px';
             
+            // --- AUTOMATIC RESET CHECK ---
+            checkAutoReset();
+            
             initChart(); updateDisplay();
-        } else { alert("Access Denied"); document.getElementById('pinField').value = ''; }
+        } else { alert("Wrong PIN"); }
+    }
+
+    function checkAutoReset() {
+        const currentMonth = new Date().getMonth(); // 0 = Jan, 2 = March, etc.
+        const lastReset = localStorage.getItem('last_reset_month');
+
+        if (lastReset !== null && parseInt(lastReset) !== currentMonth) {
+            // It's a brand new month! 
+            archivePreviousMonth(lastReset);
+            alert("Happy New Month! Your $7,400 budget has been automatically refreshed.");
+        }
+        
+        // Save current month as the new "Last Reset"
+        localStorage.setItem('last_reset_month', currentMonth);
+    }
+
+    function archivePreviousMonth(monthIdx) {
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const oldMonthName = monthNames[monthIdx];
+        
+        // Save the old month's history into a special archive slot
+        let archives = JSON.parse(localStorage.getItem('fam_archives')) || {};
+        archives[oldMonthName] = history;
+        localStorage.setItem('fam_archives', JSON.stringify(archives));
+
+        // Clear the slate for the new month
+        history = [];
+        localStorage.setItem('fam_history', JSON.stringify(history));
     }
 
     function toggleTheme() {
@@ -156,14 +175,6 @@
         });
     }
 
-    function checkCap() {
-        const cat = document.getElementById('category').value;
-        const notice = document.getElementById('capNotice');
-        let currentSpend = 0;
-        history.forEach(i => { if(i.category.includes(cat)) currentSpend += i.amount; });
-        notice.style.display = (CAPS[cat] && currentSpend >= CAPS[cat]) ? 'block' : 'none';
-    }
-
     function addEntry() {
         const amt = document.getElementById('amount');
         const val = parseFloat(amt.value);
@@ -176,17 +187,9 @@
         });
         
         localStorage.setItem('fam_history', JSON.stringify(history));
-        updateDisplay(); checkCap();
+        updateDisplay();
         amt.value = '';
     }
-
-    function archiveMonth() {
-        if(confirm("Archive Month? Current spending will be reset.")) {
-            clearHistory();
-        }
-    }
-
-    function clearHistory() { history = []; localStorage.setItem('fam_history', JSON.stringify(history)); updateDisplay(); }
 
     function updateDisplay() {
         let totals = { Mortgage:0, Car:0, Groceries:0, Dining:0, Misc:0 };
@@ -217,7 +220,6 @@
         }
     }
 
-    // Allow Enter key to submit PIN
     document.getElementById('pinField').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') checkPin();
     });
