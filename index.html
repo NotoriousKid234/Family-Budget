@@ -9,51 +9,17 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        :root { 
-            --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            --dark: #0f172a; 
-            --brandon: #3182ce; 
-            --gina: #d53f8c; 
-        }
-
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
-            margin: 0; display: flex; justify-content: center; align-items: flex-start; 
-            min-height: 100vh; padding: 40px 0; color: #1e293b;
-        }
-        
-        #loginScreen, #app { 
-            background: #ffffff; padding: 30px; border-radius: 28px; 
-            width: 440px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            margin: 20px;
-        }
-
+        :root { --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%); --dark: #0f172a; --brandon: #3182ce; --gina: #d53f8c; }
+        body { font-family: 'Inter', sans-serif; background: radial-gradient(circle at top right, #1e293b, #0f172a); margin: 0; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 40px 0; color: #1e293b; }
+        #loginScreen, #app { background: #ffffff; padding: 30px; border-radius: 28px; width: 440px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; }
         #loginScreen { text-align: center; width: 340px; margin-top: 10vh; }
-
-        .balance-hero { 
-            background: #f8fafc; padding: 20px; border-radius: 20px; 
-            text-align: center; margin-bottom: 20px; border: 1px solid #e2e8f0;
-        }
-
+        .balance-hero { background: #f8fafc; padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 20px; border: 1px solid #e2e8f0; }
         .chart-container { position: relative; height: 220px; margin-bottom: 25px; }
-
         .family-stats { display: flex; gap: 10px; margin-bottom: 20px; }
         .stat-pill { flex: 1; padding: 12px; border-radius: 16px; color: white; text-align: center; }
-
         label { display: block; margin-bottom: 6px; font-weight: 700; color: #64748b; font-size: 0.75rem; text-transform: uppercase; }
-        
-        input, select { 
-            width: 100%; padding: 14px; margin-bottom: 12px; 
-            border-radius: 12px; border: 1px solid #e2e8f0; font-size: 1rem; background: #f8fafc;
-        }
-
-        .btn-primary { 
-            background: var(--primary); color: white; border: none; 
-            padding: 16px; border-radius: 12px; font-weight: 700; width: 100%;
-            cursor: pointer; box-shadow: 0 10px 15px -3px rgba(102, 126, 234, 0.4);
-        }
-
+        input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 1rem; background: #f8fafc; }
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(102, 126, 234, 0.4); }
         .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; align-items: center; }
         .hidden { display: none !important; }
     </style>
@@ -70,7 +36,7 @@
     <div id="app" class="hidden">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <span style="font-weight: 800; font-size: 1.1rem;">Budget Analytics</span>
-            <i class="fa-solid fa-circle-user fa-lg" style="color:#cbd5e1;"></i>
+            <button onclick="location.reload()" style="background:none; border:none; cursor:pointer;"><i class="fa-solid fa-lock" style="color:#cbd5e1;"></i></button>
         </div>
 
         <div class="balance-hero">
@@ -95,17 +61,8 @@
 
         <div style="background: #f8fafc; padding: 20px; border-radius: 20px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <div>
-                    <label>Member</label>
-                    <select id="memberSelect">
-                        <option value="Brandon">Brandon</option>
-                        <option value="Gina">Gina</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Amount</label>
-                    <input type="number" id="amount" placeholder="0.00">
-                </div>
+                <div><label>Member</label><select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select></div>
+                <div><label>Amount</label><input type="number" id="amount" placeholder="0.00"></div>
             </div>
             <label>Category</label>
             <select id="category">
@@ -139,9 +96,7 @@
             document.getElementById('app').classList.remove('hidden');
             initChart();
             updateDisplay();
-        } else {
-            alert("Wrong PIN");
-        }
+        } else { alert("Wrong PIN"); }
     }
 
     function initChart() {
@@ -152,15 +107,11 @@
                 labels: ['Remaining', 'Mortgage', 'Car', 'Groceries', 'Gas', 'Utilities', 'Dining', 'Misc'],
                 datasets: [{
                     data: [INCOME, 0, 0, 0, 0, 0, 0, 0],
-                    backgroundColor: ['#e2e8f0', '#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#f43f5e', '#64748b'],
-                    borderWidth: 0,
-                    hoverOffset: 4
+                    backgroundColor: ['#e2e8f0', '#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#f43f5e', '#94a3b8'],
+                    borderWidth: 0
                 }]
             },
-            options: {
-                cutout: '75%',
-                plugins: { legend: { display: false } }
-            }
+            options: { cutout: '75%', plugins: { legend: { display: false } } }
         });
     }
 
@@ -186,7 +137,6 @@
     function updateDisplay() {
         let totals = { Mortgage:0, Car:0, Groceries:0, Gas:0, Utilities:0, Dining:0, Misc:0 };
         let bSpend = 0, gSpend = 0, totalSpent = 0;
-        
         const list = document.getElementById('historyList');
         list.innerHTML = '';
 
@@ -194,9 +144,9 @@
             totalSpent += item.amount;
             if (item.member === "Brandon") bSpend += item.amount; else gSpend += item.amount;
             
-            // Map long labels to short keys for chart
-            let key = item.category.split(' ')[1] || "Misc";
-            if(totals.hasOwnProperty(key)) totals[key] += item.amount; else totals.Misc += item.amount;
+            // Fixed Category Matching Logic:
+            let catName = item.category.replace(/[^\w\s]/gi, '').trim().split(' ')[0];
+            if(totals.hasOwnProperty(catName)) totals[catName] += item.amount; else totals.Misc += item.amount;
 
             const div = document.createElement('div');
             div.className = 'history-item';
@@ -205,13 +155,14 @@
         });
 
         const remaining = INCOME - totalSpent;
-        document.getElementById('balance').innerText = "$" + remaining.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('balance').innerText = "$" + (remaining < 0 ? 0 : remaining).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
         document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
 
-        // Update Chart
-        myChart.data.datasets[0].data = [remaining, totals.Mortgage, totals.Car, totals.Groceries, totals.Gas, totals.Utilities, totals.Dining, totals.Misc];
-        myChart.update();
+        if(myChart) {
+            myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totals.Mortgage, totals.Car, totals.Groceries, totals.Gas, totals.Utilities, totals.Dining, totals.Misc];
+            myChart.update();
+        }
     }
 </script>
 </body>
