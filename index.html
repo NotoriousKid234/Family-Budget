@@ -34,7 +34,6 @@
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
-        /* GOALS UI */
         .goal-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; margin-bottom: 8px; }
         .goal-name { font-size: 0.85rem; font-weight: 700; color: #fcd34d; }
         .goal-amt { font-size: 1rem; font-weight: 700; color: #fff; }
@@ -43,9 +42,13 @@
         .btn-manage { background: #1e293b; color: white; border: 1px solid var(--border); padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
         .btn-manage:hover { background: #334155; }
 
-        .toolbar-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        #searchBar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px 15px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 0.9rem; margin-bottom: 0; }
-        .btn-export { background: rgba(255,255,255,0.05); color: #60a5fa; border: 1px solid var(--border); border-radius: 12px; padding: 0 18px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        /* UPGRADED SEARCH UI */
+        .toolbar-row { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-start; }
+        .search-wrapper { flex: 1; position: relative; }
+        #searchBar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px 15px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 0.9rem; margin-bottom: 0; outline: none; transition: 0.2s; }
+        #searchBar:focus { border-color: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.2); }
+        #searchTotal { display: none; text-align: right; font-size: 0.8rem; color: #10b981; font-weight: 700; margin-top: 6px; padding-right: 5px; }
+        .btn-export { background: rgba(255,255,255,0.05); color: #60a5fa; border: 1px solid var(--border); border-radius: 12px; padding: 0 18px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; height: 43px; }
         .btn-export:hover { background: rgba(59, 130, 246, 0.2); color: #fff; }
 
         .history-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
@@ -122,7 +125,10 @@
         </div>
         
         <div class="toolbar-row">
-            <input type="text" id="searchBar" placeholder="🔍 Search notes, categories, or members..." onkeyup="filterHistory()">
+            <div class="search-wrapper">
+                <input type="text" id="searchBar" placeholder="🔍 Search tags (#dogs), notes, or categories..." onkeyup="filterHistory()">
+                <div id="searchTotal">Tag Total: $0.00</div>
+            </div>
             <button class="btn-export" onclick="exportCSV()" title="Export Cycle to CSV"><i class="fa-solid fa-file-csv"></i></button>
         </div>
         
@@ -205,8 +211,6 @@
 
     async function fetchData() {
         const { start, end } = getCycleDates(currentViewDate);
-        
-        // Parallel Cloud Fetch: Cycle Trans, Cycle Recur, and ALL-TIME Goals
         const [transRes, recurRes, goalsRes] = await Promise.all([
             _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
             _supabase.from('recurring_expenses').select('*').order('name', { ascending: true }),
@@ -215,7 +219,6 @@
         history = transRes.data || []; 
         recurring = recurRes.data || [];
         allTimeGoals = goalsRes.data || [];
-        
         updateUI(); updateSubList();
     }
 
@@ -225,9 +228,9 @@
         const mem = document.getElementById('memberSelect').value;
         if (isNaN(amt) || amt <= 0) return;
         
-        let promptStr = "Enter specific note:";
-        if (cat === 'Subscription') promptStr = "Enter Subscription Name (e.g. Netflix, Disney+):";
-        if (cat === 'Goal') promptStr = "Enter Goal Name (e.g. PC Build, Vacation Fund):";
+        let promptStr = "Enter note or #tag (e.g. Vet visit #dogs, Keyboard #PCBuild):";
+        if (cat === 'Subscription') promptStr = "Enter Subscription Name (e.g. Netflix):";
+        if (cat === 'Goal') promptStr = "Enter Vault Goal (e.g. Orlando Trip):";
         
         let note = prompt(promptStr);
         if (note === null) return; 
@@ -240,7 +243,6 @@
         
         await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note, intent: currentType, created_at: new Date().toISOString() }]);
         document.getElementById('amount').value = ''; 
-        
         document.getElementById('cycleSelect').selectedIndex = 0;
         currentViewDate = new Date();
         await fetchData();
@@ -266,9 +268,34 @@
         await fetchData();
     }
 
+    // UPGRADED METADATA FILTERING ENGINE
     function filterHistory() {
         const q = document.getElementById('searchBar').value.toLowerCase();
-        document.querySelectorAll('.history-item').forEach(item => { item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none'; });
+        const totalDiv = document.getElementById('searchTotal');
+        let runningSum = 0;
+        let itemsVisible = 0;
+
+        document.querySelectorAll('#historyList .history-item').forEach(item => {
+            const text = item.innerText.toLowerCase();
+            if (q === '' || text.includes(q)) {
+                item.style.display = 'flex';
+                if (q !== '') {
+                    // Extract the numerical amount dynamically stored in the data-amt attribute
+                    runningSum += parseFloat(item.getAttribute('data-amt') || 0);
+                    itemsVisible++;
+                }
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // Toggle the sum display based on search activity
+        if (q !== '' && itemsVisible > 0) {
+            totalDiv.style.display = 'block';
+            totalDiv.innerText = `Tag Total: $${runningSum.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        } else {
+            totalDiv.style.display = 'none';
+        }
     }
 
     function exportCSV() {
@@ -306,30 +333,20 @@
         let bSpend = 0, gSpend = 0, totalSpent = 0;
         let catTotals = { Mortgage:0, Car:0, Utilities:0, Phone:0, Food:0, Subs:0, Goals:0, Misc:0 };
         
-        // 1. Process Sinking Funds (All-Time)
         let accumulatedGoals = {};
-        allTimeGoals.forEach(g => {
-            if (!accumulatedGoals[g.note]) accumulatedGoals[g.note] = 0;
-            accumulatedGoals[g.note] += g.amount;
-        });
+        allTimeGoals.forEach(g => { if (!accumulatedGoals[g.note]) accumulatedGoals[g.note] = 0; accumulatedGoals[g.note] += g.amount; });
 
         const goalsContainer = document.getElementById('goalsContainer');
         const goalsList = document.getElementById('goalsList');
         goalsList.innerHTML = '';
         if (Object.keys(accumulatedGoals).length > 0) {
             goalsContainer.style.display = 'block';
-            Object.keys(accumulatedGoals).forEach(goalName => {
-                goalsList.innerHTML += `<div class="goal-item"><span class="goal-name"><i class="fa-solid fa-vault" style="margin-right:8px;"></i>${goalName}</span><span class="goal-amt">$${accumulatedGoals[goalName].toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`;
-            });
-        } else {
-            goalsContainer.style.display = 'none';
-        }
+            Object.keys(accumulatedGoals).forEach(goalName => { goalsList.innerHTML += `<div class="goal-item"><span class="goal-name"><i class="fa-solid fa-vault" style="margin-right:8px;"></i>${goalName}</span><span class="goal-amt">$${accumulatedGoals[goalName].toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`; });
+        } else { goalsContainer.style.display = 'none'; }
 
-        // 2. Process History List
         const list = document.getElementById('historyList'); list.innerHTML = '';
         history.forEach(item => {
             totalSpent += item.amount;
-            // Goals don't count against Brandon/Gina personal spend logic, they are shared wealth
             if (item.category !== 'Goal') { if (item.member === 'Brandon') bSpend += item.amount; else gSpend += item.amount; }
             
             if (item.category === 'Mortgage') catTotals.Mortgage += item.amount;
@@ -348,6 +365,9 @@
             const specificTag = item.category === 'Goal' ? `<span class="name-tag tag-goal">VAULT</span>` : `<span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span>`;
 
             const div = document.createElement('div'); div.className = 'history-item';
+            // Store the raw dollar amount in a data attribute for the search calculation engine
+            div.setAttribute('data-amt', item.amount);
+            
             div.innerHTML = `
                 <div class="item-left">
                     <div class="tag-row">${specificTag}<span class="date-tag">${d.getMonth()+1}/${d.getDate()}</span></div>
@@ -365,6 +385,7 @@
 
             if (billDate <= new Date()) {
                 const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
+                div.setAttribute('data-amt', sub.amount);
                 div.innerHTML = `<div class="item-left"><div class="tag-row"><span class="name-tag tag-auto">AUTO-SYNC</span><span class="date-tag">${billDate.getMonth()+1}/${billDate.getDate()}</span></div><span class="item-label">${sub.name}</span><span class="item-note">Recurring Bill</span></div><div class="item-amt">-$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
                 list.prepend(div);
             }
@@ -385,6 +406,8 @@
         document.getElementById('paceDisplay').innerText = paceText;
         
         if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, catTotals.Mortgage, catTotals.Car, catTotals.Utilities, catTotals.Phone, catTotals.Food, catTotals.Subs, catTotals.Goals, catTotals.Misc]; myChart.update(); }
+        
+        // Re-run the filter to update totals if the user is currently searching
         filterHistory();
     }
 
