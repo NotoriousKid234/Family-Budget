@@ -6,6 +6,7 @@
     <title>Montoya Budget Elite</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -58,7 +59,6 @@
             color: white; font-size: 1rem; box-sizing: border-box;
         }
 
-        /* Color Coding for Options */
         .opt-brandon { color: var(--brandon) !important; font-weight: 600; background: #0f172a; }
         .opt-gina { color: var(--gina) !important; font-weight: 600; background: #0f172a; }
 
@@ -68,8 +68,9 @@
             box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5);
         }
 
-        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-        .intent-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .delete-btn { color: #ef4444; cursor: pointer; margin-left: 15px; opacity: 0.5; transition: 0.2s; }
+        .delete-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -85,9 +86,9 @@
 
     <div id="app">
         <div class="hero-section">
-            <div class="balance-label">Household Remaining</div>
+            <div class="balance-label">Cycle Remaining (Reset 16th)</div>
             <div id="balance" class="balance-amount">$7,400</div>
-            <div id="paceDisplay" class="pace-pill">Pace: $238.70 / day</div>
+            <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
         </div>
 
         <div class="chart-container"><canvas id="budgetChart"></canvas></div>
@@ -122,11 +123,13 @@
                 <option value="Groceries">🛒 Groceries</option>
                 <option value="Dining">🍔 Dining / Takeout</option>
                 <option value="Utilities">💡 Utilities</option>
+                <option value="Beauty">✂️ Beauty / Grooming</option>
+                <option value="Subscription">📺 Subscriptions</option>
                 <option value="Misc">📦 Miscellaneous</option>
             </select>
             <button id="recordBtn" class="btn-elite" onclick="addEntry()">Sync Transaction</button>
         </div>
-        <div id="historyList" style="max-height: 140px; overflow-y: auto;"></div>
+        <div id="historyList" style="max-height: 180px; overflow-y: auto;"></div>
     </div>
 
 <script>
@@ -136,6 +139,7 @@
 
     const MY_PIN = "1991";
     const INCOME = 7400.00;
+    const CYCLE_START_DAY = 16;
     let history = [];
     let currentType = 'Need';
     let myChart;
@@ -147,12 +151,19 @@
     }
 
     function autoSuggest(c) { 
-        const needs = ['Mortgage','Car','Utilities','Groceries','CreditCard'];
+        const needs = ['Mortgage','Car','Utilities','Groceries','CreditCard','Subscription'];
         setType(needs.includes(c) ? 'Need' : 'Want'); 
     }
 
     function updateMemberColor(select) {
         select.style.color = select.value === "Brandon" ? "#3b82f6" : "#ec4899";
+    }
+
+    function getCycleStartDate() {
+        let now = new Date();
+        let cycleStart = new Date(now.getFullYear(), now.getMonth(), CYCLE_START_DAY, 0, 0, 0);
+        if (now.getDate() < CYCLE_START_DAY) cycleStart.setMonth(cycleStart.getMonth() - 1);
+        return cycleStart.toISOString();
     }
 
     async function checkPin() {
@@ -164,7 +175,7 @@
             updateMemberColor(document.getElementById('memberSelect'));
             initChart(); 
             await fetchHistory(); 
-        } else { alert("Access Denied"); }
+        } else { alert("Access Denied"); document.getElementById('pinField').value = ''; }
     }
 
     function initChart() {
@@ -172,10 +183,10 @@
         myChart = new Chart(ctx, { 
             type: 'doughnut', 
             data: { 
-                labels: ['Remaining', 'Mortgage', 'Car', 'Groceries', 'Dining', 'Utilities', 'CreditCard', 'Misc'], 
+                labels: ['Remaining', 'Spend'], 
                 datasets: [{ 
-                    data: [INCOME, 0, 0, 0, 0, 0, 0, 0], 
-                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#10b981', '#f43f5e', '#8b5cf6', '#a855f7', '#94a3b8'], 
+                    data: [INCOME, 0], 
+                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], 
                     borderWidth: 0 
                 }] 
             }, 
@@ -184,7 +195,12 @@
     }
 
     async function fetchHistory() {
-        const { data, error } = await _supabase.from('transactions').select('*').order('created_at', { ascending: false });
+        const startDate = getCycleStartDate();
+        const { data, error } = await _supabase
+            .from('transactions')
+            .select('*')
+            .gte('created_at', startDate)
+            .order('created_at', { ascending: false });
         if (!error) { history = data; updateUI(); }
     }
 
@@ -194,21 +210,22 @@
         if (isNaN(val) || val <= 0) return;
 
         document.getElementById('recordBtn').innerText = "Syncing...";
-        const newEntry = { 
-            amount: val, 
-            member: document.getElementById('memberSelect').value, 
-            category: document.getElementById('category').value, 
-            intent: currentType, 
+        const { error } = await _supabase.from('transactions').insert([{ 
+            amount: val, member: document.getElementById('memberSelect').value, 
+            category: document.getElementById('category').value, intent: currentType, 
             created_at: new Date().toISOString() 
-        };
-
-        const { error } = await _supabase.from('transactions').insert([newEntry]);
+        }]);
         if (!error) { amtInput.value = ''; await fetchHistory(); }
         document.getElementById('recordBtn').innerText = "Sync Transaction";
     }
 
+    async function deleteEntry(id) {
+        if (!confirm("Delete this transaction?")) return;
+        const { error } = await _supabase.from('transactions').delete().eq('id', id);
+        if (!error) await fetchHistory();
+    }
+
     function updateUI() {
-        let totals = { Mortgage:0, Car:0, Groceries:0, Dining:0, Utilities:0, CreditCard:0, Misc:0 };
         let bSpend = 0, gSpend = 0, totalSpent = 0;
         const list = document.getElementById('historyList'); 
         list.innerHTML = '';
@@ -217,27 +234,29 @@
             totalSpent += item.amount;
             if (item.member === "Brandon") bSpend += item.amount; else gSpend += item.amount;
             
-            let catName = item.category.replace(/[^\w\s]/gi, '').trim().split(' ')[0];
-            if(totals.hasOwnProperty(catName)) totals[catName] += item.amount; else totals.Misc += item.amount;
-
-            const dotColor = item.intent === 'Need' ? 'var(--need)' : 'var(--want)';
             const div = document.createElement('div'); 
             div.className = 'history-item';
-            div.innerHTML = `<div><span class="intent-dot" style="background:${dotColor}"></span><b>${item.category}</b><br><small>${item.member}</small></div><div>-$${item.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>`;
+            div.innerHTML = `
+                <div style="flex:1;"><b>${item.category}</b><br><small>${item.member}</small></div>
+                <div style="text-align:right;">-$${item.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                <i class="fa-solid fa-trash-can delete-btn" onclick="deleteEntry('${item.id}')"></i>
+            `;
             list.appendChild(div);
         });
 
         const remaining = INCOME - totalSpent;
-        document.getElementById('balance').innerText = "$" + (remaining < 0 ? 0 : remaining).toLocaleString();
+        document.getElementById('balance').innerText = "$" + remaining.toLocaleString();
         document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
         document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
 
-        const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-        const pace = remaining / (daysInMonth - new Date().getDate() + 1);
-        document.getElementById('paceDisplay').innerText = `Pace: $${pace.toFixed(2)} / day`;
+        let nextReset = new Date();
+        nextReset = new Date(nextReset.getFullYear(), nextReset.getMonth(), CYCLE_START_DAY);
+        if (new Date().getDate() >= CYCLE_START_DAY) nextReset.setMonth(nextReset.getMonth() + 1);
+        const daysLeft = Math.ceil((nextReset - new Date()) / (1000 * 60 * 60 * 24));
+        document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / (daysLeft || 1)).toFixed(2)} / day`;
 
         if(myChart) { 
-            myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totals.Mortgage, totals.Car, totals.Groceries, totals.Dining, totals.Utilities, totals.CreditCard, totals.Misc]; 
+            myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totalSpent]; 
             myChart.update(); 
         }
     }
