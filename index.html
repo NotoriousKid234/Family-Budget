@@ -3,93 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Montoya Budget Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Montoya Budget Elite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         :root { 
-            --primary: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-            --brandon: #3182ce; --gina: #d53f8c; 
-            --bg: radial-gradient(circle at top right, #f8fafc, #e2e8f0);
-            --card: #ffffff; --text: #1e293b; --input: #f8fafc; --border: #e2e8f0;
-        }
-
-        [data-theme="dark"] {
-            --bg: radial-gradient(circle at top right, #1e293b, #0f172a);
-            --card: #1e293b; --text: #f8fafc; --input: #0f172a; --border: #334155;
+            --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --brandon: #3b82f6; --gina: #ec4899; 
+            --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); 
+            --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
 
         body { 
             font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; 
             display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; color: var(--text); transition: all 0.3s ease;
+            min-height: 100vh; color: var(--text); overflow-x: hidden;
         }
 
-        #loginScreen { 
-            background: var(--card); padding: 40px; border-radius: 28px; 
-            width: 340px; text-align: center; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-            display: flex; flex-direction: column; align-items: center;
+        /* Glassmorphism Card */
+        #loginScreen, #app { 
+            background: var(--card); backdrop-filter: blur(20px); 
+            padding: 40px; border-radius: 32px; width: 440px; 
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px;
         }
 
-        #app { 
-            display: none; background: var(--card); padding: 30px; border-radius: 28px; 
-            width: 440px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); margin: 20px;
+        .hero-section { text-align: center; margin-bottom: 30px; }
+        .balance-label { font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+        .balance-amount { font-size: 3.2rem; font-weight: 700; background: #fff; -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -2px; }
+
+        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin-top: 10px; }
+
+        .chart-container { position: relative; height: 200px; margin: 20px 0; }
+
+        .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
+
+        input, select { 
+            width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 16px; 
+            border: 1px solid var(--border); background: rgba(0,0,0,0.2); 
+            color: white; font-size: 1rem; outline: none; transition: border 0.3s;
         }
+        input:focus { border-color: #6366f1; }
 
-        .balance-hero { background: var(--input); padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 20px; border: 1px solid var(--border); }
-        .chart-container { position: relative; height: 220px; margin-bottom: 25px; }
-        .family-stats { display: flex; gap: 10px; margin-bottom: 20px; }
-        .stat-pill { flex: 1; padding: 12px; border-radius: 16px; color: white; text-align: center; }
+        .btn-elite { 
+            background: var(--primary); color: white; border: none; padding: 18px; 
+            border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); transition: transform 0.2s;
+        }
+        .btn-elite:active { transform: scale(0.97); }
 
-        label { display: block; margin-bottom: 6px; font-weight: 700; color: #94a3b8; font-size: 0.7rem; text-transform: uppercase; text-align: left; width: 100%; }
-        input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); font-size: 1rem; background: var(--input); color: var(--text); box-sizing: border-box; }
-        
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; transition: transform 0.1s; }
-        .btn-primary:active { transform: scale(0.98); }
-        
-        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: center; }
-        .hidden { display: none !important; }
+        .history-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
     </style>
 </head>
 <body>
 
     <div id="loginScreen">
-        <div style="background: #6366f1; width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);">
-            <i class="fa-solid fa-calendar-check fa-2x" style="color: white;"></i>
+        <div style="background: var(--primary); width: 70px; height: 70px; border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.6);">
+            <i class="fa-solid fa-bolt-lightning fa-2x" style="color: white;"></i>
         </div>
-        <h2 style="margin: 0 0 8px 0;">Family Vault</h2>
-        <p style="color: #94a3b8; font-size: 0.85rem; margin: 0 0 25px 0;">Automated Budget Tracking</p>
-        <input type="password" id="pinField" placeholder="••••" style="text-align:center; font-size: 2rem; letter-spacing:8px; border-radius:15px; margin-bottom:20px;">
-        <button class="btn-primary" onclick="checkPin()">Unlock Dashboard</button>
+        <h2 style="margin: 0 0 10px 0; font-size: 1.8rem;">Elite Access</h2>
+        <p style="color: #94a3b8; margin-bottom: 30px;">Welcome back, Brandon & Gina</p>
+        <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2.2rem;">
+        <button class="btn-elite" onclick="checkPin()">Unlock Vault</button>
     </div>
 
-    <div id="app">
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <button onclick="toggleTheme()" style="background:none; border:none; color:var(--text); cursor:pointer;"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
-            <span style="font-weight: 800; font-size: 1.1rem;">Budget Analytics</span>
-            <button onclick="location.reload()" style="background:none; border:none; color:#64748b; cursor:pointer;"><i class="fa-solid fa-rotate"></i></button>
-        </div>
-
-        <div class="balance-hero">
-            <div id="balance" style="font-size: 2.4rem; font-weight: 800; letter-spacing: -1px;">$7,400.00</div>
+    <div id="app" class="hidden">
+        <div class="hero-section">
+            <div class="balance-label">Household Remaining</div>
+            <div id="balance" class="balance-amount">$7,400</div>
+            <div id="paceDisplay" class="pace-pill">Pace: $238.00 / day</div>
         </div>
 
         <div class="chart-container"><canvas id="budgetChart"></canvas></div>
 
-        <div class="family-stats">
-            <div class="stat-pill" style="background: var(--brandon);"><div id="brandonSpend" style="font-weight:700;">$0</div></div>
-            <div class="stat-pill" style="background: var(--gina);"><div id="ginaSpend" style="font-weight:700;">$0</div></div>
+        <div class="stat-group">
+            <div class="stat-card"><div style="color:var(--brandon); font-size:0.7rem; font-weight:700;">BRANDON</div><div id="brandonSpend" style="font-size:1.1rem; font-weight:700;">$0</div></div>
+            <div class="stat-card"><div style="color:var(--gina); font-size:0.7rem; font-weight:700;">GINA</div><div id="ginaSpend" style="font-size:1.1rem; font-weight:700;">$0</div></div>
         </div>
 
-        <div style="background: var(--input); padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 25px;">
+        <div style="margin-bottom: 30px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <div><label>Member</label><select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select></div>
-                <div><label>Amount</label><input type="number" id="amount" placeholder="0.00"></div>
+                <select id="memberSelect"><option>Brandon</option><option>Gina</option></select>
+                <input type="number" id="amount" placeholder="0.00">
             </div>
-            <label>Category</label>
             <select id="category">
                 <option value="Mortgage">🏠 Mortgage</option>
                 <option value="Car">🚗 Car Payment</option>
@@ -97,16 +96,15 @@
                 <option value="Dining">🍔 Dining / Takeout</option>
                 <option value="Misc">📦 Miscellaneous</option>
             </select>
-            <button class="btn-primary" onclick="addEntry()">Record Expense</button>
+            <button class="btn-elite" onclick="addEntry()">Confirm Transaction</button>
         </div>
 
-        <div id="historyList" style="max-height: 200px; overflow-y: auto;"></div>
+        <div id="historyList" style="max-height: 150px; overflow-y: auto;"></div>
     </div>
 
 <script>
     const MY_PIN = "1991";
     const INCOME = 7400.00;
-    
     let history = JSON.parse(localStorage.getItem('fam_history')) || [];
     let myChart;
 
@@ -114,49 +112,8 @@
         if (document.getElementById('pinField').value === MY_PIN) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
-            document.body.style.alignItems = 'flex-start';
-            document.body.style.paddingTop = '40px';
-            
-            // --- AUTOMATIC RESET CHECK ---
-            checkAutoReset();
-            
             initChart(); updateDisplay();
-        } else { alert("Wrong PIN"); }
-    }
-
-    function checkAutoReset() {
-        const currentMonth = new Date().getMonth(); // 0 = Jan, 2 = March, etc.
-        const lastReset = localStorage.getItem('last_reset_month');
-
-        if (lastReset !== null && parseInt(lastReset) !== currentMonth) {
-            // It's a brand new month! 
-            archivePreviousMonth(lastReset);
-            alert("Happy New Month! Your $7,400 budget has been automatically refreshed.");
-        }
-        
-        // Save current month as the new "Last Reset"
-        localStorage.setItem('last_reset_month', currentMonth);
-    }
-
-    function archivePreviousMonth(monthIdx) {
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        const oldMonthName = monthNames[monthIdx];
-        
-        // Save the old month's history into a special archive slot
-        let archives = JSON.parse(localStorage.getItem('fam_archives')) || {};
-        archives[oldMonthName] = history;
-        localStorage.setItem('fam_archives', JSON.stringify(archives));
-
-        // Clear the slate for the new month
-        history = [];
-        localStorage.setItem('fam_history', JSON.stringify(history));
-    }
-
-    function toggleTheme() {
-        const current = document.body.getAttribute('data-theme');
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.body.setAttribute('data-theme', next);
-        document.getElementById('themeIcon').className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        } else { alert("Access Denied"); }
     }
 
     function initChart() {
@@ -167,11 +124,11 @@
                 labels: ['Remaining', 'Mortgage', 'Car', 'Groceries', 'Dining', 'Misc'],
                 datasets: [{
                     data: [INCOME, 0, 0, 0, 0, 0],
-                    backgroundColor: ['#e2e8f0', '#6366f1', '#3b82f6', '#10b981', '#f43f5e', '#94a3b8'],
-                    borderWidth: 0
+                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#10b981', '#f43f5e', '#94a3b8'],
+                    borderWidth: 0, hoverOffset: 15
                 }]
             },
-            options: { cutout: '75%', plugins: { legend: { display: false } } }
+            options: { cutout: '80%', plugins: { legend: { display: false } }, animation: { animateRotate: true } }
         });
     }
 
@@ -205,7 +162,7 @@
 
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.innerHTML = `<div><div style="font-weight:700; font-size:0.85rem; color:var(--text);">${item.category}</div><div style="font-size:0.7rem; color:#94a3b8;">${item.member}</div></div><div style="font-weight:700; color:#ef4444;">-$${item.amount.toFixed(2)}</div>`;
+            div.innerHTML = `<div><div style="font-weight:600; font-size:0.85rem;">${item.category}</div><div style="font-size:0.7rem; color:#94a3b8;">${item.member}</div></div><div style="font-weight:700;">-$${item.amount.toFixed(2)}</div>`;
             list.appendChild(div);
         });
 
@@ -214,15 +171,17 @@
         document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
         document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
 
+        // Calculate Pace
+        const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+        const daysLeft = daysInMonth - new Date().getDate() + 1;
+        const pace = remaining / daysLeft;
+        document.getElementById('paceDisplay').innerText = `Daily Pace: $${pace.toFixed(2)}`;
+
         if(myChart) {
             myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totals.Mortgage, totals.Car, totals.Groceries, totals.Dining, totals.Misc];
             myChart.update();
         }
     }
-
-    document.getElementById('pinField').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') checkPin();
-    });
 </script>
 </body>
 </html>
