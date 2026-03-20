@@ -19,9 +19,13 @@
         #loginScreen, #app, #subManager { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; box-sizing: border-box; }
         #app, #subManager { display: none; } 
         
-        .header-stack { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; margin-bottom: 25px; }
+        .header-stack { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; margin-bottom: 20px; }
         .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.15); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(129, 140, 248, 0.4); box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); color: #818cf8; }
         .logo-glow svg { fill: #818cf8; }
+
+        /* CYCLE DROPDOWN */
+        .cycle-selector { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #94a3b8; padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center; appearance: none; margin-bottom: 15px; outline: none; width: fit-content; margin-left: auto; margin-right: auto; display: block; }
+        .cycle-selector:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; margin-bottom: 5px;}
         .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 25px auto; }
@@ -66,6 +70,8 @@
     </div>
 
     <div id="app">
+        <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
+
         <div id="balance" class="balance-amount">$7,400</div>
         <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
         
@@ -116,17 +122,43 @@
     const INCOME = 7400.00; 
     const CYCLE_START_DAY = 16;
     let history = [], recurring = [], currentType = 'Need', myChart;
+    let currentViewDate = new Date(); // Tracks which historical cycle is active
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
     function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Phone','Groceries','CreditCard','Subscription'].includes(c) ? 'Need' : 'Want'); }
     async function toggleManager() { const app = document.getElementById('app'); const manager = document.getElementById('subManager'); if (app.style.display === 'none') { app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); } else { app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); } }
     
-    function getCycleDates() { 
-        let now = new Date(); 
-        let start = new Date(now.getFullYear(), now.getMonth(), CYCLE_START_DAY, 0, 0, 0); 
-        if (now.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); 
+    // Core Cycle Math using dynamic view date
+    function getCycleDates(baseDate = currentViewDate) { 
+        let d = new Date(baseDate); 
+        let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY, 0, 0, 0); 
+        if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); 
         let end = new Date(start); end.setMonth(end.getMonth() + 1); 
         return { start, end }; 
+    }
+
+    // Populate the dropdown with the last 6 months
+    function initCycles() {
+        const select = document.getElementById('cycleSelect');
+        select.innerHTML = '';
+        let now = new Date();
+        for(let i=0; i<6; i++) {
+            let d = new Date(now.getFullYear(), now.getMonth() - i, now.getDate());
+            let { start, end } = getCycleDates(d);
+            let endDisplay = new Date(end); endDisplay.setDate(endDisplay.getDate() - 1);
+            let label = `${start.toLocaleString('default', {month:'short'})} ${start.getDate()} - ${endDisplay.toLocaleString('default', {month:'short'})} ${endDisplay.getDate()}`;
+            if (i === 0) label = "Current Cycle (" + label + ")";
+            
+            let option = document.createElement('option');
+            option.value = d.toISOString();
+            option.text = label;
+            select.appendChild(option);
+        }
+    }
+
+    async function changeCycle() {
+        currentViewDate = new Date(document.getElementById('cycleSelect').value);
+        await fetchData();
     }
 
     async function checkPin() { 
@@ -135,6 +167,7 @@
             document.getElementById('app').style.display = 'block'; 
             document.body.style.alignItems = 'flex-start'; 
             document.body.style.paddingTop = '40px'; 
+            initCycles();
             initChart(); 
             await fetchData(); 
         } else { 
@@ -142,7 +175,6 @@
         } 
     }
 
-    // MULTI-COLOR CHART INITIALIZATION
     function initChart() { 
         const ctx = document.getElementById('budgetChart').getContext('2d'); 
         myChart = new Chart(ctx, { 
@@ -160,9 +192,14 @@
     }
 
     async function fetchData() {
-        const { start } = getCycleDates();
+        const { start, end } = getCycleDates(currentViewDate);
+        
+        // Supabase Query now strictly isolates the selected cycle window
         const [transRes, recurRes] = await Promise.all([
-            _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).order('created_at', { ascending: false }),
+            _supabase.from('transactions').select('*')
+                .gte('created_at', start.toISOString())
+                .lt('created_at', end.toISOString())
+                .order('created_at', { ascending: false }),
             _supabase.from('recurring_expenses').select('*').order('name', { ascending: true })
         ]);
         history = transRes.data || []; 
@@ -178,33 +215,30 @@
         if (isNaN(amt) || amt <= 0) return;
         
         let note = prompt("Enter specific name/note (e.g. Netflix, AT&T, Water Bill):");
-        if (note === null) return; // User cancelled
+        if (note === null) return; 
         
         if (cat === 'Subscription') {
             const billDay = prompt(`What day of the month is this billed? (1-31):`, new Date().getDate());
-            if (billDay === null) return; // User cancelled
+            if (billDay === null) return; 
             await _supabase.from('recurring_expenses').insert([{ name: note, amount: amt, billing_day: parseInt(billDay), member: mem }]);
         }
         
         await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note, intent: currentType, created_at: new Date().toISOString() }]);
         document.getElementById('amount').value = ''; 
+        
+        // Force view back to current cycle so the user immediately sees the new transaction
+        document.getElementById('cycleSelect').selectedIndex = 0;
+        currentViewDate = new Date();
         await fetchData();
     }
 
-    // CASCADING DELETE LOGIC
     async function deleteEntry(id) { 
         if (confirm("Delete this transaction?")) { 
-            // 1. Fetch the transaction so we know its name/category before destroying it
             const { data } = await _supabase.from('transactions').select('*').eq('id', id).single();
-            
-            // 2. Delete it from the main history
             await _supabase.from('transactions').delete().eq('id', id); 
-            
-            // 3. If it was a subscription, cascade the delete to the Recurring Bills table
             if (data && data.category === 'Subscription' && data.note) {
                 await _supabase.from('recurring_expenses').delete().eq('name', data.note);
             }
-            
             await fetchData(); 
         } 
     }
@@ -245,7 +279,7 @@
     }
 
     function updateUI() {
-        const { start, end } = getCycleDates();
+        const { start, end } = getCycleDates(currentViewDate);
         let bSpend = 0, gSpend = 0, totalSpent = 0;
         let catTotals = { Mortgage:0, Car:0, Utilities:0, Phone:0, Food:0, Subs:0, Misc:0 };
         
@@ -255,7 +289,6 @@
             totalSpent += item.amount;
             if (item.member === 'Brandon') bSpend += item.amount; else gSpend += item.amount;
             
-            // Map to Multi-Color Chart
             if (item.category === 'Mortgage') catTotals.Mortgage += item.amount;
             else if (item.category === 'Car') catTotals.Car += item.amount;
             else if (item.category === 'Utilities') catTotals.Utilities += item.amount;
@@ -284,10 +317,10 @@
             if (sub.billing_day < CYCLE_START_DAY) { billDate.setMonth(billDate.getMonth() + 1); }
             billDate.setDate(sub.billing_day);
 
-            // PREVENT DOUBLE COUNTING: If already logged manually, don't count it twice
             const logged = history.some(h => h.note === sub.name && h.category === 'Subscription');
             if (logged) return sum;
 
+            // If viewing a past cycle, all bills in that window are considered "past" and will render
             if (billDate <= new Date()) {
                 const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
                 div.innerHTML = `
@@ -309,10 +342,13 @@
         document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
         
-        const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
-        document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
+        let paceText = "Pace: Cycle Complete";
+        if (currentViewDate.getMonth() === new Date().getMonth() && currentViewDate.getFullYear() === new Date().getFullYear()) {
+            const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
+            paceText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
+        }
+        document.getElementById('paceDisplay').innerText = paceText;
         
-        // PUSH DATA TO MULTI-COLOR CHART
         if(myChart) { 
             myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, catTotals.Mortgage, catTotals.Car, catTotals.Utilities, catTotals.Phone, catTotals.Food, catTotals.Subs, catTotals.Misc]; 
             myChart.update(); 
