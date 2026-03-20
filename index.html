@@ -46,7 +46,6 @@
         .item-label { font-size: 1rem; font-weight: 700; color: #fff; }
         .item-note { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
         .item-amt { font-size: 1.1rem; font-weight: 700; color: #fff; text-align: right; }
-        .action-icons { display: flex; gap: 12px; align-items: center; }
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 1rem; box-sizing: border-box; }
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; }
@@ -127,7 +126,7 @@
         const cat = document.getElementById('category').value;
         const mem = document.getElementById('memberSelect').value;
         if (isNaN(amt) || amt <= 0) return;
-        let note = prompt("Enter note (e.g. Water Bill, Electric, Netflix):");
+        let note = prompt("Enter specific note (e.g. Water, Electric, Netflix):");
         if (cat === 'Subscription') {
             const billDay = prompt("Billing Day (1-31):", CYCLE_START_DAY);
             if (note && billDay) await _supabase.from('recurring_expenses').insert([{ name: note, amount: amt, billing_day: parseInt(billDay), member: mem }]);
@@ -159,7 +158,7 @@
         const list = document.getElementById('subList'); list.innerHTML = '';
         recurring.forEach(sub => {
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div class="item-left"><span class="item-label">${sub.name}</span><span class="item-sub">Day ${sub.billing_day}</span></div><div class="action-icons"><b>$${sub.amount.toFixed(2)}</b><i class="fa-solid fa-pen-to-square" style="color:#60a5fa; cursor:pointer;" onclick='editSub(${JSON.stringify(sub)})'></i><i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer;" onclick="deleteSub('${sub.id}')"></i></div>`;
+            div.innerHTML = `<div class="item-left"><span class="item-label">${sub.name}</span><span class="item-sub">Day ${sub.billing_day}</span></div><div class="action-icons"><b>$${sub.amount.toFixed(2)}</b><i class="fa-solid fa-pen-to-square" style="color:#60a5fa; cursor:pointer;" onclick='editSub(${JSON.stringify(sub)})'></i><i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
             list.appendChild(div);
         });
     }
@@ -174,16 +173,22 @@
             if (item.member === 'Brandon') bSpend += item.amount; else gSpend += item.amount;
             const d = new Date(item.created_at);
             const div = document.createElement('div'); div.className = 'history-item';
+            
+            // LOGIC: If it's a subscription category, show the note (Hulu/Netflix) as the primary label
+            const primaryLabel = item.category === 'Subscription' ? (item.note || 'Subscription') : item.category;
+            const secondaryNote = item.category === 'Subscription' ? 'Recurring Bill' : (item.note || '');
+
             div.innerHTML = `
                 <div class="item-left">
                     <div class="tag-row"><span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span><span class="date-tag">${d.getMonth()+1}/${d.getDate()}</span></div>
-                    <span class="item-label">${item.category}</span>
-                    <span class="item-note">${item.note || ''}</span>
+                    <span class="item-label">${primaryLabel}</span>
+                    <span class="item-note">${secondaryNote}</span>
                 </div>
                 <div class="item-amt">-$${item.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
         });
 
+        // AUTO-SYNC LOGIC
         const recurTotal = recurring.reduce((sum, sub) => {
             let billDate = new Date(new Date().getFullYear(), new Date().getMonth(), sub.billing_day);
             if (billDate >= start && billDate < end) {
