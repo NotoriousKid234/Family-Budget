@@ -16,9 +16,23 @@
             --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); 
             --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); overflow-x: hidden; }
+        body { 
+            font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; color: var(--text); overflow-x: hidden;
+        }
         
-        #loginScreen, #app, #subManager { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; }
+        #loginScreen, #app, #subManager { 
+            background: var(--card); backdrop-filter: blur(20px); 
+            padding: 40px; border-radius: 32px; width: 440px; 
+            border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+            margin: 20px; box-sizing: border-box;
+        }
+
+        /* Fixed: Centered Logo and Text */
+        .header-stack { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; text-align: center; }
+        .logo-box { background: var(--primary); width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+
         #app, #subManager { display: none; } 
 
         .hero-section { text-align: center; margin-bottom: 25px; }
@@ -38,14 +52,18 @@
         .btn-secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 12px; width: 100%; cursor: pointer; margin-top: 10px; font-size: 0.8rem; }
         
         .history-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-        .delete-btn { color: #ef4444; cursor: pointer; margin-left: 15px; opacity: 0.5; }
+        .delete-btn { color: #ef4444; cursor: pointer; margin-left: 15px; opacity: 0.5; transition: 0.2s; }
+        .delete-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
 
     <div id="loginScreen">
-        <div style="background: var(--primary); width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;"><i class="fa-solid fa-vault fa-2x" style="color: white;"></i></div>
-        <h2 style="margin:0; font-size: 1.5rem;">Montoya Ledger</h2>
+        <div class="header-stack">
+            <div class="logo-box"><i class="fa-solid fa-vault fa-2x" style="color: white;"></i></div>
+            <h2 style="margin:0; font-size: 1.5rem; font-weight: 700;">Montoya Ledger</h2>
+            <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">Elite Spending Control</p>
+        </div>
         <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem; margin: 20px 0;">
         <button class="btn-elite" onclick="checkPin()">Authorize Access</button>
     </div>
@@ -79,8 +97,11 @@
     </div>
 
     <div id="subManager">
-        <h3 style="margin-top:0;">Recurring Bills</h3>
-        <div id="subList" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;"></div>
+        <div class="header-stack">
+            <h3 style="margin-top:0;">Recurring Bills</h3>
+            <p style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 20px;">Automated Cycle Deductions</p>
+        </div>
+        <div id="subList" style="max-height: 180px; overflow-y: auto; margin-bottom: 20px;"></div>
         <input type="text" id="subName" placeholder="Bill Name (e.g. Netflix)">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <input type="number" id="subAmt" placeholder="0.00">
@@ -99,7 +120,19 @@
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
     function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Groceries','CreditCard','Subscription'].includes(c) ? 'Need' : 'Want'); }
-    function toggleManager() { document.getElementById('app').style.display = document.getElementById('app').style.display === 'none' ? 'block' : 'none'; document.getElementById('subManager').style.display = document.getElementById('subManager').style.display === 'none' ? 'block' : 'none'; }
+    
+    // Fixed: Transition between dashboard and manager
+    function toggleManager() { 
+        const app = document.getElementById('app');
+        const manager = document.getElementById('subManager');
+        if (app.style.display === 'none') {
+            app.style.display = 'block';
+            manager.style.display = 'none';
+        } else {
+            app.style.display = 'none';
+            manager.style.display = 'block';
+        }
+    }
     
     function getCycleDates() {
         let now = new Date();
@@ -113,6 +146,8 @@
         if (document.getElementById('pinField').value === MY_PIN) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
+            document.body.style.alignItems = 'flex-start'; 
+            document.body.style.paddingTop = '40px';
             initChart(); await fetchData();
         } else { alert("Access Denied"); }
     }
@@ -136,8 +171,10 @@
     async function addEntry() {
         const val = parseFloat(document.getElementById('amount').value);
         if (isNaN(val) || val <= 0) return;
+        document.getElementById('recordBtn').innerText = "Syncing...";
         await _supabase.from('transactions').insert([{ amount: val, member: document.getElementById('memberSelect').value, category: document.getElementById('category').value, intent: currentType }]);
         document.getElementById('amount').value = ''; await fetchData();
+        document.getElementById('recordBtn').innerText = "Sync Transaction";
     }
 
     async function deleteEntry(id) { if (confirm("Delete?")) { await _supabase.from('transactions').delete().eq('id', id); await fetchData(); } }
@@ -168,14 +205,12 @@
         let totalSpent = history.reduce((sum, item) => sum + item.amount, 0);
         let bSpend = history.filter(i => i.member === 'Brandon').reduce((sum, i) => sum + i.amount, 0);
         let gSpend = history.filter(i => i.member === 'Gina').reduce((sum, i) => sum + i.amount, 0);
-
-        // Deduct recurring only if billing day falls in current cycle window
         const recurTotal = recurring.reduce((sum, sub) => sum + sub.amount, 0);
 
         const remaining = INCOME - totalSpent - recurTotal;
         document.getElementById('balance').innerText = "$" + remaining.toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
-        document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
+        document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
 
         const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
         document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
