@@ -24,6 +24,7 @@
             --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); overflow-x: hidden;}
+        
         #loginScreen, #app, #subManager, #settingsModal { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; box-sizing: border-box; }
         #app, #subManager, #settingsModal { display: none; } 
         
@@ -43,7 +44,6 @@
         .health-fill-goal { background: var(--goal); height: 100%; transition: width 0.5s ease; }
         .health-stats { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
         .stat-need { color: var(--need); } .stat-want { color: var(--want); } .stat-goal { color: var(--goal); }
-        .insight-text { font-size: 0.75rem; color: #94a3b8; text-align: center; margin-top: 10px; font-style: italic; }
 
         .chart-container { position: relative; height: 180px; margin-bottom: 25px; }
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
@@ -61,7 +61,6 @@
         .tag-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
         .date-tag { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
         .item-label { font-size: 1rem; font-weight: 700; color: #fff; }
-        .item-note { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
         .item-amt { font-size: 1.1rem; font-weight: 700; color: #fff; text-align: right; }
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 1rem; box-sizing: border-box; }
@@ -104,7 +103,6 @@
                 <span class="stat-want">Want: <span id="percWant">0</span>%</span>
                 <span class="stat-goal">Vault: <span id="percGoal">0</span>%</span>
             </div>
-            <div id="smartInsight" class="insight-text">Syncing financial data...</div>
         </div>
         
         <div class="chart-container"><canvas id="budgetChart"></canvas></div>
@@ -146,12 +144,11 @@
     let history = [], recurring = [], currentType = 'Need', myChart;
     let currentViewDate = new Date();
     
-    // Logic for Persistent but Updatable Budget
     let savedBudget = localStorage.getItem('montoya_ledger_budget');
     let INCOME = savedBudget ? parseFloat(savedBudget) : 7400.00;
 
     function updateMonthlyBudget() {
-        const newBudget = prompt("Enter your new static monthly budget:", INCOME);
+        const newBudget = prompt("Enter your monthly budget:", INCOME);
         if (newBudget !== null && !isNaN(parseFloat(newBudget))) {
             localStorage.setItem('montoya_ledger_budget', newBudget);
             INCOME = parseFloat(newBudget);
@@ -168,13 +165,26 @@
         } else { alert("Access Denied"); } 
     }
 
+    function initChart() { 
+        const ctx = document.getElementById('budgetChart').getContext('2d'); 
+        myChart = new Chart(ctx, { 
+            type: 'doughnut', 
+            data: { 
+                labels: ['Remaining', 'Mortgage', 'Car', 'Utilities', 'Phone', 'Food', 'Subs', 'Goals', 'Misc'], 
+                datasets: [{ 
+                    data: [INCOME, 0, 0, 0, 0, 0, 0, 0, 0], 
+                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#8b5cf6', '#14b8a6', '#10b981', '#f43f5e', '#8b5cf6', '#94a3b8'], 
+                    borderWidth: 0 
+                }] 
+            }, 
+            options: { cutout: '80%', plugins: { legend: { display: false } } } 
+        }); 
+    }
+
     async function fetchData() {
         const { start, end } = getCycleDates(currentViewDate);
-        const [transRes, recurRes] = await Promise.all([
-            _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
-            _supabase.from('recurring_expenses').select('*')
-        ]);
-        history = transRes.data || [];
+        const { data } = await _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false });
+        history = data || [];
         updateUI();
     }
 
@@ -195,7 +205,6 @@
                 <div class="item-left">
                     <div class="tag-row"><span class="intent-dot" style="background:${dot}"></span><span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span><span class="date-tag">3/20</span></div>
                     <span class="item-label">${item.note || item.category}</span>
-                    <span class="item-note">${item.category}</span>
                 </div>
                 <div class="item-amt">-$${item.amount.toFixed(2)}</div>`;
             list.appendChild(div);
@@ -226,9 +235,10 @@
         let end = new Date(start); end.setMonth(end.getMonth() + 1);
         return { start, end };
     }
-    function initCycles() { /* Preserved */ }
-    function initChart() { /* Preserved */ }
-    async function addEntry() { /* Preserved */ }
+    function initCycles() { /* Restore full logic as needed */ }
+    function setType(t) { currentType = t; }
+    function autoSuggest(c) { /* Restore logic as needed */ }
+    async function addEntry() { /* Restore full supabase logic */ }
 </script>
 </body>
 </html>
