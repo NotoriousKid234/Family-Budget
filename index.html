@@ -1,43 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montoya Ledger Elite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { 
+            --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --brandon: #3b82f6; --gina: #ec4899; 
+            --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); 
+            --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); }
+        #loginScreen, #app, #subManager { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; box-sizing: border-box; }
+        #app, #subManager { display: none; } 
+        
+        .header-stack { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; margin-bottom: 25px; }
+        .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.15); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(129, 140, 248, 0.4); box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); color: #818cf8; }
+        .logo-glow svg { fill: #818cf8; }
+
+        .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; }
+        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 10px auto 25px auto; }
+
+        .chart-container { position: relative; height: 180px; margin-bottom: 25px; }
+        .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
+
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); margin-bottom: 12px; }
+        .btn-manage { background: #1e293b; color: white; border: 1px solid var(--border); padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
+
+        #searchBar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px 15px; border-radius: 12px; width: 100%; margin-bottom: 15px; box-sizing: border-box; font-size: 0.9rem; }
+        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
+        .item-left { display: flex; flex-direction: column; gap: 4px; }
+        .tag-row { display: flex; gap: 8px; align-items: center; }
+        .name-tag { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tag-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .tag-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .tag-auto { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        
+        .date-tag { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
+        .item-label { font-size: 1rem; font-weight: 700; color: #fff; }
+        .item-note { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
+        .item-amt { font-size: 1.1rem; font-weight: 700; color: #fff; text-align: right; }
+        .action-icons { display: flex; gap: 12px; align-items: center; }
+
+        input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 1rem; box-sizing: border-box; }
+        .type-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; }
+        .type-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: none; color: #94a3b8; cursor: pointer; font-weight: 600; }
+        .type-btn.active { background: #fff; color: #0f172a; }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen">
+        <div class="header-stack">
+            <div class="logo-glow"><svg width="40" height="40" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
+            <h2 style="margin:0;">Montoya Ledger</h2>
+        </div>
+        <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem; margin: 20px 0;">
+        <button class="btn-elite" onclick="checkPin()">Authorize Access</button>
+    </div>
+
+    <div id="app">
+        <div id="balance" class="balance-amount">$7,400</div>
+        <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
+        <div class="chart-container"><canvas id="budgetChart"></canvas></div>
+        <div class="stat-group">
+            <div class="stat-card"><div style="color:var(--brandon); font-size:0.6rem; font-weight:700;">BRANDON</div><div id="brandonSpend" style="font-weight:700;">$0</div></div>
+            <div class="stat-card"><div style="color:var(--gina); font-size:0.6rem; font-weight:700;">GINA</div><div id="ginaSpend" style="font-weight:700;">$0</div></div>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <select id="memberSelect" onchange="this.style.color = this.value === 'Brandon' ? '#3b82f6' : '#ec4899';"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select>
+                <input type="number" id="amount" placeholder="0.00">
+            </div>
+            <select id="category" onchange="autoSuggest(this.value)">
+                <option value="Mortgage">🏠 Mortgage</option><option value="Car">🚗 Car Payment</option><option value="CreditCard">💳 Credit Card Payment</option><option value="Utilities">💡 Utilities</option><option value="Groceries">🛒 Groceries</option><option value="Dining">🍔 Dining / Takeout</option><option value="Beauty">✂️ Beauty</option><option value="Subscription">📺 Subscription</option><option value="Misc">📦 Miscellaneous</option>
+            </select>
+            <button id="recordBtn" class="btn-elite" onclick="addEntry()">Sync Transaction</button>
+            <button class="btn-manage" onclick="toggleManager()" style="width:100%">Manage Recurring Bills</button>
+        </div>
+        
+        <input type="text" id="searchBar" placeholder="🔍 Search notes, categories, or members..." onkeyup="filterHistory()">
+        <div id="historyList" style="max-height: 400px; overflow-y: auto;"></div>
+    </div>
+
+    <div id="subManager">
+        <div class="header-stack"><h3>Recurring Control</h3></div>
+        <div id="subList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
+        <button class="btn-manage" style="width:100%" onclick="toggleManager()">Back to Ledger</button>
+    </div>
+
 <script>
-    // ... (Keep Supabase Config & Cycle Dates) ...
+    const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
+    const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const MY_PIN = "1991"; const INCOME = 7400.00; const CYCLE_START_DAY = 16;
+    let history = [], recurring = [], currentType = 'Need', myChart;
+
+    function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
+    function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Groceries','CreditCard','Subscription'].includes(c) ? 'Need' : 'Want'); }
+    async function toggleManager() { const app = document.getElementById('app'); const manager = document.getElementById('subManager'); if (app.style.display === 'none') { app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); } else { app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); } }
+    
+    // Cycle Date Logic
+    function getCycleDates() { 
+        let now = new Date(); 
+        let start = new Date(now.getFullYear(), now.getMonth(), CYCLE_START_DAY, 0, 0, 0); 
+        if (now.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); 
+        let end = new Date(start); end.setMonth(end.getMonth() + 1); 
+        return { start, end }; 
+    }
+
+    async function checkPin() { if (document.getElementById('pinField').value === MY_PIN) { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('app').style.display = 'block'; document.body.style.alignItems = 'flex-start'; document.body.style.paddingTop = '40px'; initChart(); await fetchData(); } else { alert("Access Denied"); } }
+
+    function initChart() { const ctx = document.getElementById('budgetChart').getContext('2d'); myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Spend'], datasets: [{ data: [INCOME, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } }); }
+
+    async function fetchData() {
+        const { start } = getCycleDates();
+        const [transRes, recurRes] = await Promise.all([
+            _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).order('created_at', { ascending: false }),
+            _supabase.from('recurring_expenses').select('*').order('name', { ascending: true })
+        ]);
+        history = transRes.data || []; recurring = recurRes.data || [];
+        updateUI(); updateSubList();
+    }
 
     async function addEntry() {
-        const amtInput = document.getElementById('amount');
-        const catInput = document.getElementById('category');
+        const amt = parseFloat(document.getElementById('amount').value);
+        const cat = document.getElementById('category').value;
         const mem = document.getElementById('memberSelect').value;
-        const val = parseFloat(amtInput.value);
+        if (isNaN(amt) || amt <= 0) return;
         
-        if (isNaN(val) || val <= 0) return;
-        document.getElementById('recordBtn').innerText = "Syncing...";
-
-        let note = prompt("Enter specific name (e.g. Netflix, Water Bill):");
+        let note = prompt("Enter specific name/note (e.g. Netflix, Water Bill):");
         
-        // If it's a sub, we handle the intelligent promotion
-        if (catInput.value === 'Subscription') {
+        if (cat === 'Subscription') {
             const billDay = prompt(`What day of the month is this billed? (1-31):`, new Date().getDate());
-            if (note && billDay) {
-                await _supabase.from('recurring_expenses').insert([{ 
-                    name: note, 
-                    amount: val, 
-                    billing_day: parseInt(billDay), 
-                    member: mem 
-                }]);
-            }
+            if (note && billDay) await _supabase.from('recurring_expenses').insert([{ name: note, amount: amt, billing_day: parseInt(billDay), member: mem }]);
         }
+        
+        await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note || '', intent: currentType, created_at: new Date().toISOString() }]);
+        document.getElementById('amount').value = ''; await fetchData();
+    }
 
-        // Add to history with the note preserved
-        await _supabase.from('transactions').insert([{ 
-            amount: val, 
-            member: mem, 
-            category: catInput.value, 
-            note: note || '', 
-            intent: currentType, 
-            created_at: new Date().toISOString() 
-        }]);
+    async function deleteEntry(id) { if (confirm("Delete this transaction?")) { await _supabase.from('transactions').delete().eq('id', id); await fetchData(); } }
+    async function deleteSub(id) { if (confirm("Remove this subscription permanently?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); await fetchData(); } }
 
-        amtInput.value = '';
-        await fetchData();
-        document.getElementById('recordBtn').innerText = "Sync Transaction";
+    async function editSub(sub) {
+        const newName = prompt("Edit Name:", sub.name); const newAmt = prompt("Edit Amount:", sub.amount); const newDay = prompt("Edit Billing Day:", sub.billing_day);
+        if (newName && newAmt && newDay) {
+            await _supabase.from('recurring_expenses').update({ name: newName, amount: parseFloat(newAmt), billing_day: parseInt(newDay) }).eq('id', sub.id);
+            await fetchData();
+        }
+    }
+
+    function filterHistory() {
+        const q = document.getElementById('searchBar').value.toLowerCase();
+        document.querySelectorAll('.history-item').forEach(item => {
+            const text = item.innerText.toLowerCase();
+            item.style.display = text.includes(q) ? 'flex' : 'none';
+        });
+    }
+
+    function updateSubList() {
+        const list = document.getElementById('subList'); list.innerHTML = '';
+        recurring.forEach(sub => {
+            const div = document.createElement('div'); div.className = 'history-item';
+            div.innerHTML = `<div class="item-left"><span class="item-label">${sub.name}</span><span class="item-sub">Day ${sub.billing_day}</span></div><div class="action-icons"><b>$${sub.amount.toFixed(2)}</b><i class="fa-solid fa-pen-to-square" style="color:#60a5fa; cursor:pointer;" onclick='editSub(${JSON.stringify(sub)})'></i><i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
+            list.appendChild(div);
+        });
     }
 
     function updateUI() {
@@ -45,18 +180,16 @@
         let bSpend = 0, gSpend = 0, totalSpent = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
 
-        // 1. PROCESS MANUAL TRANSACTIONS
+        // 1. Render Manual Transactions
         history.forEach(item => {
             totalSpent += item.amount;
             if (item.member === 'Brandon') bSpend += item.amount; else gSpend += item.amount;
             const d = new Date(item.created_at);
             
-            const div = document.createElement('div'); div.className = 'history-item';
+            const displayTitle = (item.category === 'Subscription' && item.note) ? item.note : (item.note || item.category);
+            const displaySub = (item.category === 'Subscription') ? 'Recurring Bill' : (item.note ? item.category : '');
             
-            // UNIFIED STYLE: Use Note as title if it exists, otherwise Category
-            const displayTitle = item.note ? item.note : item.category;
-            const displaySub = item.category === 'Subscription' ? 'Recurring Bill' : (item.note ? item.category : '');
-
+            const div = document.createElement('div'); div.className = 'history-item';
             div.innerHTML = `
                 <div class="item-left">
                     <div class="tag-row"><span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span><span class="date-tag">${d.getMonth()+1}/${d.getDate()}</span></div>
@@ -67,16 +200,19 @@
             list.appendChild(div);
         });
 
-        // 2. PROCESS AUTO-SYNC RECURRING
+        // 2. Render Auto-Sync Subscriptions safely spanning across the 16th
         const recurTotal = recurring.reduce((sum, sub) => {
-            let billDate = new Date(new Date().getFullYear(), new Date().getMonth(), sub.billing_day);
-            
-            if (billDate >= start && billDate < end) {
-                // To avoid "Double Counting" on the day you first add it:
-                // We only show AUTO-SYNC in history if it's NOT already in manual history for this cycle
-                const alreadyLogged = history.some(h => h.note === sub.name && h.category === 'Subscription');
+            // Fix: Calculate the correct billDate within the current cycle
+            let billDate = new Date(start);
+            if (sub.billing_day < CYCLE_START_DAY) {
+                billDate.setMonth(billDate.getMonth() + 1);
+            }
+            billDate.setDate(sub.billing_day);
 
-                if (billDate <= new Date() && !alreadyLogged) {
+            // Check if the bill date has passed today
+            if (billDate <= new Date()) {
+                const logged = history.some(h => h.note === sub.name && h.category === 'Subscription');
+                if (!logged) {
                     const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
                     div.innerHTML = `
                         <div class="item-left">
@@ -87,11 +223,22 @@
                         <div class="item-amt">-$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
                     list.prepend(div);
                 }
-                return sum + sub.amount;
             }
-            return sum;
+            // Always deduct the amount from the cycle budget
+            return sum + sub.amount;
         }, 0);
 
-        // ... (Keep the rest of the UI update logic for balance/chart) ...
+        const remaining = INCOME - totalSpent - recurTotal;
+        document.getElementById('balance').innerText = "$" + remaining.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
+        document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
+        
+        const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
+        document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
+        
+        if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totalSpent + recurTotal]; myChart.update(); }
+        filterHistory();
     }
 </script>
+</body>
+</html>
