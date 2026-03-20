@@ -352,16 +352,15 @@
         let note = prompt(promptStr);
         if (note === null) return; 
 
+        // Straight 1:1 deduction for Mortgage
         if (cat === 'Mortgage' && config.m_balance > 0) {
-            const interest = config.m_balance * ((config.m_rate / 100) / 12);
-            config.m_balance -= (amt - interest);
+            config.m_balance -= amt;
             localStorage.setItem('ledger_config', JSON.stringify(config));
         }
 
-        // NEW: Car Loan subtraction logic
+        // Straight 1:1 deduction for Car Loan
         if (cat === 'Car' && config.c_balance > 0) {
-            const interest = config.c_balance * ((config.c_rate / 100) / 12);
-            config.c_balance -= (amt - interest);
+            config.c_balance -= amt;
             localStorage.setItem('ledger_config', JSON.stringify(config));
         }
 
@@ -384,16 +383,15 @@
         if (confirm("Delete this transaction?")) {
             const { data } = await _supabase.from('transactions').select('*').eq('id', id).single();
             
+            // Straight 1:1 addition for Mortgage
             if (data && data.category === 'Mortgage' && config.m_balance > 0) {
-                const monthlyRate = (config.m_rate / 100) / 12;
-                config.m_balance = (config.m_balance + data.amount) / (1 + monthlyRate);
+                config.m_balance += data.amount;
                 localStorage.setItem('ledger_config', JSON.stringify(config));
             }
 
-            // NEW: Car Loan reverse math
+            // Straight 1:1 addition for Car Loan
             if (data && data.category === 'Car' && config.c_balance > 0) {
-                const monthlyRate = (config.c_rate / 100) / 12;
-                config.c_balance = (config.c_balance + data.amount) / (1 + monthlyRate);
+                config.c_balance += data.amount;
                 localStorage.setItem('ledger_config', JSON.stringify(config));
             }
 
@@ -457,24 +455,20 @@
         let totalS = 0, needS = 0, wantS = 0, goalS = 0, bS = 0, gS = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
 
-        // Mortgage UI
+        // Informational Only Mortgage UI
         document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
         if (config.m_balance > 0) {
-            const lastM = history.find(h => h.category === 'Mortgage');
-            if (lastM) {
-                const interest = (config.m_balance + lastM.amount) * ((config.m_rate / 100) / 12);
-                document.getElementById('equityGain').innerText = `+$${(lastM.amount - interest).toFixed(2)} Equity`;
-            } else { document.getElementById('equityGain').innerText = `Tracking Active (${config.m_rate}%)`; }
+            document.getElementById('equityGain').innerText = `Tracking Active (${config.m_rate}% Rate)`;
+        } else {
+            document.getElementById('equityGain').innerText = `Click ⚙️ Settings to configure balance`;
         }
 
-        // Car Loan UI
+        // Informational Only Car Loan UI
         document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
         if (config.c_balance > 0) {
-            const lastC = history.find(h => h.category === 'Car');
-            if (lastC) {
-                const interest = (config.c_balance + lastC.amount) * ((config.c_rate / 100) / 12);
-                document.getElementById('carEquityGain').innerText = `+$${(lastC.amount - interest).toFixed(2)} Equity`;
-            } else { document.getElementById('carEquityGain').innerText = `Tracking Active (${config.c_rate}%)`; }
+            document.getElementById('carEquityGain').innerText = `Tracking Active (${config.c_rate}% Rate)`;
+        } else {
+            document.getElementById('carEquityGain').innerText = `Click ⚙️ Settings to configure balance`;
         }
 
         let accumulatedGoals = {};
@@ -491,7 +485,10 @@
         history.forEach(item => {
             totalS += item.amount;
             if (item.member === 'Brandon') bS += item.amount; else gS += item.amount;
-            if (item.category === 'Goal') goalS += item.amount; else if (item.intent === 'Want') wantS += item.amount; else needS += item.amount;
+            
+            if (item.category === 'Goal') goalS += item.amount;
+            else if (item.intent === 'Want') wantS += item.amount;
+            else needS += item.amount;
 
             const div = document.createElement('div'); div.className = 'history-item';
             div.setAttribute('data-amt', item.amount);
@@ -512,7 +509,8 @@
             if (logged) return sum;
 
             if (billDate <= new Date()) {
-                needS += sub.amount; totalS += sub.amount; 
+                needS += sub.amount; 
+                totalS += sub.amount; 
                 const recurIntentDot = `<span class="intent-dot" style="background:var(--need); margin-right:8px;" title="Need"></span>`;
                 const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
                 div.setAttribute('data-amt', sub.amount);
@@ -525,9 +523,11 @@
         document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2});
+        
         document.getElementById('barNeed').style.width = Math.min(100, (needS/INCOME)*100) + '%';
         document.getElementById('barWant').style.width = Math.min(100, (wantS/INCOME)*100) + '%';
         document.getElementById('barGoal').style.width = Math.min(100, (goalS/INCOME)*100) + '%';
+        
         document.getElementById('percNeed').innerText = Math.round((needS/INCOME)*100);
         document.getElementById('percWant').innerText = Math.round((wantS/INCOME)*100);
         document.getElementById('percGoal').innerText = Math.round((goalS/INCOME)*100);
