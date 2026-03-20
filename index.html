@@ -24,15 +24,16 @@
             --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); overflow-x: hidden;}
-        #loginScreen, #app, #subManager, #settingsModal { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; box-sizing: border-box; }
-        #app, #subManager, #settingsModal { display: none; } 
-        
-        /* New Mortgage Freedom Clock UI */
-        .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; }
-        .clock-time { font-size: 1.5rem; font-weight: 700; color: #fff; margin: 5px 0; }
+        #loginScreen, #app, #subManager { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; box-sizing: border-box; }
+        #app, #subManager { display: none; } 
         
         .header-stack { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; margin-bottom: 20px; }
         .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.15); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(129, 140, 248, 0.4); box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); color: #818cf8; }
+        .logo-glow svg { fill: #818cf8; }
+
+        .cycle-selector { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #94a3b8; padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center; appearance: none; margin-bottom: 15px; outline: none; width: fit-content; margin-left: auto; margin-right: auto; display: block; }
+        .cycle-selector:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .cycle-selector option { background: #0f172a; color: #f8fafc; font-weight: 500; }
 
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; margin-bottom: 5px;}
         .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 20px auto; }
@@ -42,84 +43,134 @@
         .health-fill-need { background: var(--need); height: 100%; transition: width 0.5s ease; }
         .health-fill-want { background: var(--want); height: 100%; transition: width 0.5s ease; }
         .health-fill-goal { background: var(--goal); height: 100%; transition: width 0.5s ease; }
-        
-        /* New Recurring Toggle */
-        .recur-toggle { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; color: #94a3b8; }
+        .health-stats { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .stat-need { color: var(--need); } .stat-want { color: var(--want); } .stat-goal { color: var(--goal); }
+        .insight-text { font-size: 0.75rem; color: #94a3b8; text-align: center; margin-top: 10px; font-style: italic; }
+
+        .chart-container { position: relative; height: 180px; margin-bottom: 25px; }
+        .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
+
+        .goal-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; margin-bottom: 8px; }
+        .goal-name { font-size: 0.85rem; font-weight: 700; color: #c4b5fd; }
+        .goal-amt { font-size: 1rem; font-weight: 700; color: #fff; }
 
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); margin-bottom: 12px; }
-        input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 1rem; box-sizing: border-box; }
+        .btn-manage { background: #1e293b; color: white; border: 1px solid var(--border); padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
+        .btn-manage:hover { background: #334155; }
+
+        .toolbar-row { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-start; }
+        .search-wrapper { flex: 1; position: relative; }
+        #searchBar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px 15px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 0.9rem; margin-bottom: 0; outline: none; transition: 0.2s; }
+        #searchBar:focus { border-color: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.2); }
+        #searchTotal { display: none; text-align: right; font-size: 0.8rem; color: #10b981; font-weight: 700; margin-top: 6px; padding-right: 5px; }
+        .btn-export { background: rgba(255,255,255,0.05); color: #60a5fa; border: 1px solid var(--border); border-radius: 12px; padding: 0 18px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; height: 43px; }
+        .btn-export:hover { background: rgba(59, 130, 246, 0.2); color: #fff; }
+
         .history-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
-        .intent-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .item-left { display: flex; flex-direction: column; gap: 4px; }
+        .tag-row { display: flex; gap: 8px; align-items: center; }
+        .intent-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; box-shadow: 0 0 6px currentColor; }
+        .name-tag { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tag-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .tag-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .tag-auto { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .tag-goal { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
+        
+        .date-tag { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
+        .item-label { font-size: 1rem; font-weight: 700; color: #fff; }
+        .item-note { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
+        .item-amt { font-size: 1.1rem; font-weight: 700; color: #fff; text-align: right; }
+        .action-icons { display: flex; gap: 12px; align-items: center; }
+
+        input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 1rem; box-sizing: border-box; }
+        .type-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; }
+        .type-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: none; color: #94a3b8; cursor: pointer; font-weight: 600; }
+        .type-btn.active { background: #fff; color: #0f172a; }
     </style>
 </head>
 <body>
 
-    <div id="settingsModal">
-        <h3 style="margin-top:0;">Ledger Config</h3>
-        <label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET ($)</label>
-        <input type="number" id="conf_income" placeholder="7400">
-        <hr style="border:0; border-top:1px solid var(--border); margin: 20px 0;">
-        <label style="font-size:0.7rem; font-weight:700;">MORTGAGE BALANCE ($)</label>
-        <input type="number" id="conf_mbal" placeholder="250000">
-        <label style="font-size:0.7rem; font-weight:700;">INTEREST RATE (%)</label>
-        <input type="number" id="conf_mrate" step="0.01" placeholder="6.5">
-        <button class="btn-elite" onclick="saveConfig()">Save Configuration</button>
-    </div>
-
     <div id="loginScreen">
+        <div class="header-stack">
+            <div class="logo-glow"><svg width="40" height="40" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
+            <h2 style="margin:0;">Montoya Ledger</h2>
+        </div>
         <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem; margin: 20px 0;">
         <button class="btn-elite" onclick="checkPin()">Authorize Access</button>
     </div>
 
     <div id="app">
-        <div style="text-align:right; margin-bottom:10px;">
-            <button onclick="toggleSettings()" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fa-solid fa-gear"></i> Settings</button>
-        </div>
+        <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
 
-        <div id="mortgageDisplay" class="mortgage-vault" style="display:none;">
-            <div style="font-size:0.65rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Freedom Countdown</div>
-            <div id="payoffClock" class="clock-time">-- Months</div>
-            <div id="equityGain" style="font-size:0.75rem; color:#10b981; font-weight:600;">-- Principal Gain</div>
-        </div>
-
-        <div id="balance" class="balance-amount">$0</div>
+        <div id="balance" class="balance-amount">$7,400</div>
         <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
 
         <div class="health-dashboard">
+            <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; text-align: center; letter-spacing: 1px;">Wealth Allocation (50/30/20)</div>
             <div class="health-bar">
                 <div id="barNeed" class="health-fill-need" style="width: 0%;"></div>
                 <div id="barWant" class="health-fill-want" style="width: 0%;"></div>
                 <div id="barGoal" class="health-fill-goal" style="width: 0%;"></div>
             </div>
-            <div style="display:flex; justify-content:space-between; font-size:0.7rem;">
-                <span style="color:var(--need)">Need: <span id="percNeed">0</span>%</span>
-                <span style="color:var(--want)">Want: <span id="percWant">0</span>%</span>
-                <span style="color:var(--goal)">Vault: <span id="percGoal">0</span>%</span>
+            <div class="health-stats">
+                <span class="stat-need">Need: <span id="percNeed">0</span>%</span>
+                <span class="stat-want">Want: <span id="percWant">0</span>%</span>
+                <span class="stat-goal">Vault: <span id="percGoal">0</span>%</span>
             </div>
+            <div id="smartInsight" class="insight-text">Syncing financial data...</div>
+        </div>
+        
+        <div class="chart-container"><canvas id="budgetChart"></canvas></div>
+        
+        <div class="stat-group">
+            <div class="stat-card"><div style="color:var(--brandon); font-size:0.6rem; font-weight:700;">BRANDON</div><div id="brandonSpend" style="font-weight:700;">$0</div></div>
+            <div class="stat-card"><div style="color:var(--gina); font-size:0.6rem; font-weight:700;">GINA</div><div id="ginaSpend" style="font-weight:700;">$0</div></div>
+        </div>
+
+        <div id="goalsContainer" style="display:none; margin-bottom: 25px;">
+            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: center;">Vault Reserves (All-Time)</div>
+            <div id="goalsList"></div>
         </div>
 
         <div style="margin-bottom: 15px;">
-            <div class="recur-toggle">
-                <span>Recurring Transaction?</span>
-                <input type="checkbox" id="isRecurring" style="width:auto; margin:0;">
-            </div>
+            <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select>
+                <select id="memberSelect" onchange="this.style.color = this.value === 'Brandon' ? '#3b82f6' : '#ec4899';"><option value="Brandon" style="color:#3b82f6;">Brandon</option><option value="Gina" style="color:#ec4899;">Gina</option></select>
                 <input type="number" id="amount" placeholder="0.00">
             </div>
             <select id="category" onchange="autoSuggest(this.value)">
                 <option value="Mortgage">🏠 Mortgage</option>
                 <option value="Car">🚗 Car Payment</option>
+                <option value="CreditCard">💳 Credit Card Payment</option>
+                <option value="Utilities">💡 Utilities</option>
+                <option value="Phone">📱 Phone Bill</option>
                 <option value="Groceries">🛒 Groceries</option>
-                <option value="Dining">🍔 Dining</option>
+                <option value="Dining">🍔 Dining / Takeout</option>
+                <option value="Beauty">✂️ Beauty</option>
                 <option value="Subscription">📺 Subscription</option>
-                <option value="Goal">🎯 Vault / Goal</option>
+                <option value="Goal">🎯 Sinking Fund / Vault</option>
                 <option value="Misc">📦 Miscellaneous</option>
             </select>
-            <button class="btn-elite" onclick="addEntry()">Sync Transaction</button>
+            <button id="recordBtn" class="btn-elite" onclick="addEntry()">Sync Transaction</button>
+            <button class="btn-manage" onclick="toggleManager()" style="width:100%">Manage Recurring Bills</button>
         </div>
         
-        <div id="historyList" style="max-height: 300px; overflow-y: auto;"></div>
+        <div class="toolbar-row">
+            <div class="search-wrapper">
+                <input type="text" id="searchBar" placeholder="🔍 Search tags (#dogs), notes, or categories..." onkeyup="filterHistory()">
+                <div id="searchTotal">Tag Total: $0.00</div>
+            </div>
+            <button class="btn-export" onclick="exportCSV()" title="Export Cycle to CSV"><i class="fa-solid fa-file-csv"></i></button>
+        </div>
+        
+        <div id="historyList" style="max-height: 400px; overflow-y: auto;"></div>
+    </div>
+
+    <div id="subManager">
+        <div class="header-stack"><h3>Recurring Control</h3></div>
+        <div id="subList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
+        <button class="btn-manage" style="width:100%" onclick="toggleManager()">Back to Ledger</button>
     </div>
 
 <script>
@@ -127,112 +178,298 @@
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const MY_PIN = "1991"; 
+    const INCOME = 7400.00; 
+    const CYCLE_START_DAY = 16;
+    let history = [], recurring = [], allTimeGoals = [], currentType = 'Need', myChart;
+    let currentViewDate = new Date();
 
-    let history = [], recurring = [], currentType = 'Need';
-    let config = JSON.parse(localStorage.getItem('ledger_config')) || { budget: 7400, m_balance: 0, m_rate: 0 };
+    document.getElementById('memberSelect').style.color = '#3b82f6';
 
-    function toggleSettings() {
-        const modal = document.getElementById('settingsModal');
-        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-        document.getElementById('conf_income').value = config.budget;
-        document.getElementById('conf_mbal').value = config.m_balance;
-        document.getElementById('conf_mrate').value = config.m_rate;
+    function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
+    function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Phone','Groceries','CreditCard','Subscription'].includes(c) ? 'Need' : 'Want'); }
+    async function toggleManager() { const app = document.getElementById('app'); const manager = document.getElementById('subManager'); if (app.style.display === 'none') { app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); } else { app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); } }
+    
+    function getCycleDates(baseDate = currentViewDate) { 
+        let d = new Date(baseDate); 
+        let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY, 0, 0, 0); 
+        if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); 
+        let end = new Date(start); end.setMonth(end.getMonth() + 1); 
+        return { start, end }; 
     }
 
-    function saveConfig() {
-        config = {
-            budget: parseFloat(document.getElementById('conf_income').value) || 0,
-            m_balance: parseFloat(document.getElementById('conf_mbal').value) || 0,
-            m_rate: parseFloat(document.getElementById('conf_mrate').value) || 0
-        };
-        localStorage.setItem('ledger_config', JSON.stringify(config));
-        document.getElementById('settingsModal').style.display = 'none';
-        updateUI();
+    function initCycles() {
+        const select = document.getElementById('cycleSelect');
+        select.innerHTML = '';
+        let now = new Date();
+        for(let i=0; i<6; i++) {
+            let d = new Date(now.getFullYear(), now.getMonth() - i, now.getDate());
+            let { start, end } = getCycleDates(d);
+            let endDisplay = new Date(end); endDisplay.setDate(endDisplay.getDate() - 1);
+            let label = `${start.toLocaleString('default', {month:'short'})} ${start.getDate()} - ${endDisplay.toLocaleString('default', {month:'short'})} ${endDisplay.getDate()}`;
+            if (i === 0) label = "Current Cycle (" + label + ")";
+            
+            let option = document.createElement('option');
+            option.value = d.toISOString();
+            option.text = label;
+            select.appendChild(option);
+        }
     }
 
-    function checkPin() { 
+    async function changeCycle() { currentViewDate = new Date(document.getElementById('cycleSelect').value); await fetchData(); }
+
+    async function checkPin() { 
         if (document.getElementById('pinField').value === MY_PIN) { 
             document.getElementById('loginScreen').style.display = 'none'; 
             document.getElementById('app').style.display = 'block'; 
-            fetchData(); 
+            document.body.style.alignItems = 'flex-start'; 
+            document.body.style.paddingTop = '40px'; 
+            initCycles(); initChart(); await fetchData(); 
         } else { alert("Access Denied"); } 
     }
 
-    function autoSuggest(c) { currentType = ['Mortgage','Groceries','Subscription'].includes(c) ? 'Need' : 'Want'; }
+    function initChart() { 
+        const ctx = document.getElementById('budgetChart').getContext('2d'); 
+        myChart = new Chart(ctx, { 
+            type: 'doughnut', 
+            data: { 
+                labels: ['Remaining', 'Mortgage', 'Car', 'Utilities', 'Phone', 'Food', 'Subs', 'Goals', 'Misc'], 
+                datasets: [{ 
+                    data: [INCOME, 0, 0, 0, 0, 0, 0, 0, 0], 
+                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#8b5cf6', '#14b8a6', '#10b981', '#f43f5e', '#8b5cf6', '#94a3b8'], 
+                    borderWidth: 0 
+                }] 
+            }, 
+            options: { cutout: '80%', plugins: { legend: { display: false } } } 
+        }); 
+    }
 
     async function fetchData() {
-        const { data: trans } = await _supabase.from('transactions').select('*').order('created_at', { ascending: false });
-        history = trans || [];
-        updateUI();
+        const { start, end } = getCycleDates(currentViewDate);
+        const [transRes, recurRes, goalsRes] = await Promise.all([
+            _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
+            _supabase.from('recurring_expenses').select('*').order('name', { ascending: true }),
+            _supabase.from('transactions').select('amount, note').eq('category', 'Goal').lt('created_at', end.toISOString())
+        ]);
+        history = transRes.data || []; 
+        recurring = recurRes.data || [];
+        allTimeGoals = goalsRes.data || [];
+        updateUI(); updateSubList();
     }
 
     async function addEntry() {
         const amt = parseFloat(document.getElementById('amount').value);
         const cat = document.getElementById('category').value;
         const mem = document.getElementById('memberSelect').value;
-        const isRecur = document.getElementById('isRecurring').checked;
         if (isNaN(amt) || amt <= 0) return;
-
-        // Logic for Mortgage Principal Tracking
-        if (cat === 'Mortgage' && config.m_balance > 0) {
-            const interest = config.m_balance * ((config.m_rate / 100) / 12);
-            const principal = amt - interest;
-            config.m_balance -= principal;
-            localStorage.setItem('ledger_config', JSON.stringify(config));
+        
+        let promptStr = "Enter note or #tag (e.g. Vet visit #dogs, Keyboard #PCBuild):";
+        if (cat === 'Subscription') promptStr = "Enter Subscription Name (e.g. Netflix):";
+        if (cat === 'Goal') promptStr = "Enter Vault Goal (e.g. Orlando Trip):";
+        
+        let note = prompt(promptStr);
+        if (note === null) return; 
+        
+        if (cat === 'Subscription') {
+            const billDay = prompt(`What day of the month is this billed? (1-31):`, new Date().getDate());
+            if (billDay === null) return; 
+            await _supabase.from('recurring_expenses').insert([{ name: note, amount: amt, billing_day: parseInt(billDay), member: mem }]);
         }
-
-        if (isRecur) {
-            await _supabase.from('recurring_expenses').insert([{ name: cat, amount: amt, member: mem }]);
-        }
-
-        await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, intent: currentType, created_at: new Date().toISOString() }]);
+        
+        await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note, intent: currentType, created_at: new Date().toISOString() }]);
         document.getElementById('amount').value = ''; 
-        document.getElementById('isRecurring').checked = false;
-        fetchData();
+        document.getElementById('cycleSelect').selectedIndex = 0;
+        currentViewDate = new Date();
+        await fetchData();
+    }
+
+    async function deleteEntry(id) { 
+        if (confirm("Delete this transaction?")) { 
+            const { data } = await _supabase.from('transactions').select('*').eq('id', id).single();
+            await _supabase.from('transactions').delete().eq('id', id); 
+            if (data && data.category === 'Subscription' && data.note) { await _supabase.from('recurring_expenses').delete().eq('name', data.note); }
+            await fetchData(); 
+        } 
+    }
+    
+    async function deleteSub(id) { if (confirm("Remove this subscription permanently?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); await fetchData(); } }
+
+    async function editSub(id) {
+        const sub = recurring.find(s => s.id === id); if (!sub) return;
+        const newName = prompt("Edit Name:", sub.name); if (newName === null) return;
+        const newAmt = prompt("Edit Amount:", sub.amount); if (newAmt === null) return;
+        const newDay = prompt("Edit Billing Day:", sub.billing_day); if (newDay === null) return;
+        await _supabase.from('recurring_expenses').update({ name: newName, amount: parseFloat(newAmt), billing_day: parseInt(newDay) }).eq('id', id);
+        await fetchData();
+    }
+
+    function filterHistory() {
+        const q = document.getElementById('searchBar').value.toLowerCase();
+        const totalDiv = document.getElementById('searchTotal');
+        let runningSum = 0;
+        let itemsVisible = 0;
+
+        document.querySelectorAll('#historyList .history-item').forEach(item => {
+            const text = item.innerText.toLowerCase();
+            if (q === '' || text.includes(q)) {
+                item.style.display = 'flex';
+                if (q !== '') {
+                    runningSum += parseFloat(item.getAttribute('data-amt') || 0);
+                    itemsVisible++;
+                }
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        if (q !== '' && itemsVisible > 0) {
+            totalDiv.style.display = 'block';
+            totalDiv.innerText = `Tag Total: $${runningSum.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        } else {
+            totalDiv.style.display = 'none';
+        }
+    }
+
+    function exportCSV() {
+        const { start } = getCycleDates(currentViewDate);
+        let csvContent = "data:text/csv;charset=utf-8,Date,Member,Category,Note,Amount,Type\n";
+        history.forEach(item => {
+            const d = new Date(item.created_at);
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            csvContent += `${dateStr},${item.member},${item.category},${(item.note || '').replace(/,/g, "")},-${item.amount.toFixed(2)},Manual\n`;
+        });
+        recurring.forEach(sub => {
+            let billDate = new Date(start); if (sub.billing_day < CYCLE_START_DAY) { billDate.setMonth(billDate.getMonth() + 1); } billDate.setDate(sub.billing_day);
+            const logged = history.some(h => h.note === sub.name && h.category === 'Subscription');
+            if (!logged && billDate <= new Date()) {
+                const dateStr = `${billDate.getFullYear()}-${String(billDate.getMonth()+1).padStart(2, '0')}-${String(billDate.getDate()).padStart(2, '0')}`;
+                csvContent += `${dateStr},${sub.member},Subscription,${(sub.name || '').replace(/,/g, "")},-${sub.amount.toFixed(2)},Auto-Sync\n`;
+            }
+        });
+        const encodedUri = encodeURI(csvContent); const link = document.createElement("a");
+        link.setAttribute("href", encodedUri); link.setAttribute("download", `Montoya_Ledger_Cycle_${start.toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    function updateSubList() {
+        const list = document.getElementById('subList'); list.innerHTML = '';
+        recurring.forEach(sub => {
+            const div = document.createElement('div'); div.className = 'history-item';
+            div.innerHTML = `<div class="item-left"><span class="item-label">${sub.name}</span><span class="item-sub">Day ${sub.billing_day}</span></div><div class="action-icons"><b>$${sub.amount.toFixed(2)}</b><i class="fa-solid fa-pen-to-square" style="color:#60a5fa; cursor:pointer;" onclick="editSub('${sub.id}')"></i><i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
+            list.appendChild(div);
+        });
     }
 
     function updateUI() {
-        let totalSpent = 0, needS = 0, wantS = 0, goalS = 0;
+        const { start, end } = getCycleDates(currentViewDate);
+        let bSpend = 0, gSpend = 0, totalSpent = 0;
+        let needSpend = 0, wantSpend = 0, goalSpend = 0;
+        let catTotals = { Mortgage:0, Car:0, Utilities:0, Phone:0, Food:0, Subs:0, Goals:0, Misc:0 };
+        
+        let accumulatedGoals = {};
+        allTimeGoals.forEach(g => { if (!accumulatedGoals[g.note]) accumulatedGoals[g.note] = 0; accumulatedGoals[g.note] += g.amount; });
+
+        const goalsContainer = document.getElementById('goalsContainer');
+        const goalsList = document.getElementById('goalsList');
+        goalsList.innerHTML = '';
+        if (Object.keys(accumulatedGoals).length > 0) {
+            goalsContainer.style.display = 'block';
+            Object.keys(accumulatedGoals).forEach(goalName => { goalsList.innerHTML += `<div class="goal-item"><span class="goal-name"><i class="fa-solid fa-vault" style="margin-right:8px;"></i>${goalName}</span><span class="goal-amt">$${accumulatedGoals[goalName].toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`; });
+        } else { goalsContainer.style.display = 'none'; }
+
         const list = document.getElementById('historyList'); list.innerHTML = '';
-
-        if (config.m_balance > 0) {
-            document.getElementById('mortgageDisplay').style.display = 'block';
-            const lastM = history.find(h => h.category === 'Mortgage');
-            if (lastM) {
-                const interest = (config.m_balance + lastM.amount) * ((config.m_rate / 100) / 12);
-                document.getElementById('equityGain').innerText = `+$${(lastM.amount - interest).toFixed(2)} Equity Added`;
-            }
-        }
-
         history.forEach(item => {
             totalSpent += item.amount;
-            if (item.category === 'Goal') goalS += item.amount;
-            else if (item.intent === 'Want') wantS += item.amount;
-            else needS += item.amount;
+            if (item.category !== 'Goal') { if (item.member === 'Brandon') bSpend += item.amount; else gSpend += item.amount; }
+            
+            if (item.category === 'Goal') goalSpend += item.amount;
+            else if (item.intent === 'Want') wantSpend += item.amount;
+            else needSpend += item.amount;
+
+            if (item.category === 'Mortgage') catTotals.Mortgage += item.amount;
+            else if (item.category === 'Car') catTotals.Car += item.amount;
+            else if (item.category === 'Utilities') catTotals.Utilities += item.amount;
+            else if (item.category === 'Phone') catTotals.Phone += item.amount;
+            else if (['Groceries', 'Dining'].includes(item.category)) catTotals.Food += item.amount;
+            else if (item.category === 'Subscription') catTotals.Subs += item.amount;
+            else if (item.category === 'Goal') catTotals.Goals += item.amount;
+            else catTotals.Misc += item.amount;
+
+            const d = new Date(item.created_at);
+            const isSubOrGoal = ['Subscription', 'Goal'].includes(item.category);
+            const displayTitle = (isSubOrGoal && item.note) ? item.note : (item.note || item.category);
+            const displaySub = (item.category === 'Subscription') ? 'Recurring Bill' : (item.category === 'Goal' ? 'To Vault' : (item.note ? item.category : ''));
+            const specificTag = item.category === 'Goal' ? `<span class="name-tag tag-goal">VAULT</span>` : `<span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span>`;
+
+            let dotColor = item.intent === 'Want' ? 'var(--want)' : 'var(--need)';
+            if (item.category === 'Goal') dotColor = 'var(--goal)';
+            const intentDot = `<span class="intent-dot" style="background:${dotColor}; color:${dotColor}; margin-right:8px;" title="${item.intent}"></span>`;
 
             const div = document.createElement('div'); div.className = 'history-item';
-            const dotColor = item.intent === 'Want' ? 'var(--want)' : 'var(--need)';
-            div.innerHTML = `<div><span class="intent-dot" style="background:${dotColor}"></span><b>${item.category}</b></div><div>-$${item.amount.toFixed(2)}</div>`;
+            div.setAttribute('data-amt', item.amount);
+            
+            div.innerHTML = `
+                <div class="item-left">
+                    <div class="tag-row">${intentDot}${specificTag}<span class="date-tag">${d.getMonth()+1}/${d.getDate()}</span></div>
+                    <span class="item-label">${displayTitle}</span>
+                    <span class="item-note">${displaySub}</span>
+                </div>
+                <div class="item-amt">-$${item.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
         });
 
-        const remaining = config.budget - totalSpent;
-        document.getElementById('balance').innerText = "$" + remaining.toLocaleString();
+        const recurTotal = recurring.reduce((sum, sub) => {
+            let billDate = new Date(start); if (sub.billing_day < CYCLE_START_DAY) { billDate.setMonth(billDate.getMonth() + 1); } billDate.setDate(sub.billing_day);
+            const logged = history.some(h => h.note === sub.name && h.category === 'Subscription');
+            if (logged) return sum;
+
+            if (billDate <= new Date()) {
+                needSpend += sub.amount; 
+                const recurIntentDot = `<span class="intent-dot" style="background:var(--need); color:var(--need); margin-right:8px;" title="Need"></span>`;
+                const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
+                div.setAttribute('data-amt', sub.amount);
+                div.innerHTML = `<div class="item-left"><div class="tag-row">${recurIntentDot}<span class="name-tag tag-auto">AUTO-SYNC</span><span class="date-tag">${billDate.getMonth()+1}/${billDate.getDate()}</span></div><span class="item-label">${sub.name}</span><span class="item-note">Recurring Bill</span></div><div class="item-amt">-$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
+                list.prepend(div);
+            }
+            catTotals.Subs += sub.amount;
+            return sum + sub.amount;
+        }, 0);
+
+        const remaining = INCOME - totalSpent - recurTotal;
+        document.getElementById('balance').innerText = "$" + remaining.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
         
-        const pNeed = Math.min(100, Math.round((needS / config.budget) * 100));
-        const pWant = Math.min(100, Math.round((wantS / config.budget) * 100));
-        const pGoal = Math.min(100, Math.round((goalS / config.budget) * 100));
+        let paceText = "Pace: Cycle Complete";
+        if (currentViewDate.getMonth() === new Date().getMonth() && currentViewDate.getFullYear() === new Date().getFullYear()) {
+            const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
+            paceText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
+        }
+        document.getElementById('paceDisplay').innerText = paceText;
+
+        const pNeed = Math.min(100, Math.round((needSpend / INCOME) * 100));
+        const pWant = Math.min(100, Math.round((wantSpend / INCOME) * 100));
+        const pGoal = Math.min(100, Math.round((goalSpend / INCOME) * 100));
 
         document.getElementById('barNeed').style.width = pNeed + '%';
         document.getElementById('barWant').style.width = pWant + '%';
         document.getElementById('barGoal').style.width = pGoal + '%';
+
         document.getElementById('percNeed').innerText = pNeed;
         document.getElementById('percWant').innerText = pWant;
         document.getElementById('percGoal').innerText = pGoal;
 
-        const days = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate() + 1;
-        document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / days).toFixed(2)} / day`;
+        let insight = "💡 You are perfectly balanced right now!";
+        if (pWant > 30) insight = "⚠️ Lifestyle creep! Wants are over the 30% guideline.";
+        else if (pNeed > 50) insight = "⚠️ Fixed expenses (Needs) are eating over 50% of the budget.";
+        else if (pGoal < 10) insight = "💡 Good momentum, try pushing a bit more into the Vault!";
+        document.getElementById('smartInsight').innerText = insight;
+        
+        if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, catTotals.Mortgage, catTotals.Car, catTotals.Utilities, catTotals.Phone, catTotals.Food, catTotals.Subs, catTotals.Goals, catTotals.Misc]; myChart.update(); }
+        
+        filterHistory();
     }
+
+    document.getElementById('pinField').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPin(); });
 </script>
 </body>
 </html>
