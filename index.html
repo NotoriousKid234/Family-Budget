@@ -54,6 +54,11 @@
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
+        /* RESTORED: Vault Goals CSS */
+        .goal-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; margin-bottom: 8px; }
+        .goal-name { font-size: 0.85rem; font-weight: 700; color: #c4b5fd; }
+        .goal-amt { font-size: 1rem; font-weight: 700; color: #fff; }
+
         .toolbar-row { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-start; }
         .search-wrapper { flex: 1; position: relative; }
         #searchBar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px 15px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 0.9rem; outline: none; }
@@ -73,6 +78,7 @@
         .tag-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .tag-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
         .tag-auto { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .tag-goal { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
         .date-tag { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
         .item-label { font-size: 1rem; font-weight: 700; color: #fff; }
         .item-note { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
@@ -148,6 +154,11 @@
             <div class="stat-card"><div style="color:var(--gina); font-size:0.6rem; font-weight:700;">GINA</div><div id="ginaSpend" style="font-weight:700;">$0</div></div>
         </div>
 
+        <div id="goalsContainer" style="display:none; margin-bottom: 25px;">
+            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: center;">Vault Reserves (All-Time)</div>
+            <div id="goalsList"></div>
+        </div>
+
         <div style="margin-bottom: 15px;">
             <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
             
@@ -201,7 +212,8 @@
     const MY_PIN = "1991"; 
     const CYCLE_START_DAY = 16;
     
-    let history = [], recurring = [], currentType = 'Need', myChart;
+    // RESTORED: allTimeGoals array
+    let history = [], recurring = [], allTimeGoals = [], currentType = 'Need', myChart;
     let currentViewDate = new Date();
     
     let config = JSON.parse(localStorage.getItem('ledger_config')) || { budget: 7400, m_balance: 0, m_rate: 0 };
@@ -209,7 +221,6 @@
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
 
-    // Updated autoSuggest to include the restored categories
     function autoSuggest(c) { 
         setType(['Mortgage','Car','CreditCard','Utilities','Phone','Groceries','Subscription'].includes(c) ? 'Need' : 'Want'); 
     }
@@ -297,12 +308,17 @@
 
     async function fetchData() {
         const { start, end } = getCycleDates(currentViewDate);
-        const [transRes, recurRes] = await Promise.all([
+        
+        // RESTORED: Querying 'allTimeGoals' directly from Supabase
+        const [transRes, recurRes, goalsRes] = await Promise.all([
             _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
-            _supabase.from('recurring_expenses').select('*')
+            _supabase.from('recurring_expenses').select('*'),
+            _supabase.from('transactions').select('amount, note').eq('category', 'Goal').lt('created_at', end.toISOString())
         ]);
         history = transRes.data || [];
         recurring = recurRes.data || [];
+        allTimeGoals = goalsRes.data || [];
+        
         updateUI();
         updateSubList();
     }
@@ -427,10 +443,23 @@
             document.getElementById('equityGain').innerText = `Click ⚙️ Settings to configure balance`;
         }
 
+        // RESTORED: Vault Goals Grouping Logic
+        let accumulatedGoals = {};
+        allTimeGoals.forEach(g => { if (!accumulatedGoals[g.note]) accumulatedGoals[g.note] = 0; accumulatedGoals[g.note] += g.amount; });
+
+        const goalsContainer = document.getElementById('goalsContainer');
+        const goalsList = document.getElementById('goalsList');
+        goalsList.innerHTML = '';
+        if (Object.keys(accumulatedGoals).length > 0) {
+            goalsContainer.style.display = 'block';
+            Object.keys(accumulatedGoals).forEach(goalName => { goalsList.innerHTML += `<div class="goal-item"><span class="goal-name"><i class="fa-solid fa-vault" style="margin-right:8px;"></i>${goalName}</span><span class="goal-amt">$${accumulatedGoals[goalName].toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`; });
+        } else { goalsContainer.style.display = 'none'; }
+
         history.forEach(item => {
             totalS += item.amount;
             if (item.member === 'Brandon') bS += item.amount; else gS += item.amount;
             
+            // Vault sum calculation restored
             if (item.category === 'Goal') goalS += item.amount;
             else if (item.intent === 'Want') wantS += item.amount;
             else needS += item.amount;
@@ -469,6 +498,7 @@
         document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2});
         
+        // Vault percentage logic restored
         document.getElementById('barNeed').style.width = Math.min(100, (needS/INCOME)*100) + '%';
         document.getElementById('barWant').style.width = Math.min(100, (wantS/INCOME)*100) + '%';
         document.getElementById('barGoal').style.width = Math.min(100, (goalS/INCOME)*100) + '%';
