@@ -1,20 +1,3 @@
-A pure white "screen of death" like that usually happens for one of two reasons in web development:
-
-1. **GitHub Pages Cache Delay:** GitHub Pages can take up to 3–5 minutes to push your new code. If you refresh too quickly, the browser gets confused between the old code and the new code and crashes.
-2. **The Missing Tag:** If the code got cut off during the copy/paste (even missing the final `</html>` tag), the browser's engine completely stops parsing and just leaves a blank white screen. 
-
-I've also fixed a tiny hidden bug that could have crashed the page: if you tried to edit a subscription name that had an apostrophe in it (like "Gina's Gym"), it would break the HTML. I've updated the `editSub` logic to be 100% bulletproof.
-
-### How to get it back online:
-1. Copy the code below from top to bottom.
-2. Paste it into your GitHub repository and commit.
-3. **Wait exactly 2 minutes.**
-4. Go to your live page and press **Ctrl + F5** (or **Shift + Refresh** on Mac) to force the browser to clear its cache and load the fresh code.
-
-### The "Airtight" Elite Code (Final Version)
-Replace your entire `index.html` with this.
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,7 +83,16 @@ Replace your entire `index.html` with this.
                 <input type="number" id="amount" placeholder="0.00">
             </div>
             <select id="category" onchange="autoSuggest(this.value)">
-                <option value="Mortgage">🏠 Mortgage</option><option value="Car">🚗 Car Payment</option><option value="CreditCard">💳 Credit Card Payment</option><option value="Utilities">💡 Utilities</option><option value="Groceries">🛒 Groceries</option><option value="Dining">🍔 Dining / Takeout</option><option value="Beauty">✂️ Beauty</option><option value="Subscription">📺 Subscription</option><option value="Misc">📦 Miscellaneous</option>
+                <option value="Mortgage">🏠 Mortgage</option>
+                <option value="Car">🚗 Car Payment</option>
+                <option value="CreditCard">💳 Credit Card Payment</option>
+                <option value="Utilities">💡 Utilities</option>
+                <option value="Phone">📱 Phone Bill</option>
+                <option value="Groceries">🛒 Groceries</option>
+                <option value="Dining">🍔 Dining / Takeout</option>
+                <option value="Beauty">✂️ Beauty</option>
+                <option value="Subscription">📺 Subscription</option>
+                <option value="Misc">📦 Miscellaneous</option>
             </select>
             <button id="recordBtn" class="btn-elite" onclick="addEntry()">Sync Transaction</button>
             <button class="btn-manage" onclick="toggleManager()" style="width:100%">Manage Recurring Bills</button>
@@ -126,7 +118,7 @@ Replace your entire `index.html` with this.
     let history = [], recurring = [], currentType = 'Need', myChart;
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
-    function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Groceries','CreditCard','Subscription'].includes(c) ? 'Need' : 'Want'); }
+    function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Phone','Groceries','CreditCard','Subscription'].includes(c) ? 'Need' : 'Want'); }
     async function toggleManager() { const app = document.getElementById('app'); const manager = document.getElementById('subManager'); if (app.style.display === 'none') { app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); } else { app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); } }
     
     function getCycleDates() { 
@@ -150,9 +142,21 @@ Replace your entire `index.html` with this.
         } 
     }
 
+    // MULTI-COLOR CHART INITIALIZATION
     function initChart() { 
         const ctx = document.getElementById('budgetChart').getContext('2d'); 
-        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Spend'], datasets: [{ data: [INCOME, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } }); 
+        myChart = new Chart(ctx, { 
+            type: 'doughnut', 
+            data: { 
+                labels: ['Remaining', 'Mortgage', 'Car', 'Utilities', 'Phone', 'Food', 'Subs', 'Misc'], 
+                datasets: [{ 
+                    data: [INCOME, 0, 0, 0, 0, 0, 0, 0], 
+                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#8b5cf6', '#14b8a6', '#10b981', '#f43f5e', '#94a3b8'], 
+                    borderWidth: 0 
+                }] 
+            }, 
+            options: { cutout: '80%', plugins: { legend: { display: false } } } 
+        }); 
     }
 
     async function fetchData() {
@@ -173,7 +177,7 @@ Replace your entire `index.html` with this.
         const mem = document.getElementById('memberSelect').value;
         if (isNaN(amt) || amt <= 0) return;
         
-        let note = prompt("Enter specific name/note (e.g. Netflix, Water Bill):");
+        let note = prompt("Enter specific name/note (e.g. Netflix, AT&T, Water Bill):");
         if (note === null) return; // User cancelled
         
         if (cat === 'Subscription') {
@@ -187,9 +191,20 @@ Replace your entire `index.html` with this.
         await fetchData();
     }
 
+    // CASCADING DELETE LOGIC
     async function deleteEntry(id) { 
         if (confirm("Delete this transaction?")) { 
+            // 1. Fetch the transaction so we know its name/category before destroying it
+            const { data } = await _supabase.from('transactions').select('*').eq('id', id).single();
+            
+            // 2. Delete it from the main history
             await _supabase.from('transactions').delete().eq('id', id); 
+            
+            // 3. If it was a subscription, cascade the delete to the Recurring Bills table
+            if (data && data.category === 'Subscription' && data.note) {
+                await _supabase.from('recurring_expenses').delete().eq('name', data.note);
+            }
+            
             await fetchData(); 
         } 
     }
@@ -232,13 +247,24 @@ Replace your entire `index.html` with this.
     function updateUI() {
         const { start, end } = getCycleDates();
         let bSpend = 0, gSpend = 0, totalSpent = 0;
+        let catTotals = { Mortgage:0, Car:0, Utilities:0, Phone:0, Food:0, Subs:0, Misc:0 };
+        
         const list = document.getElementById('historyList'); list.innerHTML = '';
 
         history.forEach(item => {
             totalSpent += item.amount;
             if (item.member === 'Brandon') bSpend += item.amount; else gSpend += item.amount;
-            const d = new Date(item.created_at);
             
+            // Map to Multi-Color Chart
+            if (item.category === 'Mortgage') catTotals.Mortgage += item.amount;
+            else if (item.category === 'Car') catTotals.Car += item.amount;
+            else if (item.category === 'Utilities') catTotals.Utilities += item.amount;
+            else if (item.category === 'Phone') catTotals.Phone += item.amount;
+            else if (['Groceries', 'Dining'].includes(item.category)) catTotals.Food += item.amount;
+            else if (item.category === 'Subscription') catTotals.Subs += item.amount;
+            else catTotals.Misc += item.amount;
+
+            const d = new Date(item.created_at);
             const displayTitle = (item.category === 'Subscription' && item.note) ? item.note : (item.note || item.category);
             const displaySub = (item.category === 'Subscription') ? 'Recurring Bill' : (item.note ? item.category : '');
             
@@ -255,25 +281,26 @@ Replace your entire `index.html` with this.
 
         const recurTotal = recurring.reduce((sum, sub) => {
             let billDate = new Date(start);
-            if (sub.billing_day < CYCLE_START_DAY) {
-                billDate.setMonth(billDate.getMonth() + 1);
-            }
+            if (sub.billing_day < CYCLE_START_DAY) { billDate.setMonth(billDate.getMonth() + 1); }
             billDate.setDate(sub.billing_day);
 
+            // PREVENT DOUBLE COUNTING: If already logged manually, don't count it twice
+            const logged = history.some(h => h.note === sub.name && h.category === 'Subscription');
+            if (logged) return sum;
+
             if (billDate <= new Date()) {
-                const logged = history.some(h => h.note === sub.name && h.category === 'Subscription');
-                if (!logged) {
-                    const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
-                    div.innerHTML = `
-                        <div class="item-left">
-                            <div class="tag-row"><span class="name-tag tag-auto">AUTO-SYNC</span><span class="date-tag">${billDate.getMonth()+1}/${billDate.getDate()}</span></div>
-                            <span class="item-label">${sub.name}</span>
-                            <span class="item-note">Recurring Bill</span>
-                        </div>
-                        <div class="item-amt">-$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
-                    list.prepend(div);
-                }
+                const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
+                div.innerHTML = `
+                    <div class="item-left">
+                        <div class="tag-row"><span class="name-tag tag-auto">AUTO-SYNC</span><span class="date-tag">${billDate.getMonth()+1}/${billDate.getDate()}</span></div>
+                        <span class="item-label">${sub.name}</span>
+                        <span class="item-note">Recurring Bill</span>
+                    </div>
+                    <div class="item-amt">-$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
+                list.prepend(div);
             }
+            
+            catTotals.Subs += sub.amount;
             return sum + sub.amount;
         }, 0);
 
@@ -285,7 +312,11 @@ Replace your entire `index.html` with this.
         const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
         document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
         
-        if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totalSpent + recurTotal]; myChart.update(); }
+        // PUSH DATA TO MULTI-COLOR CHART
+        if(myChart) { 
+            myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, catTotals.Mortgage, catTotals.Car, catTotals.Utilities, catTotals.Phone, catTotals.Food, catTotals.Subs, catTotals.Misc]; 
+            myChart.update(); 
+        }
         filterHistory();
     }
 
@@ -293,4 +324,3 @@ Replace your entire `index.html` with this.
 </script>
 </body>
 </html>
-```
