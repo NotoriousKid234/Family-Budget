@@ -11,9 +11,12 @@
     <style>
         :root { 
             --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            --brandon: #3b82f6; --gina: #ec4899; 
-            --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); 
-            --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
+            --brandon: #3b82f6; 
+            --gina: #ec4899; 
+            --bg: #0f172a; 
+            --card: rgba(30, 41, 59, 0.7); 
+            --text: #f8fafc; 
+            --border: rgba(255, 255, 255, 0.1);
         }
 
         body { 
@@ -22,7 +25,6 @@
             min-height: 100vh; color: var(--text); overflow-x: hidden;
         }
 
-        /* Glassmorphism Card */
         #loginScreen, #app { 
             background: var(--card); backdrop-filter: blur(20px); 
             padding: 40px; border-radius: 32px; width: 440px; 
@@ -30,31 +32,34 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px;
         }
 
-        /* CRITICAL FIX: Ensure app is hidden and doesn't take up space */
         #app { display: none; } 
 
         .hero-section { text-align: center; margin-bottom: 30px; }
         .balance-label { font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; letter-spacing: -2px; }
-
         .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin-top: 10px; }
 
         .chart-container { position: relative; height: 200px; margin: 20px 0; }
-
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
         input, select { 
             width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 16px; 
-            border: 1px solid var(--border); background: rgba(0,0,0,0.2); 
+            border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); 
             color: white; font-size: 1rem; outline: none; box-sizing: border-box;
+            appearance: none; /* Helps with mobile styling */
         }
+
+        /* NEW: Stylized Member Options */
+        .opt-brandon { color: var(--brandon) !important; font-weight: 600; background: #0f172a; }
+        .opt-gina { color: var(--gina) !important; font-weight: 600; background: #0f172a; }
 
         .btn-elite { 
             background: var(--primary); color: white; border: none; padding: 18px; 
             border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer;
-            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); transition: transform 0.2s;
         }
+        .btn-elite:active { transform: scale(0.98); }
 
         .history-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
     </style>
@@ -87,7 +92,10 @@
 
         <div style="margin-bottom: 30px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <select id="memberSelect"><option>Brandon</option><option>Gina</option></select>
+                <select id="memberSelect" onchange="updateMemberColor(this)">
+                    <option value="Brandon" class="opt-brandon">Brandon</option>
+                    <option value="Gina" class="opt-gina">Gina</option>
+                </select>
                 <input type="number" id="amount" placeholder="0.00">
             </div>
             <select id="category">
@@ -109,10 +117,20 @@
     let history = JSON.parse(localStorage.getItem('fam_history')) || [];
     let myChart;
 
+    // Changes the color of the dropdown text itself when selected
+    function updateMemberColor(select) {
+        if(select.value === "Brandon") {
+            select.style.color = "#3b82f6";
+        } else {
+            select.style.color = "#ec4899";
+        }
+    }
+
     function checkPin() {
         if (document.getElementById('pinField').value === MY_PIN) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
+            updateMemberColor(document.getElementById('memberSelect')); // Set initial color
             initChart(); updateDisplay();
         } else { alert("Access Denied"); }
     }
