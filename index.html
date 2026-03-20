@@ -16,7 +16,6 @@
             --card: #ffffff; --text: #1e293b; --input: #f8fafc; --border: #e2e8f0;
         }
 
-        /* Dark Mode variables */
         [data-theme="dark"] {
             --bg: radial-gradient(circle at top right, #1e293b, #0f172a);
             --card: #1e293b; --text: #f8fafc; --input: #0f172a; --border: #334155;
@@ -24,45 +23,58 @@
 
         body { 
             font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; 
-            display: flex; justify-content: center; align-items: flex-start; 
-            min-height: 100vh; padding: 40px 0; color: var(--text); transition: all 0.3s ease;
+            display: flex; justify-content: center; align-items: center; /* Vertical & Horizontal Center */
+            min-height: 100vh; color: var(--text); transition: all 0.3s ease;
         }
 
-        #loginScreen, #app { 
-            background: var(--card); padding: 30px; border-radius: 28px; 
+        /* Container logic for Login vs App */
+        #loginScreen { 
+            background: var(--card); padding: 40px; border-radius: 28px; 
+            width: 340px; text-align: center; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        #app { 
+            display: none; background: var(--card); padding: 30px; border-radius: 28px; 
             width: 440px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); margin: 20px;
         }
 
+        /* Elements */
         .balance-hero { background: var(--input); padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 20px; border: 1px solid var(--border); }
         .chart-container { position: relative; height: 220px; margin-bottom: 25px; }
         .family-stats { display: flex; gap: 10px; margin-bottom: 20px; }
         .stat-pill { flex: 1; padding: 12px; border-radius: 16px; color: white; text-align: center; }
 
-        label { display: block; margin-bottom: 6px; font-weight: 700; color: #94a3b8; font-size: 0.7rem; text-transform: uppercase; }
-        input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); font-size: 1rem; background: var(--input); color: var(--text); }
+        label { display: block; margin-bottom: 6px; font-weight: 700; color: #94a3b8; font-size: 0.7rem; text-transform: uppercase; text-align: left; width: 100%; }
+        input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); font-size: 1rem; background: var(--input); color: var(--text); box-sizing: border-box; }
         
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; transition: transform 0.1s; }
+        .btn-primary:active { transform: scale(0.98); }
+        
         .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: center; }
         .hidden { display: none !important; }
-
-        /* Notification for Cap */
-        .cap-warning { color: #ef4444; font-size: 0.7rem; font-weight: bold; margin-top: -10px; margin-bottom: 10px; display: none; }
+        .cap-warning { color: #ef4444; font-size: 0.7rem; font-weight: bold; margin-bottom: 10px; display: none; text-align: left; width: 100%; }
     </style>
 </head>
 <body>
 
     <div id="loginScreen">
-        <i class="fa-solid fa-vault fa-3x" style="color: #6366f1; margin-bottom: 20px;"></i>
-        <h2>Family Vault</h2>
-        <input type="password" id="pinField" placeholder="••••" style="text-align:center; font-size: 2rem; border:none; letter-spacing:8px; width:150px; border-radius:10px; padding:10px; margin-bottom:20px;">
-        <button class="btn-primary" onclick="checkPin()">Unlock</button>
+        <div style="background: #6366f1; width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);">
+            <i class="fa-solid fa-fingerprint fa-2x" style="color: white;"></i>
+        </div>
+        <h2 style="margin: 0 0 8px 0;">Family Vault</h2>
+        <p style="color: #94a3b8; font-size: 0.85rem; margin: 0 0 25px 0;">Secure Household Budget</p>
+        
+        <input type="password" id="pinField" placeholder="••••" style="text-align:center; font-size: 2rem; letter-spacing:8px; border-radius:15px; margin-bottom:20px;">
+        <button class="btn-primary" onclick="checkPin()">Unlock Dashboard</button>
     </div>
 
-    <div id="app" class="hidden">
+    <div id="app">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <button onclick="toggleTheme()" style="background:none; border:none; color:var(--text); cursor:pointer;"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
             <span style="font-weight: 800; font-size: 1.1rem;">Budget Analytics</span>
-            <button onclick="archiveMonth()" style="background:none; border:none; color:#10b981; cursor:pointer;" title="Archive Month"><i class="fa-solid fa-box-archive"></i></button>
+            <button onclick="archiveMonth()" style="background:none; border:none; color:#10b981; cursor:pointer;"><i class="fa-solid fa-box-archive"></i></button>
         </div>
 
         <div class="balance-hero">
@@ -89,7 +101,7 @@
                 <option value="Dining">🍔 Dining / Takeout</option>
                 <option value="Misc">📦 Miscellaneous</option>
             </select>
-            <div id="capNotice" class="cap-warning">⚠️ LIMIT REACHED FOR THIS CATEGORY!</div>
+            <div id="capNotice" class="cap-warning">⚠️ MONTHLY LIMIT REACHED</div>
             <button class="btn-primary" onclick="addEntry()">Record Expense</button>
         </div>
 
@@ -103,17 +115,22 @@
 <script>
     const MY_PIN = "1991";
     const INCOME = 7400.00;
-    const CAPS = { Dining: 500, Misc: 300 }; // Category Spending Limits
+    const CAPS = { Dining: 500, Misc: 300 };
     
     let history = JSON.parse(localStorage.getItem('fam_history')) || [];
     let myChart;
 
     function checkPin() {
         if (document.getElementById('pinField').value === MY_PIN) {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            
+            // Adjust body alignment for the dashboard scrolling
+            document.body.style.alignItems = 'flex-start';
+            document.body.style.paddingTop = '40px';
+            
             initChart(); updateDisplay();
-        } else { alert("Wrong PIN"); }
+        } else { alert("Access Denied"); document.getElementById('pinField').value = ''; }
     }
 
     function toggleTheme() {
@@ -164,11 +181,7 @@
     }
 
     function archiveMonth() {
-        if(confirm("Archive this month? This will save a summary and clear your spending for a new month.")) {
-            const summary = { date: new Date().toLocaleDateString(), total: INCOME - (history.reduce((a, b) => a + b.amount, 0)) };
-            let archives = JSON.parse(localStorage.getItem('fam_archives')) || [];
-            archives.push(summary);
-            localStorage.setItem('fam_archives', JSON.stringify(archives));
+        if(confirm("Archive Month? Current spending will be reset.")) {
             clearHistory();
         }
     }
@@ -189,7 +202,7 @@
 
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.innerHTML = `<div><div style="font-weight:700; font-size:0.85rem;">${item.category}</div><div style="font-size:0.7rem; color:#94a3b8;">${item.member}</div></div><div style="font-weight:700; color:#ef4444;">-$${item.amount.toFixed(2)}</div>`;
+            div.innerHTML = `<div><div style="font-weight:700; font-size:0.85rem; color:var(--text);">${item.category}</div><div style="font-size:0.7rem; color:#94a3b8;">${item.member}</div></div><div style="font-weight:700; color:#ef4444;">-$${item.amount.toFixed(2)}</div>`;
             list.appendChild(div);
         });
 
@@ -203,6 +216,11 @@
             myChart.update();
         }
     }
+
+    // Allow Enter key to submit PIN
+    document.getElementById('pinField').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') checkPin();
+    });
 </script>
 </body>
 </html>
