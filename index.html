@@ -5,37 +5,139 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Montoya Family Budget</title>
     <style>
-        :root { --primary: #3182ce; --dark: #0e1621; --bg: #f7fafc; --brandon: #2b6cb0; --gina: #d53f8c; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--dark); margin: 0; display: flex; justify-content: center; padding-top: 30px; min-height: 100vh; }
+        :root { 
+            --primary: #3182ce; 
+            --dark: #0e1621; 
+            --bg: #f7fafc; 
+            --brandon: #2b6cb0; 
+            --gina: #d53f8c; 
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: var(--dark); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; /* Centers the login box vertically */
+            min-height: 100vh; 
+        }
         
-        #loginScreen { background: white; padding: 40px; border-radius: 16px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-top: 100px; }
-        .pin-input { width: 100%; font-size: 2rem; text-align: center; letter-spacing: 10px; padding: 10px; margin: 20px 0; border: 2px solid #e2e8f0; border-radius: 8px; }
+        /* Containers */
+        #loginScreen { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 16px; 
+            width: 320px; 
+            text-align: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
+            height: auto; 
+        }
+
+        #app { 
+            display: none; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 16px; 
+            width: 420px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
+            margin: 20px; 
+            height: auto; 
+        }
+
+        /* Elements */
+        .pin-input { 
+            width: 100%; 
+            font-size: 2rem; 
+            text-align: center; 
+            letter-spacing: 10px; 
+            padding: 10px; 
+            margin: 20px 0; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 8px; 
+        }
+
+        .balance-container { 
+            background: #f0f7ff; 
+            padding: 15px; 
+            border-radius: 10px; 
+            text-align: center; 
+            margin-bottom: 15px; 
+            border: 2px solid #cce3ff; 
+        }
+
+        .balance-amount { 
+            font-size: 2.2rem; 
+            font-weight: bold; 
+            color: #2b6cb0; 
+            display: block; 
+        }
         
-        #app { display: none; background: white; padding: 25px; border-radius: 16px; width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 50px; }
-        
-        .balance-container { background: #f0f7ff; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 15px; border: 2px solid #cce3ff; }
-        .balance-amount { font-size: 2.2rem; font-weight: bold; color: #2b6cb0; display: block; }
-        
-        /* Family Breakdown Styling */
-        .family-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .member-card { padding: 10px; border-radius: 8px; text-align: center; color: white; font-weight: bold; }
+        .family-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+        }
+
+        .member-card { 
+            padding: 10px; 
+            border-radius: 8px; 
+            text-align: center; 
+            color: white; 
+            font-weight: bold; 
+        }
+
         .bg-brandon { background-color: var(--brandon); }
         .bg-gina { background-color: var(--gina); }
         .spend-label { font-size: 0.7rem; opacity: 0.9; text-transform: uppercase; }
 
         label { display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 0.85rem; }
-        input, select, button { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 2px solid #e2e8f0; box-sizing: border-box; font-size: 1rem; }
-        .btn-add { background-color: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
-        .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #edf2f7; font-size: 0.85rem; align-items: center; }
-        .member-tag { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; color: white; margin-left: 5px; vertical-align: middle; }
+        input, select, button { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 12px; 
+            border-radius: 8px; 
+            border: 2px solid #e2e8f0; 
+            box-sizing: border-box; 
+            font-size: 1rem; 
+        }
+
+        .btn-add { 
+            background-color: var(--primary); 
+            color: white; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px; 
+        }
+
+        .history-item { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 10px 0; 
+            border-bottom: 1px solid #edf2f7; 
+            font-size: 0.85rem; 
+            align-items: center; 
+        }
+
+        .member-tag { 
+            font-size: 0.6rem; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            color: white; 
+            margin-left: 5px; 
+            vertical-align: middle; 
+        }
+
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div id="loginScreen">
-        <h2>Enter PIN</h2>
+        <h2 style="margin-top:0;">Enter PIN</h2>
         <input type="password" id="pinField" class="pin-input" maxlength="4" placeholder="****">
         <button class="btn-add" onclick="checkPin()">Unlock Budget</button>
     </div>
@@ -43,7 +145,7 @@
     <div id="app">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin:0; color:#2d3748;">Family Dashboard</h3>
-            <button onclick="location.reload()" style="width:auto; padding:5px 10px; font-size:0.7rem; margin:0;">Lock</button>
+            <button onclick="location.reload()" style="width:auto; padding:5px 10px; font-size:0.7rem; margin:0; background:#edf2f7; color:#4a5568; border:1px solid #cbd5e0;">Lock App</button>
         </div>
 
         <div class="balance-container">
@@ -73,35 +175,55 @@
         
         <label>Category:</label>
         <select id="category">
+            <option>Mortgage</option>
+            <option>Car Payment</option>
+            <option>Car Insurance</option>
             <option>Groceries</option>
-            <option>Dining / Takeout</option>
             <option>Gas / Travel</option>
-            <option>Utilities</option>
-            <option>Mortgage/Auto</option>
+            <option>Energy (Electric)</option>
+            <option>Water</option>
+            <option>Entertainment</option>
+            <option>Dining / Takeout</option>
             <option>Miscellaneous</option>
         </select>
 
-        <button class="btn-add" onclick="addEntry()">Add Transaction</button>
+        <button class="btn-add" onclick="addEntry()">Subtract Expense</button>
 
-        <div id="historyList" style="max-height: 200px; overflow-y: auto; margin-top:20px; border-top: 1px solid #eee;"></div>
+        <div style="display:flex; justify-content:space-between; margin-top:20px; border-bottom:1px solid #eee; padding-bottom:5px;">
+            <span style="font-size:0.8rem; font-weight:bold; color:#4a5568;">RECENT ACTIVITY</span>
+            <span style="font-size:0.7rem; color:#e53e3e; cursor:pointer;" onclick="clearHistory()">Clear All</span>
+        </div>
+        <div id="historyList" style="max-height: 250px; overflow-y: auto;"></div>
+        
+        <button onclick="resetMonth()" style="width:100%; margin-top:20px; background:none; border:1px dashed #cbd5e0; color:#a0aec0; font-size:0.7rem; cursor:pointer; padding:8px;">Reset Monthly Income to $7,400</button>
     </div>
 
 <script>
-    const MY_PIN = "1991";
+    const MY_PIN = "1991"; // You can change this to any 4 digits
     const INCOME = 7400.00;
 
+    // Load History from Memory
     let history = JSON.parse(localStorage.getItem('fam_history')) || [];
 
+    // Login Logic
     function checkPin() {
-        if (document.getElementById('pinField').value === MY_PIN) {
+        const pinInput = document.getElementById('pinField').value;
+        if (pinInput === MY_PIN) {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('app').style.display = 'block';
+            
+            // Adjust body alignment for the dashboard
+            document.body.style.alignItems = 'flex-start';
+            document.body.style.paddingTop = '30px';
+            
             updateDisplay();
         } else {
-            alert("Wrong PIN");
+            alert("Incorrect PIN. Try again.");
+            document.getElementById('pinField').value = '';
         }
     }
 
+    // Add Transaction Logic
     function addEntry() {
         const amtInput = document.getElementById('amount');
         const val = parseFloat(amtInput.value);
@@ -119,6 +241,26 @@
         amtInput.value = '';
     }
 
+    // Reset Monthly Totals
+    function resetMonth() {
+        if(confirm("Are you sure? This will not delete your history, but it resets the remaining balance to $7,400.")) {
+            // Logic: To "reset" while keeping history, we would need to archive old history.
+            // For now, we will simply clear history to start fresh.
+            if(confirm("Would you like to clear the transaction history for the new month as well?")) {
+                clearHistory();
+            }
+        }
+    }
+
+    function clearHistory() {
+        if(confirm("Delete all transaction history?")) {
+            history = [];
+            localStorage.setItem('fam_history', JSON.stringify(history));
+            updateDisplay();
+        }
+    }
+
+    // Refresh the UI
     function updateDisplay() {
         let totalSpent = 0;
         let bSpend = 0;
@@ -135,20 +277,26 @@
             const div = document.createElement('div');
             div.className = 'history-item';
             const color = item.member === "Brandon" ? 'var(--brandon)' : 'var(--gina)';
+            
             div.innerHTML = `
                 <span>
                     <b>${item.category}</b> <span class="member-tag" style="background:${color}">${item.member[0]}</span>
-                    <br><small>${item.date}</small>
+                    <br><small style="color:#a0aec0;">${item.date}</small>
                 </span>
-                <span style="color:#e53e3e; font-weight:bold;">-$${item.amount.toFixed(2)}</span>
+                <span style="color:#e53e3e; font-weight:bold;">-$${item.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
             `;
             list.appendChild(div);
         });
 
         document.getElementById('balance').innerText = (INCOME - totalSpent).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
-        document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
+        document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
     }
+
+    // Allow "Enter" key for PIN
+    document.getElementById('pinField').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') checkPin();
+    });
 </script>
 </body>
 </html>
