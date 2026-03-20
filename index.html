@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Montoya Ledger Elite</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -31,7 +38,6 @@
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; margin-bottom: 5px;}
         .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 20px auto; }
 
-        /* UPGRADED: Health Dashboard */
         .health-dashboard { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 15px; margin-bottom: 25px; border: 1px solid var(--border); }
         .health-bar { display: flex; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
         .health-fill-need { background: var(--need); height: 100%; transition: width 0.5s ease; }
@@ -177,7 +183,6 @@
     let history = [], recurring = [], allTimeGoals = [], currentType = 'Need', myChart;
     let currentViewDate = new Date();
 
-    // Default dropdown color init
     document.getElementById('memberSelect').style.color = '#3b82f6';
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
@@ -376,7 +381,6 @@
             totalSpent += item.amount;
             if (item.category !== 'Goal') { if (item.member === 'Brandon') bSpend += item.amount; else gSpend += item.amount; }
             
-            // Tally up Needs/Wants/Goals
             if (item.category === 'Goal') goalSpend += item.amount;
             else if (item.intent === 'Want') wantSpend += item.amount;
             else needSpend += item.amount;
@@ -396,7 +400,6 @@
             const displaySub = (item.category === 'Subscription') ? 'Recurring Bill' : (item.category === 'Goal' ? 'To Vault' : (item.note ? item.category : ''));
             const specificTag = item.category === 'Goal' ? `<span class="name-tag tag-goal">VAULT</span>` : `<span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span>`;
 
-            // Bringing back the colored dot!
             let dotColor = item.intent === 'Want' ? 'var(--want)' : 'var(--need)';
             if (item.category === 'Goal') dotColor = 'var(--goal)';
             const intentDot = `<span class="intent-dot" style="background:${dotColor}; color:${dotColor}; margin-right:8px;" title="${item.intent}"></span>`;
@@ -420,7 +423,7 @@
             if (logged) return sum;
 
             if (billDate <= new Date()) {
-                needSpend += sub.amount; // Recurring bills count as Needs
+                needSpend += sub.amount; 
                 const recurIntentDot = `<span class="intent-dot" style="background:var(--need); color:var(--need); margin-right:8px;" title="Need"></span>`;
                 const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
                 div.setAttribute('data-amt', sub.amount);
@@ -443,7 +446,6 @@
         }
         document.getElementById('paceDisplay').innerText = paceText;
 
-        // CALCULATE AND UPDATE HEALTH DASHBOARD (50/30/20)
         const pNeed = Math.min(100, Math.round((needSpend / INCOME) * 100));
         const pWant = Math.min(100, Math.round((wantSpend / INCOME) * 100));
         const pGoal = Math.min(100, Math.round((goalSpend / INCOME) * 100));
