@@ -8,60 +8,116 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        :root { --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); --brandon: #3b82f6; --gina: #ec4899; --need: #10b981; --want: #f59e0b; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); --text: #f8fafc; --border: rgba(255, 255, 255, 0.1); }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); overflow-x: hidden; }
-        #loginScreen, #app { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; }
-        #app { display: none; } 
-        .hero-section { text-align: center; margin-bottom: 20px; }
+        :root { 
+            --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --brandon: #3b82f6; --gina: #ec4899; 
+            --need: #10b981; --want: #f59e0b;
+            --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); 
+            --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; color: var(--text); overflow-x: hidden;
+        }
+
+        /* Centered Login Box */
+        #loginScreen { 
+            background: var(--card); backdrop-filter: blur(20px); 
+            padding: 40px; border-radius: 32px; width: 340px; 
+            border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+            text-align: center;
+        }
+
+        /* Dashboard - Restored to full appearance */
+        #app { 
+            display: none; background: var(--card); backdrop-filter: blur(20px); 
+            padding: 40px; border-radius: 32px; width: 440px; 
+            border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+            margin: 20px;
+        }
+
+        .hero-section { text-align: center; margin-bottom: 25px; }
+        .balance-label { font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; letter-spacing: -2px; }
+        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin-top: 10px; }
+
         .chart-container { position: relative; height: 180px; margin-bottom: 25px; }
-        .insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
-        .insight-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
+        
+        /* Stats row Brandon/Gina */
+        .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
+
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
         .type-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: none; color: #94a3b8; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
         .type-btn.active { background: #fff; color: #0f172a; }
-        input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 0.9rem; box-sizing: border-box; }
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 700; width: 100%; cursor: pointer; }
-        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+
+        input, select { 
+            width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 16px; 
+            border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); 
+            color: white; font-size: 1rem; box-sizing: border-box;
+        }
+
+        .btn-elite { 
+            background: var(--primary); color: white; border: none; padding: 18px; 
+            border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5);
+        }
+
+        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .intent-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
     </style>
 </head>
 <body>
+
     <div id="loginScreen">
-        <div style="background: var(--primary); width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;"><i class="fa-solid fa-chart-line fa-2x" style="color: white;"></i></div>
-        <h2 style="margin:0;">Elite Insights</h2>
+        <div style="background: var(--primary); width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: white;"></i>
+        </div>
+        <h2 style="margin:0;">Cloud Vault</h2>
         <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem; width: 100%; margin: 20px 0; background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; border-radius: 12px; padding: 10px;">
-        <button class="btn-elite" onclick="checkPin()">Access Dashboard</button>
+        <button class="btn-elite" onclick="checkPin()">Unlock & Sync</button>
     </div>
 
     <div id="app">
         <div class="hero-section">
+            <div class="balance-label">Household Remaining</div>
             <div id="balance" class="balance-amount">$7,400</div>
-            <div id="dailyPace" style="color:#10b981; font-weight:700; font-size:0.75rem;">DAILY ALLOWANCE: $238.70</div>
+            <div id="paceDisplay" class="pace-pill">Pace: $238.70 / day</div>
         </div>
 
         <div class="chart-container"><canvas id="budgetChart"></canvas></div>
 
-        <div class="insight-grid">
-            <div class="insight-card">
-                <div style="color:var(--need); font-size:0.6rem; font-weight:800; letter-spacing:1px;">ESSENTIALS</div>
-                <div id="needTotal" style="font-weight:700; font-size:1.1rem;">$0</div>
+        <div class="stat-group">
+            <div class="stat-card">
+                <div style="color:var(--brandon); font-size:0.6rem; font-weight:700;">BRANDON</div>
+                <div id="brandonSpend" style="font-size:1.1rem; font-weight:700;">$0</div>
             </div>
-            <div class="insight-card">
-                <div style="color:var(--want); font-size:0.6rem; font-weight:800; letter-spacing:1px;">LIFESTYLE</div>
-                <div id="wantTotal" style="font-weight:700; font-size:1.1rem;">$0</div>
+            <div class="stat-card">
+                <div style="color:var(--gina); font-size:0.6rem; font-weight:700;">GINA</div>
+                <div id="ginaSpend" style="font-size:1.1rem; font-weight:700;">$0</div>
             </div>
         </div>
 
         <div style="margin-bottom: 25px;">
-            <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
+            <div class="type-toggle">
+                <button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button>
+                <button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button>
+            </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <select id="memberSelect" onchange="this.style.color = this.value === 'Brandon' ? '#3b82f6' : '#ec4899';"><option>Brandon</option><option>Gina</option></select>
+                <select id="memberSelect" onchange="updateMemberColor(this)">
+                    <option value="Brandon">Brandon</option>
+                    <option value="Gina">Gina</option>
+                </select>
                 <input type="number" id="amount" placeholder="0.00">
             </div>
             <select id="category" onchange="autoSuggest(this.value)">
                 <option value="Mortgage">🏠 Mortgage</option>
                 <option value="Car">🚗 Car Payment</option>
+                <option value="CreditCard">💳 Credit Card Payment</option>
                 <option value="Groceries">🛒 Groceries</option>
                 <option value="Dining">🍔 Dining / Takeout</option>
                 <option value="Utilities">💡 Utilities</option>
@@ -73,28 +129,59 @@
     </div>
 
 <script>
+    // --- SUPABASE CONFIG ---
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const MY_PIN = "1991"; const INCOME = 7400.00;
-    let history = []; let currentType = 'Need'; let myChart;
+    const MY_PIN = "1991";
+    const INCOME = 7400.00;
+    let history = [];
+    let currentType = 'Need';
+    let myChart;
 
-    function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
-    function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Groceries'].includes(c) ? 'Need' : 'Want'); }
+    function setType(t) { 
+        currentType = t; 
+        document.getElementById('needBtn').classList.toggle('active', t === 'Need'); 
+        document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); 
+    }
+
+    function autoSuggest(c) { 
+        // Credit Card is a "Need" by default
+        const needs = ['Mortgage','Car','Utilities','Groceries','CreditCard'];
+        setType(needs.includes(c) ? 'Need' : 'Want'); 
+    }
+
+    function updateMemberColor(select) {
+        select.style.color = select.value === "Brandon" ? "#3b82f6" : "#ec4899";
+    }
 
     async function checkPin() {
         if (document.getElementById('pinField').value === MY_PIN) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
-            document.body.style.alignItems = 'flex-start'; document.body.style.paddingTop = '40px';
-            initChart(); await fetchHistory();
-        } else { alert("Wrong PIN"); }
+            document.body.style.alignItems = 'flex-start'; 
+            document.body.style.paddingTop = '40px';
+            updateMemberColor(document.getElementById('memberSelect'));
+            initChart(); 
+            await fetchHistory(); 
+        } else { alert("Access Denied"); }
     }
 
     function initChart() {
         const ctx = document.getElementById('budgetChart').getContext('2d');
-        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Mortgage', 'Car', 'Groceries', 'Dining', 'Utilities', 'Misc'], datasets: [{ data: [INCOME, 0, 0, 0, 0, 0, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#10b981', '#f43f5e', '#8b5cf6', '#94a3b8'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } });
+        myChart = new Chart(ctx, { 
+            type: 'doughnut', 
+            data: { 
+                labels: ['Remaining', 'Mortgage', 'Car', 'Groceries', 'Dining', 'Utilities', 'CreditCard', 'Misc'], 
+                datasets: [{ 
+                    data: [INCOME, 0, 0, 0, 0, 0, 0, 0], 
+                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#10b981', '#f43f5e', '#8b5cf6', '#a855f7', '#94a3b8'], 
+                    borderWidth: 0 
+                }] 
+            }, 
+            options: { cutout: '80%', plugins: { legend: { display: false } } } 
+        });
     }
 
     async function fetchHistory() {
@@ -103,46 +190,60 @@
     }
 
     async function addEntry() {
-        const amtInput = document.getElementById('amount'); const val = parseFloat(amtInput.value);
+        const amtInput = document.getElementById('amount'); 
+        const val = parseFloat(amtInput.value);
         if (isNaN(val) || val <= 0) return;
+
         document.getElementById('recordBtn').innerText = "Syncing...";
-        const newEntry = { amount: val, member: document.getElementById('memberSelect').value, category: document.getElementById('category').value, intent: currentType, created_at: new Date().toISOString() };
+        const newEntry = { 
+            amount: val, 
+            member: document.getElementById('memberSelect').value, 
+            category: document.getElementById('category').value, 
+            intent: currentType, 
+            created_at: new Date().toISOString() 
+        };
+
         const { error } = await _supabase.from('transactions').insert([newEntry]);
         if (!error) { amtInput.value = ''; await fetchHistory(); }
         document.getElementById('recordBtn').innerText = "Sync Transaction";
     }
 
     function updateUI() {
-        let totals = { Mortgage:0, Car:0, Groceries:0, Dining:0, Utilities:0, Misc:0 };
-        let totalSpent = 0, nTotal = 0, wTotal = 0;
-        const list = document.getElementById('historyList'); list.innerHTML = '';
+        let totals = { Mortgage:0, Car:0, Groceries:0, Dining:0, Utilities:0, CreditCard:0, Misc:0 };
+        let bSpend = 0, gSpend = 0, totalSpent = 0;
+        const list = document.getElementById('historyList'); 
+        list.innerHTML = '';
 
         history.forEach(item => {
             totalSpent += item.amount;
-            if (item.intent === 'Need') nTotal += item.amount; else wTotal += item.amount;
+            if (item.member === "Brandon") bSpend += item.amount; else gSpend += item.amount;
+            
             let catName = item.category.replace(/[^\w\s]/gi, '').trim().split(' ')[0];
             if(totals.hasOwnProperty(catName)) totals[catName] += item.amount; else totals.Misc += item.amount;
 
-            const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><b>${item.category}</b><br><small>${item.member}</small></div><div>-$${item.amount.toLocaleString()}</div>`;
+            const dotColor = item.intent === 'Need' ? 'var(--need)' : 'var(--want)';
+            const div = document.createElement('div'); 
+            div.className = 'history-item';
+            div.innerHTML = `<div><span class="intent-dot" style="background:${dotColor}"></span><b>${item.category}</b><br><small>${item.member}</small></div><div>-$${item.amount.toLocaleString()}</div>`;
             list.appendChild(div);
         });
 
         const remaining = INCOME - totalSpent;
         document.getElementById('balance').innerText = "$" + (remaining < 0 ? 0 : remaining).toLocaleString();
-        document.getElementById('needTotal').innerText = "$" + nTotal.toLocaleString();
-        document.getElementById('wantTotal').innerText = "$" + wTotal.toLocaleString();
+        document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
+        document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
 
-        // Calculate Daily Pace
         const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-        const daysLeft = daysInMonth - new Date().getDate() + 1;
-        document.getElementById('dailyPace').innerText = `DAILY ALLOWANCE: $${(remaining / daysLeft).toFixed(2)}`;
+        const pace = remaining / (daysInMonth - new Date().getDate() + 1);
+        document.getElementById('paceDisplay').innerText = `Pace: $${pace.toFixed(2)} / day`;
 
-        if(myChart) {
-            myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totals.Mortgage, totals.Car, totals.Groceries, totals.Dining, totals.Utilities, totals.Misc];
-            myChart.update();
+        if(myChart) { 
+            myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totals.Mortgage, totals.Car, totals.Groceries, totals.Dining, totals.Utilities, totals.CreditCard, totals.Misc]; 
+            myChart.update(); 
         }
     }
+
+    document.getElementById('pinField').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPin(); });
 </script>
 </body>
 </html>
