@@ -23,9 +23,10 @@
         .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.15); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(129, 140, 248, 0.4); box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); color: #818cf8; }
         .logo-glow svg { fill: #818cf8; }
 
-        /* CYCLE DROPDOWN */
+        /* CYCLE DROPDOWN FIX */
         .cycle-selector { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #94a3b8; padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center; appearance: none; margin-bottom: 15px; outline: none; width: fit-content; margin-left: auto; margin-right: auto; display: block; }
         .cycle-selector:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .cycle-selector option { background: #0f172a; color: #f8fafc; font-weight: 500; } /* Forces Dark Mode on Dropdown Options */
 
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; margin-bottom: 5px;}
         .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 25px auto; }
@@ -35,9 +36,15 @@
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); margin-bottom: 12px; }
-        .btn-manage { background: #1e293b; color: white; border: 1px solid var(--border); padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
+        .btn-manage { background: #1e293b; color: white; border: 1px solid var(--border); padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
+        .btn-manage:hover { background: #334155; }
 
-        #searchBar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px 15px; border-radius: 12px; width: 100%; margin-bottom: 15px; box-sizing: border-box; font-size: 0.9rem; }
+        /* SEARCH & EXPORT ROW */
+        .toolbar-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        #searchBar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px 15px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 0.9rem; margin-bottom: 0; }
+        .btn-export { background: rgba(255,255,255,0.05); color: #60a5fa; border: 1px solid var(--border); border-radius: 12px; padding: 0 18px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .btn-export:hover { background: rgba(59, 130, 246, 0.2); color: #fff; }
+
         .history-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
         .item-left { display: flex; flex-direction: column; gap: 4px; }
         .tag-row { display: flex; gap: 8px; align-items: center; }
@@ -104,7 +111,11 @@
             <button class="btn-manage" onclick="toggleManager()" style="width:100%">Manage Recurring Bills</button>
         </div>
         
-        <input type="text" id="searchBar" placeholder="🔍 Search notes, categories, or members..." onkeyup="filterHistory()">
+        <div class="toolbar-row">
+            <input type="text" id="searchBar" placeholder="🔍 Search notes, categories, or members..." onkeyup="filterHistory()">
+            <button class="btn-export" onclick="exportCSV()" title="Export Cycle to CSV"><i class="fa-solid fa-file-csv"></i></button>
+        </div>
+        
         <div id="historyList" style="max-height: 400px; overflow-y: auto;"></div>
     </div>
 
@@ -122,13 +133,12 @@
     const INCOME = 7400.00; 
     const CYCLE_START_DAY = 16;
     let history = [], recurring = [], currentType = 'Need', myChart;
-    let currentViewDate = new Date(); // Tracks which historical cycle is active
+    let currentViewDate = new Date();
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
     function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Phone','Groceries','CreditCard','Subscription'].includes(c) ? 'Need' : 'Want'); }
     async function toggleManager() { const app = document.getElementById('app'); const manager = document.getElementById('subManager'); if (app.style.display === 'none') { app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); } else { app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); } }
     
-    // Core Cycle Math using dynamic view date
     function getCycleDates(baseDate = currentViewDate) { 
         let d = new Date(baseDate); 
         let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY, 0, 0, 0); 
@@ -137,7 +147,6 @@
         return { start, end }; 
     }
 
-    // Populate the dropdown with the last 6 months
     function initCycles() {
         const select = document.getElementById('cycleSelect');
         select.innerHTML = '';
@@ -193,13 +202,8 @@
 
     async function fetchData() {
         const { start, end } = getCycleDates(currentViewDate);
-        
-        // Supabase Query now strictly isolates the selected cycle window
         const [transRes, recurRes] = await Promise.all([
-            _supabase.from('transactions').select('*')
-                .gte('created_at', start.toISOString())
-                .lt('created_at', end.toISOString())
-                .order('created_at', { ascending: false }),
+            _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
             _supabase.from('recurring_expenses').select('*').order('name', { ascending: true })
         ]);
         history = transRes.data || []; 
@@ -226,7 +230,6 @@
         await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note, intent: currentType, created_at: new Date().toISOString() }]);
         document.getElementById('amount').value = ''; 
         
-        // Force view back to current cycle so the user immediately sees the new transaction
         document.getElementById('cycleSelect').selectedIndex = 0;
         currentViewDate = new Date();
         await fetchData();
@@ -267,6 +270,44 @@
             const text = item.innerText.toLowerCase();
             item.style.display = text.includes(q) ? 'flex' : 'none';
         });
+    }
+
+    // CSV EXPORT LOGIC
+    function exportCSV() {
+        const { start } = getCycleDates(currentViewDate);
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Date,Member,Category,Note,Amount,Type\n";
+
+        // Push Manual Transactions
+        history.forEach(item => {
+            const d = new Date(item.created_at);
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            const cleanNote = (item.note || '').replace(/,/g, ""); // Prevent CSV breaking on commas
+            csvContent += `${dateStr},${item.member},${item.category},${cleanNote},-${item.amount.toFixed(2)},Manual\n`;
+        });
+
+        // Push Auto-Sync Subscriptions currently active in this cycle
+        recurring.forEach(sub => {
+            let billDate = new Date(start);
+            if (sub.billing_day < CYCLE_START_DAY) { billDate.setMonth(billDate.getMonth() + 1); }
+            billDate.setDate(sub.billing_day);
+
+            const logged = history.some(h => h.note === sub.name && h.category === 'Subscription');
+            if (!logged && billDate <= new Date()) {
+                const dateStr = `${billDate.getFullYear()}-${String(billDate.getMonth()+1).padStart(2, '0')}-${String(billDate.getDate()).padStart(2, '0')}`;
+                const cleanName = (sub.name || '').replace(/,/g, "");
+                csvContent += `${dateStr},${sub.member},Subscription,${cleanName},-${sub.amount.toFixed(2)},Auto-Sync\n`;
+            }
+        });
+
+        // Trigger Download
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Montoya_Ledger_Cycle_${start.toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function updateSubList() {
@@ -320,7 +361,6 @@
             const logged = history.some(h => h.note === sub.name && h.category === 'Subscription');
             if (logged) return sum;
 
-            // If viewing a past cycle, all bills in that window are considered "past" and will render
             if (billDate <= new Date()) {
                 const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
                 div.innerHTML = `
