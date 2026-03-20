@@ -33,7 +33,6 @@
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); margin-bottom: 12px; }
         .btn-manage { background: #1e293b; color: white; border: 1px solid var(--border); padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
 
-        /* HISTORY & SEARCH */
         #searchBar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px 15px; border-radius: 12px; width: 100%; margin-bottom: 15px; box-sizing: border-box; font-size: 0.9rem; }
         .history-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
         .item-left { display: flex; flex-direction: column; gap: 4px; }
@@ -47,6 +46,7 @@
         .item-label { font-size: 1rem; font-weight: 700; color: #fff; }
         .item-note { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
         .item-amt { font-size: 1.1rem; font-weight: 700; color: #fff; text-align: right; }
+        .action-icons { display: flex; gap: 12px; align-items: center; }
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 1rem; box-sizing: border-box; }
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; }
@@ -116,7 +116,7 @@
         const { start } = getCycleDates();
         const [transRes, recurRes] = await Promise.all([
             _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).order('created_at', { ascending: false }),
-            _supabase.from('recurring_expenses').select('*')
+            _supabase.from('recurring_expenses').select('*').order('name', { ascending: true })
         ]);
         history = transRes.data || []; recurring = recurRes.data || [];
         updateUI(); updateSubList();
@@ -136,8 +136,16 @@
         document.getElementById('amount').value = ''; await fetchData();
     }
 
-    async function deleteEntry(id) { if (confirm("Delete?")) { await _supabase.from('transactions').delete().eq('id', id); await fetchData(); } }
-    async function deleteSub(id) { if (confirm("Remove?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); await fetchData(); } }
+    async function deleteEntry(id) { if (confirm("Delete this transaction?")) { await _supabase.from('transactions').delete().eq('id', id); await fetchData(); } }
+    async function deleteSub(id) { if (confirm("Remove this subscription permanently?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); await fetchData(); } }
+
+    async function editSub(sub) {
+        const newName = prompt("Edit Name:", sub.name); const newAmt = prompt("Edit Amount:", sub.amount); const newDay = prompt("Edit Billing Day:", sub.billing_day);
+        if (newName && newAmt && newDay) {
+            await _supabase.from('recurring_expenses').update({ name: newName, amount: parseFloat(newAmt), billing_day: parseInt(newDay) }).eq('id', sub.id);
+            await fetchData();
+        }
+    }
 
     function filterHistory() {
         const q = document.getElementById('searchBar').value.toLowerCase();
@@ -151,7 +159,7 @@
         const list = document.getElementById('subList'); list.innerHTML = '';
         recurring.forEach(sub => {
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div class="item-left"><span class="item-label">${sub.name}</span><span class="item-sub">Day ${sub.billing_day}</span></div><div>$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
+            div.innerHTML = `<div class="item-left"><span class="item-label">${sub.name}</span><span class="item-sub">Day ${sub.billing_day}</span></div><div class="action-icons"><b>$${sub.amount.toFixed(2)}</b><i class="fa-solid fa-pen-to-square" style="color:#60a5fa; cursor:pointer;" onclick='editSub(${JSON.stringify(sub)})'></i><i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer;" onclick="deleteSub('${sub.id}')"></i></div>`;
             list.appendChild(div);
         });
     }
@@ -181,7 +189,13 @@
             if (billDate >= start && billDate < end) {
                 if (billDate <= new Date()) {
                     const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
-                    div.innerHTML = `<div class="item-left"><div class="tag-row"><span class="name-tag tag-auto">AUTO-SYNC</span><span class="date-tag">${billDate.getMonth()+1}/${billDate.getDate()}</span></div><span class="item-label">${sub.name}</span><span class="item-note">Recurring Bill</span></div><div class="item-amt">-$${sub.amount.toFixed(2)}</div>`;
+                    div.innerHTML = `
+                        <div class="item-left">
+                            <div class="tag-row"><span class="name-tag tag-auto">AUTO-SYNC</span><span class="date-tag">${billDate.getMonth()+1}/${billDate.getDate()}</span></div>
+                            <span class="item-label">${sub.name}</span>
+                            <span class="item-note">Recurring Bill</span>
+                        </div>
+                        <div class="item-amt">-$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
                     list.prepend(div);
                 }
                 return sum + sub.amount;
@@ -196,7 +210,7 @@
         const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
         document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
         if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totalSpent + recurTotal]; myChart.update(); }
-        filterHistory(); // Maintain search filter on update
+        filterHistory();
     }
 </script>
 </body>
