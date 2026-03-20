@@ -290,7 +290,36 @@
 
     function initChart() { 
         const ctx = document.getElementById('budgetChart').getContext('2d'); 
-        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Spending'], datasets: [{ data: [INCOME, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } }); 
+        myChart = new Chart(ctx, { 
+            type: 'doughnut', 
+            data: { 
+                labels: ['Remaining', 'Mortgage', 'Car', 'CreditCard', 'Utilities', 'Phone', 'Groceries', 'Dining', 'Beauty', 'Subscription', 'Goal', 'Misc'], 
+                datasets: [{ 
+                    data: [INCOME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+                    backgroundColor: [
+                        'rgba(255,255,255,0.05)', 
+                        '#6366f1', '#3b82f6', '#ef4444', 
+                        '#eab308', '#06b6d4', '#10b981', 
+                        '#f59e0b', '#ec4899', '#8b5cf6', 
+                        '#14b8a6', '#94a3b8'
+                    ], 
+                    borderWidth: 0 
+                }] 
+            }, 
+            options: { 
+                cutout: '80%', 
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': $' + context.raw.toFixed(2);
+                            }
+                        }
+                    }
+                } 
+            } 
+        }); 
     }
 
     function getCycleDates(baseDate = currentViewDate) { 
@@ -352,13 +381,11 @@
         let note = prompt(promptStr);
         if (note === null) return; 
 
-        // Straight 1:1 deduction for Mortgage
         if (cat === 'Mortgage' && config.m_balance > 0) {
             config.m_balance -= amt;
             localStorage.setItem('ledger_config', JSON.stringify(config));
         }
 
-        // Straight 1:1 deduction for Car Loan
         if (cat === 'Car' && config.c_balance > 0) {
             config.c_balance -= amt;
             localStorage.setItem('ledger_config', JSON.stringify(config));
@@ -383,13 +410,11 @@
         if (confirm("Delete this transaction?")) {
             const { data } = await _supabase.from('transactions').select('*').eq('id', id).single();
             
-            // Straight 1:1 addition for Mortgage
             if (data && data.category === 'Mortgage' && config.m_balance > 0) {
                 config.m_balance += data.amount;
                 localStorage.setItem('ledger_config', JSON.stringify(config));
             }
 
-            // Straight 1:1 addition for Car Loan
             if (data && data.category === 'Car' && config.c_balance > 0) {
                 config.c_balance += data.amount;
                 localStorage.setItem('ledger_config', JSON.stringify(config));
@@ -453,23 +478,16 @@
     function updateUI() {
         const { start, end } = getCycleDates(currentViewDate);
         let totalS = 0, needS = 0, wantS = 0, goalS = 0, bS = 0, gS = 0;
+        let catTotals = { Remaining: 0, Mortgage: 0, Car: 0, CreditCard: 0, Utilities: 0, Phone: 0, Groceries: 0, Dining: 0, Beauty: 0, Subscription: 0, Goal: 0, Misc: 0 };
         const list = document.getElementById('historyList'); list.innerHTML = '';
 
-        // Informational Only Mortgage UI
         document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-        if (config.m_balance > 0) {
-            document.getElementById('equityGain').innerText = `Tracking Active (${config.m_rate}% Rate)`;
-        } else {
-            document.getElementById('equityGain').innerText = `Click ⚙️ Settings to configure balance`;
-        }
+        if (config.m_balance > 0) { document.getElementById('equityGain').innerText = `Manual Tracking (${config.m_rate}% Rate)`; } 
+        else { document.getElementById('equityGain').innerText = `Click ⚙️ Settings to configure`; }
 
-        // Informational Only Car Loan UI
         document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-        if (config.c_balance > 0) {
-            document.getElementById('carEquityGain').innerText = `Tracking Active (${config.c_rate}% Rate)`;
-        } else {
-            document.getElementById('carEquityGain').innerText = `Click ⚙️ Settings to configure balance`;
-        }
+        if (config.c_balance > 0) { document.getElementById('carEquityGain').innerText = `Manual Tracking (${config.c_rate}% Rate)`; } 
+        else { document.getElementById('carEquityGain').innerText = `Click ⚙️ Settings to configure`; }
 
         let accumulatedGoals = {};
         allTimeGoals.forEach(g => { if (!accumulatedGoals[g.note]) accumulatedGoals[g.note] = 0; accumulatedGoals[g.note] += g.amount; });
@@ -489,6 +507,9 @@
             if (item.category === 'Goal') goalS += item.amount;
             else if (item.intent === 'Want') wantS += item.amount;
             else needS += item.amount;
+            
+            if(catTotals[item.category] !== undefined) { catTotals[item.category] += item.amount; } 
+            else { catTotals.Misc += item.amount; }
 
             const div = document.createElement('div'); div.className = 'history-item';
             div.setAttribute('data-amt', item.amount);
@@ -511,6 +532,7 @@
             if (billDate <= new Date()) {
                 needS += sub.amount; 
                 totalS += sub.amount; 
+                catTotals.Subscription += sub.amount;
                 const recurIntentDot = `<span class="intent-dot" style="background:var(--need); margin-right:8px;" title="Need"></span>`;
                 const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
                 div.setAttribute('data-amt', sub.amount);
@@ -539,7 +561,15 @@
         }
         document.getElementById('paceDisplay').innerText = paceText;
 
-        if(myChart) { myChart.data.datasets[0].data = [INCOME - totalS < 0 ? 0 : INCOME - totalS, totalS]; myChart.update(); }
+        catTotals.Remaining = Math.max(0, INCOME - totalS);
+        if(myChart) { 
+            myChart.data.datasets[0].data = [
+                catTotals.Remaining, catTotals.Mortgage, catTotals.Car, catTotals.CreditCard, 
+                catTotals.Utilities, catTotals.Phone, catTotals.Groceries, catTotals.Dining, 
+                catTotals.Beauty, catTotals.Subscription, catTotals.Goal, catTotals.Misc
+            ]; 
+            myChart.update(); 
+        }
         filterHistory();
     }
 </script>
