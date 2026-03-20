@@ -39,8 +39,9 @@
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; margin-bottom: 5px;}
         .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 20px auto; }
 
-        .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center; position: relative; }
-        .clock-time { font-size: 1.5rem; font-weight: 700; color: #fff; margin: 5px 0; }
+        .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; position: relative; }
+        .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 5px 0; }
+        .vault-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 
         .health-dashboard { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 15px; margin-bottom: 25px; border: 1px solid var(--border); }
         .health-bar { display: flex; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
@@ -54,7 +55,6 @@
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
-        /* RESTORED: Vault Goals CSS */
         .goal-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; margin-bottom: 8px; }
         .goal-name { font-size: 0.85rem; font-weight: 700; color: #c4b5fd; }
         .goal-amt { font-size: 1rem; font-weight: 700; color: #fff; }
@@ -97,12 +97,18 @@
         <h3 style="margin:0 0 15px 0; text-align:center;">Ledger Config</h3>
         <label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET ($)</label>
         <input type="number" id="conf_income" placeholder="7400">
-        <hr style="border:0; border-top:1px solid var(--border); margin: 20px 0;">
+        <hr style="border:0; border-top:1px solid var(--border); margin: 15px 0;">
         <label style="font-size:0.7rem; font-weight:700;">MORTGAGE BALANCE ($)</label>
         <input type="number" id="conf_mbal" placeholder="250000">
-        <label style="font-size:0.7rem; font-weight:700;">INTEREST RATE (%)</label>
+        <label style="font-size:0.7rem; font-weight:700;">MORTGAGE RATE (%)</label>
         <input type="number" id="conf_mrate" step="0.01" placeholder="6.5">
-        <button class="btn-elite" onclick="saveConfig()">Save Configuration</button>
+        <hr style="border:0; border-top:1px solid var(--border); margin: 15px 0;">
+        <label style="font-size:0.7rem; font-weight:700;">CAR LOAN BALANCE ($)</label>
+        <input type="number" id="conf_cbal" placeholder="25000">
+        <label style="font-size:0.7rem; font-weight:700;">CAR RATE (%)</label>
+        <input type="number" id="conf_crate" step="0.01" placeholder="4.5">
+        
+        <button class="btn-elite" onclick="saveConfig()" style="margin-top:15px;">Save Configuration</button>
     </div>
 
     <div id="loginScreen">
@@ -121,10 +127,17 @@
 
         <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
 
-        <div id="mortgageDisplay" class="mortgage-vault">
-            <div style="font-size:0.65rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Mortgage Balance</div>
-            <div id="mortgageBalanceText" class="clock-time">$0.00</div>
-            <div id="equityGain" style="font-size:0.75rem; color:#10b981; font-weight:600;">Click ⚙️ Settings to configure</div>
+        <div class="vault-grid">
+            <div id="mortgageDisplay" class="mortgage-vault">
+                <div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Mortgage</div>
+                <div id="mortgageBalanceText" class="clock-time">$0.00</div>
+                <div id="equityGain" style="font-size:0.65rem; color:#10b981; font-weight:600;">Setup via ⚙️</div>
+            </div>
+            <div id="carDisplay" class="mortgage-vault">
+                <div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Car Loan</div>
+                <div id="carBalanceText" class="clock-time">$0.00</div>
+                <div id="carEquityGain" style="font-size:0.65rem; color:#10b981; font-weight:600;">Setup via ⚙️</div>
+            </div>
         </div>
 
         <div style="text-align: center; margin-bottom: 5px;">
@@ -212,11 +225,10 @@
     const MY_PIN = "1991"; 
     const CYCLE_START_DAY = 16;
     
-    // RESTORED: allTimeGoals array
     let history = [], recurring = [], allTimeGoals = [], currentType = 'Need', myChart;
     let currentViewDate = new Date();
     
-    let config = JSON.parse(localStorage.getItem('ledger_config')) || { budget: 7400, m_balance: 0, m_rate: 0 };
+    let config = JSON.parse(localStorage.getItem('ledger_config')) || { budget: 7400, m_balance: 0, m_rate: 0, c_balance: 0, c_rate: 0 };
     let INCOME = config.budget;
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
@@ -228,16 +240,20 @@
     function toggleSettings() {
         const modal = document.getElementById('settingsModal');
         modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-        document.getElementById('conf_income').value = config.budget;
-        document.getElementById('conf_mbal').value = config.m_balance;
-        document.getElementById('conf_mrate').value = config.m_rate;
+        document.getElementById('conf_income').value = config.budget || 0;
+        document.getElementById('conf_mbal').value = config.m_balance || 0;
+        document.getElementById('conf_mrate').value = config.m_rate || 0;
+        document.getElementById('conf_cbal').value = config.c_balance || 0;
+        document.getElementById('conf_crate').value = config.c_rate || 0;
     }
 
     function saveConfig() {
         config = {
             budget: parseFloat(document.getElementById('conf_income').value) || 0,
             m_balance: parseFloat(document.getElementById('conf_mbal').value) || 0,
-            m_rate: parseFloat(document.getElementById('conf_mrate').value) || 0
+            m_rate: parseFloat(document.getElementById('conf_mrate').value) || 0,
+            c_balance: parseFloat(document.getElementById('conf_cbal').value) || 0,
+            c_rate: parseFloat(document.getElementById('conf_crate').value) || 0
         };
         INCOME = config.budget;
         localStorage.setItem('ledger_config', JSON.stringify(config));
@@ -309,7 +325,6 @@
     async function fetchData() {
         const { start, end } = getCycleDates(currentViewDate);
         
-        // RESTORED: Querying 'allTimeGoals' directly from Supabase
         const [transRes, recurRes, goalsRes] = await Promise.all([
             _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
             _supabase.from('recurring_expenses').select('*'),
@@ -330,7 +345,7 @@
         const isRecur = document.getElementById('isRecurring').checked;
         if (isNaN(amt) || amt <= 0) return;
 
-        let promptStr = "Enter note or #tag (e.g. Vet visit #dogs, Keyboard #PCBuild):";
+        let promptStr = "Enter note or #tag (e.g. Vet visit #dogs):";
         if (cat === 'Subscription') promptStr = "Enter Subscription Name (e.g. Netflix):";
         if (cat === 'Goal') promptStr = "Enter Vault Goal (e.g. Orlando Trip):";
         
@@ -339,8 +354,14 @@
 
         if (cat === 'Mortgage' && config.m_balance > 0) {
             const interest = config.m_balance * ((config.m_rate / 100) / 12);
-            const principal = amt - interest;
-            config.m_balance -= principal;
+            config.m_balance -= (amt - interest);
+            localStorage.setItem('ledger_config', JSON.stringify(config));
+        }
+
+        // NEW: Car Loan subtraction logic
+        if (cat === 'Car' && config.c_balance > 0) {
+            const interest = config.c_balance * ((config.c_rate / 100) / 12);
+            config.c_balance -= (amt - interest);
             localStorage.setItem('ledger_config', JSON.stringify(config));
         }
 
@@ -366,6 +387,13 @@
             if (data && data.category === 'Mortgage' && config.m_balance > 0) {
                 const monthlyRate = (config.m_rate / 100) / 12;
                 config.m_balance = (config.m_balance + data.amount) / (1 + monthlyRate);
+                localStorage.setItem('ledger_config', JSON.stringify(config));
+            }
+
+            // NEW: Car Loan reverse math
+            if (data && data.category === 'Car' && config.c_balance > 0) {
+                const monthlyRate = (config.c_rate / 100) / 12;
+                config.c_balance = (config.c_balance + data.amount) / (1 + monthlyRate);
                 localStorage.setItem('ledger_config', JSON.stringify(config));
             }
 
@@ -429,21 +457,26 @@
         let totalS = 0, needS = 0, wantS = 0, goalS = 0, bS = 0, gS = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
 
-        document.getElementById('mortgageBalanceText').innerText = "$" + config.m_balance.toLocaleString(undefined, {minimumFractionDigits: 2});
-        
+        // Mortgage UI
+        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
         if (config.m_balance > 0) {
             const lastM = history.find(h => h.category === 'Mortgage');
             if (lastM) {
                 const interest = (config.m_balance + lastM.amount) * ((config.m_rate / 100) / 12);
-                document.getElementById('equityGain').innerText = `+$${(lastM.amount - interest).toFixed(2)} Equity Added Last Payment`;
-            } else {
-                document.getElementById('equityGain').innerText = `Tracking Active (${config.m_rate}% Rate)`;
-            }
-        } else {
-            document.getElementById('equityGain').innerText = `Click ⚙️ Settings to configure balance`;
+                document.getElementById('equityGain').innerText = `+$${(lastM.amount - interest).toFixed(2)} Equity`;
+            } else { document.getElementById('equityGain').innerText = `Tracking Active (${config.m_rate}%)`; }
         }
 
-        // RESTORED: Vault Goals Grouping Logic
+        // Car Loan UI
+        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+        if (config.c_balance > 0) {
+            const lastC = history.find(h => h.category === 'Car');
+            if (lastC) {
+                const interest = (config.c_balance + lastC.amount) * ((config.c_rate / 100) / 12);
+                document.getElementById('carEquityGain').innerText = `+$${(lastC.amount - interest).toFixed(2)} Equity`;
+            } else { document.getElementById('carEquityGain').innerText = `Tracking Active (${config.c_rate}%)`; }
+        }
+
         let accumulatedGoals = {};
         allTimeGoals.forEach(g => { if (!accumulatedGoals[g.note]) accumulatedGoals[g.note] = 0; accumulatedGoals[g.note] += g.amount; });
 
@@ -458,11 +491,7 @@
         history.forEach(item => {
             totalS += item.amount;
             if (item.member === 'Brandon') bS += item.amount; else gS += item.amount;
-            
-            // Vault sum calculation restored
-            if (item.category === 'Goal') goalS += item.amount;
-            else if (item.intent === 'Want') wantS += item.amount;
-            else needS += item.amount;
+            if (item.category === 'Goal') goalS += item.amount; else if (item.intent === 'Want') wantS += item.amount; else needS += item.amount;
 
             const div = document.createElement('div'); div.className = 'history-item';
             div.setAttribute('data-amt', item.amount);
@@ -483,8 +512,7 @@
             if (logged) return sum;
 
             if (billDate <= new Date()) {
-                needS += sub.amount; 
-                totalS += sub.amount; 
+                needS += sub.amount; totalS += sub.amount; 
                 const recurIntentDot = `<span class="intent-dot" style="background:var(--need); margin-right:8px;" title="Need"></span>`;
                 const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
                 div.setAttribute('data-amt', sub.amount);
@@ -497,12 +525,9 @@
         document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2});
-        
-        // Vault percentage logic restored
         document.getElementById('barNeed').style.width = Math.min(100, (needS/INCOME)*100) + '%';
         document.getElementById('barWant').style.width = Math.min(100, (wantS/INCOME)*100) + '%';
         document.getElementById('barGoal').style.width = Math.min(100, (goalS/INCOME)*100) + '%';
-        
         document.getElementById('percNeed').innerText = Math.round((needS/INCOME)*100);
         document.getElementById('percWant').innerText = Math.round((wantS/INCOME)*100);
         document.getElementById('percGoal').innerText = Math.round((goalS/INCOME)*100);
