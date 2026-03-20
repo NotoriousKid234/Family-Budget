@@ -12,6 +12,7 @@
         :root { 
             --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             --brandon: #3b82f6; --gina: #ec4899; 
+            --need: #10b981; --want: #f59e0b; --goal: #8b5cf6;
             --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); 
             --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
@@ -28,21 +29,30 @@
         .cycle-selector option { background: #0f172a; color: #f8fafc; font-weight: 500; }
 
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; margin-bottom: 5px;}
-        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 25px auto; }
+        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 20px auto; }
+
+        /* UPGRADED: Health Dashboard */
+        .health-dashboard { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 15px; margin-bottom: 25px; border: 1px solid var(--border); }
+        .health-bar { display: flex; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+        .health-fill-need { background: var(--need); height: 100%; transition: width 0.5s ease; }
+        .health-fill-want { background: var(--want); height: 100%; transition: width 0.5s ease; }
+        .health-fill-goal { background: var(--goal); height: 100%; transition: width 0.5s ease; }
+        .health-stats { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .stat-need { color: var(--need); } .stat-want { color: var(--want); } .stat-goal { color: var(--goal); }
+        .insight-text { font-size: 0.75rem; color: #94a3b8; text-align: center; margin-top: 10px; font-style: italic; }
 
         .chart-container { position: relative; height: 180px; margin-bottom: 25px; }
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
-        .goal-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; margin-bottom: 8px; }
-        .goal-name { font-size: 0.85rem; font-weight: 700; color: #fcd34d; }
+        .goal-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; margin-bottom: 8px; }
+        .goal-name { font-size: 0.85rem; font-weight: 700; color: #c4b5fd; }
         .goal-amt { font-size: 1rem; font-weight: 700; color: #fff; }
 
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); margin-bottom: 12px; }
         .btn-manage { background: #1e293b; color: white; border: 1px solid var(--border); padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
         .btn-manage:hover { background: #334155; }
 
-        /* UPGRADED SEARCH UI */
         .toolbar-row { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-start; }
         .search-wrapper { flex: 1; position: relative; }
         #searchBar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px 15px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 0.9rem; margin-bottom: 0; outline: none; transition: 0.2s; }
@@ -54,11 +64,12 @@
         .history-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
         .item-left { display: flex; flex-direction: column; gap: 4px; }
         .tag-row { display: flex; gap: 8px; align-items: center; }
+        .intent-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; box-shadow: 0 0 6px currentColor; }
         .name-tag { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
         .tag-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .tag-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
         .tag-auto { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
-        .tag-goal { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .tag-goal { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
         
         .date-tag { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
         .item-label { font-size: 1rem; font-weight: 700; color: #fff; }
@@ -88,6 +99,21 @@
 
         <div id="balance" class="balance-amount">$7,400</div>
         <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
+
+        <div class="health-dashboard">
+            <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; text-align: center; letter-spacing: 1px;">Wealth Allocation (50/30/20)</div>
+            <div class="health-bar">
+                <div id="barNeed" class="health-fill-need" style="width: 0%;"></div>
+                <div id="barWant" class="health-fill-want" style="width: 0%;"></div>
+                <div id="barGoal" class="health-fill-goal" style="width: 0%;"></div>
+            </div>
+            <div class="health-stats">
+                <span class="stat-need">Need: <span id="percNeed">0</span>%</span>
+                <span class="stat-want">Want: <span id="percWant">0</span>%</span>
+                <span class="stat-goal">Vault: <span id="percGoal">0</span>%</span>
+            </div>
+            <div id="smartInsight" class="insight-text">Syncing financial data...</div>
+        </div>
         
         <div class="chart-container"><canvas id="budgetChart"></canvas></div>
         
@@ -104,7 +130,7 @@
         <div style="margin-bottom: 15px;">
             <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <select id="memberSelect" onchange="this.style.color = this.value === 'Brandon' ? '#3b82f6' : '#ec4899';"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select>
+                <select id="memberSelect" onchange="this.style.color = this.value === 'Brandon' ? '#3b82f6' : '#ec4899';"><option value="Brandon" style="color:#3b82f6;">Brandon</option><option value="Gina" style="color:#ec4899;">Gina</option></select>
                 <input type="number" id="amount" placeholder="0.00">
             </div>
             <select id="category" onchange="autoSuggest(this.value)">
@@ -117,7 +143,7 @@
                 <option value="Dining">🍔 Dining / Takeout</option>
                 <option value="Beauty">✂️ Beauty</option>
                 <option value="Subscription">📺 Subscription</option>
-                <option value="Goal">🎯 Sinking Fund / Goal</option>
+                <option value="Goal">🎯 Sinking Fund / Vault</option>
                 <option value="Misc">📦 Miscellaneous</option>
             </select>
             <button id="recordBtn" class="btn-elite" onclick="addEntry()">Sync Transaction</button>
@@ -150,6 +176,9 @@
     const CYCLE_START_DAY = 16;
     let history = [], recurring = [], allTimeGoals = [], currentType = 'Need', myChart;
     let currentViewDate = new Date();
+
+    // Default dropdown color init
+    document.getElementById('memberSelect').style.color = '#3b82f6';
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
     function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Phone','Groceries','CreditCard','Subscription'].includes(c) ? 'Need' : 'Want'); }
@@ -201,7 +230,7 @@
                 labels: ['Remaining', 'Mortgage', 'Car', 'Utilities', 'Phone', 'Food', 'Subs', 'Goals', 'Misc'], 
                 datasets: [{ 
                     data: [INCOME, 0, 0, 0, 0, 0, 0, 0, 0], 
-                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#8b5cf6', '#14b8a6', '#10b981', '#f43f5e', '#f59e0b', '#94a3b8'], 
+                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#8b5cf6', '#14b8a6', '#10b981', '#f43f5e', '#8b5cf6', '#94a3b8'], 
                     borderWidth: 0 
                 }] 
             }, 
@@ -268,7 +297,6 @@
         await fetchData();
     }
 
-    // UPGRADED METADATA FILTERING ENGINE
     function filterHistory() {
         const q = document.getElementById('searchBar').value.toLowerCase();
         const totalDiv = document.getElementById('searchTotal');
@@ -280,7 +308,6 @@
             if (q === '' || text.includes(q)) {
                 item.style.display = 'flex';
                 if (q !== '') {
-                    // Extract the numerical amount dynamically stored in the data-amt attribute
                     runningSum += parseFloat(item.getAttribute('data-amt') || 0);
                     itemsVisible++;
                 }
@@ -289,7 +316,6 @@
             }
         });
 
-        // Toggle the sum display based on search activity
         if (q !== '' && itemsVisible > 0) {
             totalDiv.style.display = 'block';
             totalDiv.innerText = `Tag Total: $${runningSum.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
@@ -331,6 +357,7 @@
     function updateUI() {
         const { start, end } = getCycleDates(currentViewDate);
         let bSpend = 0, gSpend = 0, totalSpent = 0;
+        let needSpend = 0, wantSpend = 0, goalSpend = 0;
         let catTotals = { Mortgage:0, Car:0, Utilities:0, Phone:0, Food:0, Subs:0, Goals:0, Misc:0 };
         
         let accumulatedGoals = {};
@@ -349,6 +376,11 @@
             totalSpent += item.amount;
             if (item.category !== 'Goal') { if (item.member === 'Brandon') bSpend += item.amount; else gSpend += item.amount; }
             
+            // Tally up Needs/Wants/Goals
+            if (item.category === 'Goal') goalSpend += item.amount;
+            else if (item.intent === 'Want') wantSpend += item.amount;
+            else needSpend += item.amount;
+
             if (item.category === 'Mortgage') catTotals.Mortgage += item.amount;
             else if (item.category === 'Car') catTotals.Car += item.amount;
             else if (item.category === 'Utilities') catTotals.Utilities += item.amount;
@@ -364,13 +396,17 @@
             const displaySub = (item.category === 'Subscription') ? 'Recurring Bill' : (item.category === 'Goal' ? 'To Vault' : (item.note ? item.category : ''));
             const specificTag = item.category === 'Goal' ? `<span class="name-tag tag-goal">VAULT</span>` : `<span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span>`;
 
+            // Bringing back the colored dot!
+            let dotColor = item.intent === 'Want' ? 'var(--want)' : 'var(--need)';
+            if (item.category === 'Goal') dotColor = 'var(--goal)';
+            const intentDot = `<span class="intent-dot" style="background:${dotColor}; color:${dotColor}; margin-right:8px;" title="${item.intent}"></span>`;
+
             const div = document.createElement('div'); div.className = 'history-item';
-            // Store the raw dollar amount in a data attribute for the search calculation engine
             div.setAttribute('data-amt', item.amount);
             
             div.innerHTML = `
                 <div class="item-left">
-                    <div class="tag-row">${specificTag}<span class="date-tag">${d.getMonth()+1}/${d.getDate()}</span></div>
+                    <div class="tag-row">${intentDot}${specificTag}<span class="date-tag">${d.getMonth()+1}/${d.getDate()}</span></div>
                     <span class="item-label">${displayTitle}</span>
                     <span class="item-note">${displaySub}</span>
                 </div>
@@ -384,9 +420,11 @@
             if (logged) return sum;
 
             if (billDate <= new Date()) {
+                needSpend += sub.amount; // Recurring bills count as Needs
+                const recurIntentDot = `<span class="intent-dot" style="background:var(--need); color:var(--need); margin-right:8px;" title="Need"></span>`;
                 const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
                 div.setAttribute('data-amt', sub.amount);
-                div.innerHTML = `<div class="item-left"><div class="tag-row"><span class="name-tag tag-auto">AUTO-SYNC</span><span class="date-tag">${billDate.getMonth()+1}/${billDate.getDate()}</span></div><span class="item-label">${sub.name}</span><span class="item-note">Recurring Bill</span></div><div class="item-amt">-$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
+                div.innerHTML = `<div class="item-left"><div class="tag-row">${recurIntentDot}<span class="name-tag tag-auto">AUTO-SYNC</span><span class="date-tag">${billDate.getMonth()+1}/${billDate.getDate()}</span></div><span class="item-label">${sub.name}</span><span class="item-note">Recurring Bill</span></div><div class="item-amt">-$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
                 list.prepend(div);
             }
             catTotals.Subs += sub.amount;
@@ -404,10 +442,28 @@
             paceText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
         }
         document.getElementById('paceDisplay').innerText = paceText;
+
+        // CALCULATE AND UPDATE HEALTH DASHBOARD (50/30/20)
+        const pNeed = Math.min(100, Math.round((needSpend / INCOME) * 100));
+        const pWant = Math.min(100, Math.round((wantSpend / INCOME) * 100));
+        const pGoal = Math.min(100, Math.round((goalSpend / INCOME) * 100));
+
+        document.getElementById('barNeed').style.width = pNeed + '%';
+        document.getElementById('barWant').style.width = pWant + '%';
+        document.getElementById('barGoal').style.width = pGoal + '%';
+
+        document.getElementById('percNeed').innerText = pNeed;
+        document.getElementById('percWant').innerText = pWant;
+        document.getElementById('percGoal').innerText = pGoal;
+
+        let insight = "💡 You are perfectly balanced right now!";
+        if (pWant > 30) insight = "⚠️ Lifestyle creep! Wants are over the 30% guideline.";
+        else if (pNeed > 50) insight = "⚠️ Fixed expenses (Needs) are eating over 50% of the budget.";
+        else if (pGoal < 10) insight = "💡 Good momentum, try pushing a bit more into the Vault!";
+        document.getElementById('smartInsight').innerText = insight;
         
         if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, catTotals.Mortgage, catTotals.Car, catTotals.Utilities, catTotals.Phone, catTotals.Food, catTotals.Subs, catTotals.Goals, catTotals.Misc]; myChart.update(); }
         
-        // Re-run the filter to update totals if the user is currently searching
         filterHistory();
     }
 
