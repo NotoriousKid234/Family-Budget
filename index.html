@@ -24,7 +24,6 @@
             min-height: 100vh; color: var(--text); overflow-x: hidden;
         }
 
-        /* Centered Login Box */
         #loginScreen { 
             background: var(--card); backdrop-filter: blur(20px); 
             padding: 40px; border-radius: 32px; width: 340px; 
@@ -32,7 +31,6 @@
             text-align: center;
         }
 
-        /* Dashboard - Restored to full appearance */
         #app { 
             display: none; background: var(--card); backdrop-filter: blur(20px); 
             padding: 40px; border-radius: 32px; width: 440px; 
@@ -47,7 +45,6 @@
 
         .chart-container { position: relative; height: 180px; margin-bottom: 25px; }
         
-        /* Stats row Brandon/Gina */
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
@@ -56,10 +53,14 @@
         .type-btn.active { background: #fff; color: #0f172a; }
 
         input, select { 
-            width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 16px; 
+            width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; 
             border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); 
             color: white; font-size: 1rem; box-sizing: border-box;
         }
+
+        /* Color Coding for Options */
+        .opt-brandon { color: var(--brandon) !important; font-weight: 600; background: #0f172a; }
+        .opt-gina { color: var(--gina) !important; font-weight: 600; background: #0f172a; }
 
         .btn-elite { 
             background: var(--primary); color: white; border: none; padding: 18px; 
@@ -109,8 +110,8 @@
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <select id="memberSelect" onchange="updateMemberColor(this)">
-                    <option value="Brandon">Brandon</option>
-                    <option value="Gina">Gina</option>
+                    <option value="Brandon" class="opt-brandon">Brandon</option>
+                    <option value="Gina" class="opt-gina">Gina</option>
                 </select>
                 <input type="number" id="amount" placeholder="0.00">
             </div>
@@ -129,7 +130,6 @@
     </div>
 
 <script>
-    // --- SUPABASE CONFIG ---
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -147,7 +147,6 @@
     }
 
     function autoSuggest(c) { 
-        // Credit Card is a "Need" by default
         const needs = ['Mortgage','Car','Utilities','Groceries','CreditCard'];
         setType(needs.includes(c) ? 'Need' : 'Want'); 
     }
@@ -224,7 +223,7 @@
             const dotColor = item.intent === 'Need' ? 'var(--need)' : 'var(--want)';
             const div = document.createElement('div'); 
             div.className = 'history-item';
-            div.innerHTML = `<div><span class="intent-dot" style="background:${dotColor}"></span><b>${item.category}</b><br><small>${item.member}</small></div><div>-$${item.amount.toLocaleString()}</div>`;
+            div.innerHTML = `<div><span class="intent-dot" style="background:${dotColor}"></span><b>${item.category}</b><br><small>${item.member}</small></div><div>-$${item.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>`;
             list.appendChild(div);
         });
 
