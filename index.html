@@ -28,7 +28,6 @@
         #loginScreen, #app, #subManager, #settingsModal { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; box-sizing: border-box; }
         #app, #subManager, #settingsModal { display: none; } 
         
-        /* RESTORED: Login Screen Styles */
         .header-stack { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; margin-bottom: 20px; }
         .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.15); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(129, 140, 248, 0.4); box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); color: #818cf8; }
         .logo-glow svg { fill: #818cf8; }
@@ -113,7 +112,12 @@
             <div id="equityGain" style="font-size:0.75rem; color:#10b981; font-weight:600;">-- Principal Gain</div>
         </div>
 
-        <div id="balance" class="balance-amount">$0</div>
+        <div style="text-align: center; margin-bottom: 5px;">
+            <div id="balance" class="balance-amount" style="display: inline-block;">$0.00</div>
+            <button onclick="updateMonthlyBudget()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.8rem; vertical-align: middle; margin-left: 5px;">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+        </div>
         <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
 
         <div class="health-dashboard">
@@ -170,6 +174,8 @@
     
     let history = [], recurring = [], currentType = 'Need', myChart;
     let currentViewDate = new Date();
+    
+    // Check for a saved budget, otherwise default to your standard 7400
     let config = JSON.parse(localStorage.getItem('ledger_config')) || { budget: 7400, m_balance: 0, m_rate: 0 };
 
     function toggleSettings() {
@@ -189,6 +195,17 @@
         localStorage.setItem('ledger_config', JSON.stringify(config));
         document.getElementById('settingsModal').style.display = 'none';
         updateUI();
+    }
+
+    // Static Updatable Budget Function
+    function updateMonthlyBudget() {
+        const newBudget = prompt("Enter your new static monthly budget:", config.budget);
+        if (newBudget !== null && !isNaN(parseFloat(newBudget))) {
+            config.budget = parseFloat(newBudget);
+            localStorage.setItem('ledger_config', JSON.stringify(config));
+            fetchData(); 
+            alert("Budget updated to $" + config.budget.toLocaleString());
+        }
     }
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
@@ -254,6 +271,7 @@
             else needS += item.amount;
 
             const div = document.createElement('div'); div.className = 'history-item';
+            div.setAttribute('data-amt', item.amount);
             const dot = item.intent === 'Want' ? 'var(--want)' : 'var(--need)';
             const specificTag = `<span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span>`;
 
@@ -268,7 +286,7 @@
         });
 
         const remaining = config.budget - totalS;
-        document.getElementById('balance').innerText = "$" + remaining.toLocaleString();
+        document.getElementById('balance').innerText = "$" + remaining.toLocaleString(undefined, {minimumFractionDigits: 2});
         
         const pN = Math.min(100, Math.round((needS / config.budget) * 100));
         const pW = Math.min(100, Math.round((wantS / config.budget) * 100));
@@ -279,8 +297,8 @@
         document.getElementById('barGoal').style.width = pG + '%';
         document.getElementById('percNeed').innerText = pN; document.getElementById('percWant').innerText = pW; document.getElementById('percGoal').innerText = pG;
         
-        const days = 25; 
-        document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / days).toFixed(2)} / day`;
+        const daysLeft = Math.max(1, Math.ceil((getCycleDates(currentViewDate).end - new Date()) / (1000 * 60 * 60 * 24)));
+        document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
 
         if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, 0, 0, 0, 0, 0, 0, 0, totalS]; myChart.update(); }
     }
