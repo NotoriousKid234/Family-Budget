@@ -3,26 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Montoya Budget Pro</title>
+    <title>Montoya Family Budget</title>
     <style>
-        :root { --primary: #3182ce; --dark: #0e1621; --bg: #f7fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--dark); margin: 0; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding-top: 50px; }
+        :root { --primary: #3182ce; --dark: #0e1621; --bg: #f7fafc; --brandon: #2b6cb0; --gina: #d53f8c; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--dark); margin: 0; display: flex; justify-content: center; padding-top: 30px; min-height: 100vh; }
         
-        /* Login Screen */
-        #loginScreen { background: white; padding: 40px; border-radius: 16px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        #loginScreen { background: white; padding: 40px; border-radius: 16px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-top: 100px; }
         .pin-input { width: 100%; font-size: 2rem; text-align: center; letter-spacing: 10px; padding: 10px; margin: 20px 0; border: 2px solid #e2e8f0; border-radius: 8px; }
         
-        /* Main App (Hidden by default) */
-        #app { display: none; background: white; padding: 30px; border-radius: 16px; width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 50px; }
+        #app { display: none; background: white; padding: 25px; border-radius: 16px; width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 50px; }
         
-        .balance-container { background: #f0f7ff; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; border: 2px solid #cce3ff; }
+        .balance-container { background: #f0f7ff; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 15px; border: 2px solid #cce3ff; }
         .balance-amount { font-size: 2.2rem; font-weight: bold; color: #2b6cb0; display: block; }
         
-        input, select, button { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 2px solid #e2e8f0; box-sizing: border-box; font-size: 1rem; }
-        .btn-add { background-color: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        /* Family Breakdown Styling */
+        .family-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .member-card { padding: 10px; border-radius: 8px; text-align: center; color: white; font-weight: bold; }
+        .bg-brandon { background-color: var(--brandon); }
+        .bg-gina { background-color: var(--gina); }
+        .spend-label { font-size: 0.7rem; opacity: 0.9; text-transform: uppercase; }
+
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; font-size: 0.85rem; }
+        input, select, button { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 2px solid #e2e8f0; box-sizing: border-box; font-size: 1rem; }
+        .btn-add { background-color: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
-        .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #edf2f7; font-size: 0.9rem; }
-        .item-amt { color: #e53e3e; font-weight: bold; }
+        .history-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #edf2f7; font-size: 0.85rem; align-items: center; }
+        .member-tag { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; color: white; margin-left: 5px; vertical-align: middle; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -35,83 +41,113 @@
     </div>
 
     <div id="app">
-        <div style="display:flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin:0;">Montoya Budget</h3>
-            <button onclick="logout()" style="width:auto; padding:5px 10px; font-size:0.7rem;">Lock</button>
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin:0; color:#2d3748;">Family Dashboard</h3>
+            <button onclick="location.reload()" style="width:auto; padding:5px 10px; font-size:0.7rem; margin:0;">Lock</button>
         </div>
-        <hr>
+
         <div class="balance-container">
-            <span style="font-size:0.8rem; color:#5a67d8; font-weight:bold;">REMAINING</span>
+            <span style="font-size:0.7rem; color:#5a67d8; font-weight:bold;">HOUSEHOLD REMAINING</span>
             <span class="balance-amount">$<span id="balance">7,400.00</span></span>
         </div>
+
+        <div class="family-grid">
+            <div class="member-card bg-brandon">
+                <div class="spend-label">Brandon</div>
+                <div id="brandonSpend">$0.00</div>
+            </div>
+            <div class="member-card bg-gina">
+                <div class="spend-label">Gina</div>
+                <div id="ginaSpend">$0.00</div>
+            </div>
+        </div>
         
+        <label>Who is spending?</label>
+        <select id="memberSelect">
+            <option value="Brandon">Brandon</option>
+            <option value="Gina">Gina</option>
+        </select>
+
         <label>Amount:</label>
         <input type="number" id="amount" placeholder="0.00" step="0.01">
         
         <label>Category:</label>
         <select id="category">
-            <option>Mortgage</option>
-            <option>Car Payment</option>
-            <option>Car Insurance</option>
             <option>Groceries</option>
+            <option>Dining / Takeout</option>
             <option>Gas / Travel</option>
             <option>Utilities</option>
-            <option>Dining / Takeout</option>
+            <option>Mortgage/Auto</option>
             <option>Miscellaneous</option>
         </select>
 
-        <button class="btn-add" onclick="addEntry()">Subtract Expense</button>
+        <button class="btn-add" onclick="addEntry()">Add Transaction</button>
 
-        <div id="historyList" style="max-height: 200px; overflow-y: auto; margin-top:20px;"></div>
+        <div id="historyList" style="max-height: 200px; overflow-y: auto; margin-top:20px; border-top: 1px solid #eee;"></div>
     </div>
 
 <script>
-    const MY_PIN = "1991"; // Change this to your preferred 4-digit PIN
-    const MONTHLY_INCOME = 7400.00;
+    const MY_PIN = "1991";
+    const INCOME = 7400.00;
 
-    let total = localStorage.getItem('mont_budget') ? parseFloat(localStorage.getItem('mont_budget')) : MONTHLY_INCOME;
-    let history = JSON.parse(localStorage.getItem('mont_history')) || [];
+    let history = JSON.parse(localStorage.getItem('fam_history')) || [];
 
     function checkPin() {
-        const entered = document.getElementById('pinField').value;
-        if (entered === MY_PIN) {
+        if (document.getElementById('pinField').value === MY_PIN) {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('app').style.display = 'block';
             updateDisplay();
         } else {
-            alert("Incorrect PIN");
-            document.getElementById('pinField').value = '';
+            alert("Wrong PIN");
         }
     }
 
-    function logout() {
-        location.reload(); // Quick way to lock the app again
-    }
-
     function addEntry() {
-        const amt = document.getElementById('amount');
-        const val = parseFloat(amt.value);
+        const amtInput = document.getElementById('amount');
+        const val = parseFloat(amtInput.value);
         if (isNaN(val) || val <= 0) return;
 
-        total -= val;
-        history.unshift({ amount: val, category: document.getElementById('category').value, date: new Date().toLocaleDateString() });
+        history.unshift({
+            amount: val,
+            member: document.getElementById('memberSelect').value,
+            category: document.getElementById('category').value,
+            date: new Date().toLocaleDateString()
+        });
         
-        localStorage.setItem('mont_budget', total);
-        localStorage.setItem('mont_history', JSON.stringify(history));
+        localStorage.setItem('fam_history', JSON.stringify(history));
         updateDisplay();
-        amt.value = '';
+        amtInput.value = '';
     }
 
     function updateDisplay() {
-        document.getElementById('balance').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
+        let totalSpent = 0;
+        let bSpend = 0;
+        let gSpend = 0;
+
         const list = document.getElementById('historyList');
         list.innerHTML = '';
+
         history.forEach(item => {
+            totalSpent += item.amount;
+            if (item.member === "Brandon") bSpend += item.amount;
+            if (item.member === "Gina") gSpend += item.amount;
+
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.innerHTML = `<span><b>${item.category}</b><br><small>${item.date}</small></span><span class="item-amt">-$${item.amount.toFixed(2)}</span>`;
+            const color = item.member === "Brandon" ? 'var(--brandon)' : 'var(--gina)';
+            div.innerHTML = `
+                <span>
+                    <b>${item.category}</b> <span class="member-tag" style="background:${color}">${item.member[0]}</span>
+                    <br><small>${item.date}</small>
+                </span>
+                <span style="color:#e53e3e; font-weight:bold;">-$${item.amount.toFixed(2)}</span>
+            `;
             list.appendChild(div);
         });
+
+        document.getElementById('balance').innerText = (INCOME - totalSpent).toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
+        document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
     }
 </script>
 </body>
