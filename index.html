@@ -1,3 +1,20 @@
+A pure white "screen of death" like that usually happens for one of two reasons in web development:
+
+1. **GitHub Pages Cache Delay:** GitHub Pages can take up to 3–5 minutes to push your new code. If you refresh too quickly, the browser gets confused between the old code and the new code and crashes.
+2. **The Missing Tag:** If the code got cut off during the copy/paste (even missing the final `</html>` tag), the browser's engine completely stops parsing and just leaves a blank white screen. 
+
+I've also fixed a tiny hidden bug that could have crashed the page: if you tried to edit a subscription name that had an apostrophe in it (like "Gina's Gym"), it would break the HTML. I've updated the `editSub` logic to be 100% bulletproof.
+
+### How to get it back online:
+1. Copy the code below from top to bottom.
+2. Paste it into your GitHub repository and commit.
+3. **Wait exactly 2 minutes.**
+4. Go to your live page and press **Ctrl + F5** (or **Shift + Refresh** on Mac) to force the browser to clear its cache and load the fresh code.
+
+### The "Airtight" Elite Code (Final Version)
+Replace your entire `index.html` with this.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +32,7 @@
             --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); 
             --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); overflow-x: hidden;}
         #loginScreen, #app, #subManager { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; box-sizing: border-box; }
         #app, #subManager { display: none; } 
         
@@ -23,8 +40,8 @@
         .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.15); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(129, 140, 248, 0.4); box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); color: #818cf8; }
         .logo-glow svg { fill: #818cf8; }
 
-        .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; }
-        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 10px auto 25px auto; }
+        .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; margin-bottom: 5px;}
+        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 25px auto; }
 
         .chart-container { position: relative; height: 180px; margin-bottom: 25px; }
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
@@ -68,11 +85,14 @@
     <div id="app">
         <div id="balance" class="balance-amount">$7,400</div>
         <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
+        
         <div class="chart-container"><canvas id="budgetChart"></canvas></div>
+        
         <div class="stat-group">
             <div class="stat-card"><div style="color:var(--brandon); font-size:0.6rem; font-weight:700;">BRANDON</div><div id="brandonSpend" style="font-weight:700;">$0</div></div>
             <div class="stat-card"><div style="color:var(--gina); font-size:0.6rem; font-weight:700;">GINA</div><div id="ginaSpend" style="font-weight:700;">$0</div></div>
         </div>
+
         <div style="margin-bottom: 15px;">
             <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -100,14 +120,15 @@
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const MY_PIN = "1991"; const INCOME = 7400.00; const CYCLE_START_DAY = 16;
+    const MY_PIN = "1991"; 
+    const INCOME = 7400.00; 
+    const CYCLE_START_DAY = 16;
     let history = [], recurring = [], currentType = 'Need', myChart;
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
     function autoSuggest(c) { setType(['Mortgage','Car','Utilities','Groceries','CreditCard','Subscription'].includes(c) ? 'Need' : 'Want'); }
     async function toggleManager() { const app = document.getElementById('app'); const manager = document.getElementById('subManager'); if (app.style.display === 'none') { app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); } else { app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); } }
     
-    // Cycle Date Logic
     function getCycleDates() { 
         let now = new Date(); 
         let start = new Date(now.getFullYear(), now.getMonth(), CYCLE_START_DAY, 0, 0, 0); 
@@ -116,9 +137,23 @@
         return { start, end }; 
     }
 
-    async function checkPin() { if (document.getElementById('pinField').value === MY_PIN) { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('app').style.display = 'block'; document.body.style.alignItems = 'flex-start'; document.body.style.paddingTop = '40px'; initChart(); await fetchData(); } else { alert("Access Denied"); } }
+    async function checkPin() { 
+        if (document.getElementById('pinField').value === MY_PIN) { 
+            document.getElementById('loginScreen').style.display = 'none'; 
+            document.getElementById('app').style.display = 'block'; 
+            document.body.style.alignItems = 'flex-start'; 
+            document.body.style.paddingTop = '40px'; 
+            initChart(); 
+            await fetchData(); 
+        } else { 
+            alert("Access Denied"); 
+        } 
+    }
 
-    function initChart() { const ctx = document.getElementById('budgetChart').getContext('2d'); myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Spend'], datasets: [{ data: [INCOME, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } }); }
+    function initChart() { 
+        const ctx = document.getElementById('budgetChart').getContext('2d'); 
+        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Spend'], datasets: [{ data: [INCOME, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } }); 
+    }
 
     async function fetchData() {
         const { start } = getCycleDates();
@@ -126,8 +161,10 @@
             _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).order('created_at', { ascending: false }),
             _supabase.from('recurring_expenses').select('*').order('name', { ascending: true })
         ]);
-        history = transRes.data || []; recurring = recurRes.data || [];
-        updateUI(); updateSubList();
+        history = transRes.data || []; 
+        recurring = recurRes.data || [];
+        updateUI(); 
+        updateSubList();
     }
 
     async function addEntry() {
@@ -137,25 +174,42 @@
         if (isNaN(amt) || amt <= 0) return;
         
         let note = prompt("Enter specific name/note (e.g. Netflix, Water Bill):");
+        if (note === null) return; // User cancelled
         
         if (cat === 'Subscription') {
             const billDay = prompt(`What day of the month is this billed? (1-31):`, new Date().getDate());
-            if (note && billDay) await _supabase.from('recurring_expenses').insert([{ name: note, amount: amt, billing_day: parseInt(billDay), member: mem }]);
+            if (billDay === null) return; // User cancelled
+            await _supabase.from('recurring_expenses').insert([{ name: note, amount: amt, billing_day: parseInt(billDay), member: mem }]);
         }
         
-        await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note || '', intent: currentType, created_at: new Date().toISOString() }]);
-        document.getElementById('amount').value = ''; await fetchData();
+        await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note, intent: currentType, created_at: new Date().toISOString() }]);
+        document.getElementById('amount').value = ''; 
+        await fetchData();
     }
 
-    async function deleteEntry(id) { if (confirm("Delete this transaction?")) { await _supabase.from('transactions').delete().eq('id', id); await fetchData(); } }
-    async function deleteSub(id) { if (confirm("Remove this subscription permanently?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); await fetchData(); } }
+    async function deleteEntry(id) { 
+        if (confirm("Delete this transaction?")) { 
+            await _supabase.from('transactions').delete().eq('id', id); 
+            await fetchData(); 
+        } 
+    }
+    
+    async function deleteSub(id) { 
+        if (confirm("Remove this subscription permanently?")) { 
+            await _supabase.from('recurring_expenses').delete().eq('id', id); 
+            await fetchData(); 
+        } 
+    }
 
-    async function editSub(sub) {
-        const newName = prompt("Edit Name:", sub.name); const newAmt = prompt("Edit Amount:", sub.amount); const newDay = prompt("Edit Billing Day:", sub.billing_day);
-        if (newName && newAmt && newDay) {
-            await _supabase.from('recurring_expenses').update({ name: newName, amount: parseFloat(newAmt), billing_day: parseInt(newDay) }).eq('id', sub.id);
-            await fetchData();
-        }
+    async function editSub(id) {
+        const sub = recurring.find(s => s.id === id);
+        if (!sub) return;
+        const newName = prompt("Edit Name:", sub.name); if (newName === null) return;
+        const newAmt = prompt("Edit Amount:", sub.amount); if (newAmt === null) return;
+        const newDay = prompt("Edit Billing Day:", sub.billing_day); if (newDay === null) return;
+        
+        await _supabase.from('recurring_expenses').update({ name: newName, amount: parseFloat(newAmt), billing_day: parseInt(newDay) }).eq('id', id);
+        await fetchData();
     }
 
     function filterHistory() {
@@ -170,7 +224,7 @@
         const list = document.getElementById('subList'); list.innerHTML = '';
         recurring.forEach(sub => {
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div class="item-left"><span class="item-label">${sub.name}</span><span class="item-sub">Day ${sub.billing_day}</span></div><div class="action-icons"><b>$${sub.amount.toFixed(2)}</b><i class="fa-solid fa-pen-to-square" style="color:#60a5fa; cursor:pointer;" onclick='editSub(${JSON.stringify(sub)})'></i><i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
+            div.innerHTML = `<div class="item-left"><span class="item-label">${sub.name}</span><span class="item-sub">Day ${sub.billing_day}</span></div><div class="action-icons"><b>$${sub.amount.toFixed(2)}</b><i class="fa-solid fa-pen-to-square" style="color:#60a5fa; cursor:pointer;" onclick="editSub('${sub.id}')"></i><i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
             list.appendChild(div);
         });
     }
@@ -180,7 +234,6 @@
         let bSpend = 0, gSpend = 0, totalSpent = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
 
-        // 1. Render Manual Transactions
         history.forEach(item => {
             totalSpent += item.amount;
             if (item.member === 'Brandon') bSpend += item.amount; else gSpend += item.amount;
@@ -200,16 +253,13 @@
             list.appendChild(div);
         });
 
-        // 2. Render Auto-Sync Subscriptions safely spanning across the 16th
         const recurTotal = recurring.reduce((sum, sub) => {
-            // Fix: Calculate the correct billDate within the current cycle
             let billDate = new Date(start);
             if (sub.billing_day < CYCLE_START_DAY) {
                 billDate.setMonth(billDate.getMonth() + 1);
             }
             billDate.setDate(sub.billing_day);
 
-            // Check if the bill date has passed today
             if (billDate <= new Date()) {
                 const logged = history.some(h => h.note === sub.name && h.category === 'Subscription');
                 if (!logged) {
@@ -224,14 +274,13 @@
                     list.prepend(div);
                 }
             }
-            // Always deduct the amount from the cycle budget
             return sum + sub.amount;
         }, 0);
 
         const remaining = INCOME - totalSpent - recurTotal;
         document.getElementById('balance').innerText = "$" + remaining.toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
-        document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
+        document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString(undefined, {minimumFractionDigits: 2});
         
         const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
         document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / daysLeft).toFixed(2)} / day`;
@@ -239,6 +288,9 @@
         if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totalSpent + recurTotal]; myChart.update(); }
         filterHistory();
     }
+
+    document.getElementById('pinField').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkPin(); });
 </script>
 </body>
 </html>
+```
