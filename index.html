@@ -33,6 +33,8 @@
         .logo-glow svg { fill: #818cf8; }
 
         .cycle-selector { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #94a3b8; padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center; appearance: none; margin-bottom: 15px; outline: none; width: fit-content; margin-left: auto; margin-right: auto; display: block; }
+        .cycle-selector:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .cycle-selector option { background: #0f172a; color: #f8fafc; font-weight: 500; }
 
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; margin-bottom: 5px;}
         .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 20px auto; }
@@ -41,16 +43,22 @@
         .health-bar { display: flex; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
         .health-fill-need { background: var(--need); height: 100%; transition: width 0.5s ease; }
         .health-fill-want { background: var(--want); height: 100%; transition: width 0.5s ease; }
-        .health-fill-goal { background: var(--goal); height: 100%; transition: width 0.5s ease; }
-        .health-stats { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-        .stat-need { color: var(--need); } .stat-want { color: var(--want); } .stat-goal { color: var(--goal); }
 
         .chart-container { position: relative; height: 180px; margin-bottom: 25px; }
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
+        /* Toolbar Row */
+        .toolbar-row { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-start; }
+        .search-wrapper { flex: 1; position: relative; }
+        #searchBar { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 12px 15px; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 0.9rem; outline: none; }
+        #searchTotal { display: none; text-align: right; font-size: 0.8rem; color: var(--need); font-weight: 700; margin-top: 6px; }
+        .btn-export { background: rgba(255,255,255,0.05); color: #60a5fa; border: 1px solid var(--border); border-radius: 12px; padding: 0 15px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; height: 43px; }
+        .btn-export:hover { background: rgba(59, 130, 246, 0.2); color: #fff; }
+
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); margin-bottom: 12px; }
         .btn-manage { background: #1e293b; color: white; border: 1px solid var(--border); padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
+        .btn-manage:hover { background: #334155; }
 
         .history-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
         .item-left { display: flex; flex-direction: column; gap: 4px; }
@@ -59,14 +67,17 @@
         .name-tag { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
         .tag-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .tag-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .tag-auto { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
         .date-tag { font-size: 0.65rem; color: #94a3b8; font-weight: 600; }
         .item-label { font-size: 1rem; font-weight: 700; color: #fff; }
+        .item-note { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
         .item-amt { font-size: 1.1rem; font-weight: 700; color: #fff; text-align: right; }
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 1rem; box-sizing: border-box; }
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; }
         .type-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: none; color: #94a3b8; cursor: pointer; font-weight: 600; }
         .type-btn.active { background: #fff; color: #0f172a; }
+        .recur-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 12px 16px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; color: #94a3b8; }
     </style>
 </head>
 <body>
@@ -85,23 +96,15 @@
 
         <div style="text-align: center; margin-bottom: 5px;">
             <div id="balance" class="balance-amount" style="display: inline-block;">$0.00</div>
-            <button onclick="updateMonthlyBudget()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.8rem; vertical-align: middle; margin-left: 5px;">
-                <i class="fa-solid fa-pen-to-square"></i>
-            </button>
+            <button onclick="updateMonthlyBudget()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.8rem; vertical-align: middle; margin-left: 5px;"><i class="fa-solid fa-pen-to-square"></i></button>
         </div>
         <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
 
         <div class="health-dashboard">
-            <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; text-align: center; letter-spacing: 1px;">Wealth Allocation (50/30/20)</div>
-            <div class="health-bar">
-                <div id="barNeed" class="health-fill-need" style="width: 0%;"></div>
-                <div id="barWant" class="health-fill-want" style="width: 0%;"></div>
-                <div id="barGoal" class="health-fill-goal" style="width: 0%;"></div>
-            </div>
-            <div class="health-stats">
-                <span class="stat-need">Need: <span id="percNeed">0</span>%</span>
-                <span class="stat-want">Want: <span id="percWant">0</span>%</span>
-                <span class="stat-goal">Vault: <span id="percGoal">0</span>%</span>
+            <div class="health-bar"><div id="barNeed" class="health-fill-need" style="width: 0%;"></div><div id="barWant" class="health-fill-want" style="width: 0%;"></div></div>
+            <div style="display:flex; justify-content:space-between; font-size:0.7rem; font-weight:700;">
+                <span style="color:var(--need)">NEED: <span id="percNeed">0</span>%</span>
+                <span style="color:var(--want)">WANT: <span id="percWant">0</span>%</span>
             </div>
         </div>
         
@@ -114,24 +117,36 @@
 
         <div style="margin-bottom: 15px;">
             <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
+            
+            <div class="recur-row">
+                <span>Recurring Transaction?</span>
+                <input type="checkbox" id="isRecurring" style="width:auto; margin:0;">
+            </div>
+
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <select id="memberSelect" onchange="this.style.color = this.value === 'Brandon' ? '#3b82f6' : '#ec4899';"><option value="Brandon" style="color:#3b82f6;">Brandon</option><option value="Gina" style="color:#ec4899;">Gina</option></select>
+                <select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select>
                 <input type="number" id="amount" placeholder="0.00">
             </div>
-            <select id="category" onchange="autoSuggest(this.value)">
-                <option value="Mortgage">🏠 Mortgage</option>
-                <option value="Car">🚗 Car Payment</option>
-                <option value="Groceries">🛒 Groceries</option>
-                <option value="Dining">🍔 Dining</option>
-                <option value="Subscription">📺 Subscription</option>
-                <option value="Goal">🎯 Vault / Goal</option>
-                <option value="Misc">📦 Miscellaneous</option>
-            </select>
+            <select id="category"><option value="Mortgage">🏠 Mortgage</option><option value="Groceries">🛒 Groceries</option><option value="Dining">🍔 Dining</option><option value="Subscription">📺 Subscription</option><option value="Misc">📦 Miscellaneous</option></select>
             <button class="btn-elite" onclick="addEntry()">Sync Transaction</button>
             <button class="btn-manage" onclick="toggleManager()" style="width:100%">Manage Recurring Bills</button>
         </div>
+
+        <div class="toolbar-row">
+            <div class="search-wrapper">
+                <input type="text" id="searchBar" placeholder="🔍 Search tags, notes, or categories..." onkeyup="filterHistory()">
+                <div id="searchTotal">Tag Total: $0.00</div>
+            </div>
+            <button class="btn-export" onclick="exportToCSV()" title="Download Spreadsheet"><i class="fa-solid fa-file-csv"></i></button>
+        </div>
         
         <div id="historyList" style="max-height: 400px; overflow-y: auto;"></div>
+    </div>
+
+    <div id="subManager">
+        <div class="header-stack"><h3>Recurring Control</h3></div>
+        <div id="subList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
+        <button class="btn-manage" style="width:100%" onclick="toggleManager()">Back to Ledger</button>
     </div>
 
 <script>
@@ -147,98 +162,207 @@
     let savedBudget = localStorage.getItem('montoya_ledger_budget');
     let INCOME = savedBudget ? parseFloat(savedBudget) : 7400.00;
 
+    function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
+
     function updateMonthlyBudget() {
-        const newBudget = prompt("Enter your monthly budget:", INCOME);
+        const newBudget = prompt("Enter monthly budget:", INCOME);
         if (newBudget !== null && !isNaN(parseFloat(newBudget))) {
             localStorage.setItem('montoya_ledger_budget', newBudget);
-            INCOME = parseFloat(newBudget);
-            updateUI(); 
-            alert("Budget updated to $" + INCOME.toLocaleString());
+            INCOME = parseFloat(newBudget); updateUI();
         }
     }
 
+    async function toggleManager() { 
+        const app = document.getElementById('app'); 
+        const manager = document.getElementById('subManager'); 
+        if (app.style.display === 'none') { 
+            app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); 
+        } else { 
+            app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); 
+        } 
+    }
+
+    function getCycleDates(baseDate = currentViewDate) { 
+        let d = new Date(baseDate); 
+        let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY, 0, 0, 0); 
+        if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); 
+        let end = new Date(start); end.setMonth(end.getMonth() + 1); 
+        return { start, end }; 
+    }
+
+    function initCycles() {
+        const select = document.getElementById('cycleSelect');
+        if(!select) return;
+        select.innerHTML = '';
+        let now = new Date();
+        for(let i=0; i<6; i++) {
+            let d = new Date(now.getFullYear(), now.getMonth() - i, now.getDate());
+            let { start, end } = getCycleDates(d);
+            let endDisplay = new Date(end); endDisplay.setDate(endDisplay.getDate() - 1);
+            let label = `${start.toLocaleString('default', {month:'short'})} ${start.getDate()} - ${endDisplay.toLocaleString('default', {month:'short'})} ${endDisplay.getDate()}`;
+            if (i === 0) label = "Current Cycle (" + label + ")";
+            
+            let option = document.createElement('option');
+            option.value = d.toISOString();
+            option.text = label;
+            select.appendChild(option);
+        }
+    }
+
+    async function changeCycle() { currentViewDate = new Date(document.getElementById('cycleSelect').value); await fetchData(); }
+
     async function checkPin() { 
         if (document.getElementById('pinField').value === MY_PIN) { 
-            document.getElementById('loginScreen').style.display = 'none'; 
-            document.getElementById('app').style.display = 'block'; 
+            document.getElementById('loginScreen').style.display = 'none'; document.getElementById('app').style.display = 'block'; 
             initCycles(); initChart(); await fetchData(); 
         } else { alert("Access Denied"); } 
     }
 
     function initChart() { 
         const ctx = document.getElementById('budgetChart').getContext('2d'); 
-        myChart = new Chart(ctx, { 
-            type: 'doughnut', 
-            data: { 
-                labels: ['Remaining', 'Mortgage', 'Car', 'Utilities', 'Phone', 'Food', 'Subs', 'Goals', 'Misc'], 
-                datasets: [{ 
-                    data: [INCOME, 0, 0, 0, 0, 0, 0, 0, 0], 
-                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#8b5cf6', '#14b8a6', '#10b981', '#f43f5e', '#8b5cf6', '#94a3b8'], 
-                    borderWidth: 0 
-                }] 
-            }, 
-            options: { cutout: '80%', plugins: { legend: { display: false } } } 
-        }); 
+        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Remaining', 'Spending'], datasets: [{ data: [INCOME, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } }); 
     }
 
     async function fetchData() {
         const { start, end } = getCycleDates(currentViewDate);
-        const { data } = await _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false });
-        history = data || [];
+        const [transRes, recurRes] = await Promise.all([
+            _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
+            _supabase.from('recurring_expenses').select('*')
+        ]);
+        history = transRes.data || [];
+        recurring = recurRes.data || [];
         updateUI();
+        updateSubList();
+    }
+
+    async function addEntry() {
+        const amt = parseFloat(document.getElementById('amount').value);
+        const cat = document.getElementById('category').value;
+        const mem = document.getElementById('memberSelect').value;
+        const isRecur = document.getElementById('isRecurring').checked;
+        if (isNaN(amt) || amt <= 0) return;
+
+        let promptStr = "Enter note or #tag (e.g. Vet visit #dogs, Keyboard #PCBuild):";
+        if (cat === 'Subscription') promptStr = "Enter Subscription Name (e.g. Netflix):";
+        let note = prompt(promptStr);
+        if (note === null) return; 
+
+        if (isRecur || cat === 'Subscription') {
+            const billDay = prompt(`What day of the month is this billed? (1-31):`, new Date().getDate());
+            if (billDay !== null) {
+                await _supabase.from('recurring_expenses').insert([{ name: note || cat, amount: amt, billing_day: parseInt(billDay), member: mem }]);
+            }
+        }
+
+        await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note, intent: currentType, created_at: new Date().toISOString() }]);
+        document.getElementById('amount').value = ''; 
+        document.getElementById('isRecurring').checked = false;
+        fetchData();
+    }
+
+    async function deleteEntry(id) {
+        if (confirm("Delete this transaction?")) {
+            await _supabase.from('transactions').delete().eq('id', id);
+            fetchData();
+        }
+    }
+
+    async function deleteSub(id) { if (confirm("Remove this subscription permanently?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); await fetchData(); } }
+    
+    async function editSub(id) {
+        const sub = recurring.find(s => s.id === id); if (!sub) return;
+        const newName = prompt("Edit Name:", sub.name); if (newName === null) return;
+        const newAmt = prompt("Edit Amount:", sub.amount); if (newAmt === null) return;
+        const newDay = prompt("Edit Billing Day:", sub.billing_day); if (newDay === null) return;
+        await _supabase.from('recurring_expenses').update({ name: newName, amount: parseFloat(newAmt), billing_day: parseInt(newDay) }).eq('id', id);
+        await fetchData();
+    }
+
+    function exportToCSV() {
+        const { start } = getCycleDates(currentViewDate);
+        let csvContent = "data:text/csv;charset=utf-8,Date,Member,Category,Note,Amount,Type\n";
+        history.forEach(item => {
+            const date = new Date(item.created_at).toLocaleDateString();
+            csvContent += `${date},${item.member},${item.category},${(item.note || '').replace(/,/g, "")},-${item.amount.toFixed(2)},Manual\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Montoya_Ledger_Cycle_${start.toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function filterHistory() {
+        const q = document.getElementById('searchBar').value.toLowerCase();
+        const totalDiv = document.getElementById('searchTotal');
+        let runningSum = 0; let itemsFound = 0;
+        document.querySelectorAll('.history-item').forEach(item => {
+            if (item.innerText.toLowerCase().includes(q)) {
+                item.style.display = 'flex'; runningSum += parseFloat(item.getAttribute('data-amt')); itemsFound++;
+            } else { item.style.display = 'none'; }
+        });
+        if (q !== '' && itemsFound > 0) {
+            totalDiv.style.display = 'block'; totalDiv.innerText = `Filtered Total: $${runningSum.toFixed(2)}`;
+        } else { totalDiv.style.display = 'none'; }
+    }
+
+    function updateSubList() {
+        const list = document.getElementById('subList'); list.innerHTML = '';
+        recurring.forEach(sub => {
+            const div = document.createElement('div'); div.className = 'history-item';
+            div.innerHTML = `<div class="item-left"><span class="item-label">${sub.name}</span><span class="item-note">Day ${sub.billing_day}</span></div><div class="action-icons"><b>$${sub.amount.toFixed(2)}</b><i class="fa-solid fa-pen-to-square" style="color:#60a5fa; cursor:pointer; margin-left:10px;" onclick="editSub('${sub.id}')"></i><i class="fa-solid fa-trash-can" style="color:#ef4444; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
+            list.appendChild(div);
+        });
     }
 
     function updateUI() {
-        let totalS = 0, needS = 0, wantS = 0, goalS = 0, bS = 0, gS = 0;
+        const { start } = getCycleDates(currentViewDate);
+        let totalS = 0, needS = 0, wantS = 0, bS = 0, gS = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
 
         history.forEach(item => {
             totalS += item.amount;
             if (item.member === 'Brandon') bS += item.amount; else gS += item.amount;
-            if (item.category === 'Goal') goalS += item.amount;
-            else if (item.intent === 'Want') wantS += item.amount;
-            else needS += item.amount;
+            if (item.intent === 'Want') wantS += item.amount; else needS += item.amount;
 
             const div = document.createElement('div'); div.className = 'history-item';
+            div.setAttribute('data-amt', item.amount);
             const dot = item.intent === 'Want' ? 'var(--want)' : 'var(--need)';
-            div.innerHTML = `
-                <div class="item-left">
-                    <div class="tag-row"><span class="intent-dot" style="background:${dot}"></span><span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span><span class="date-tag">3/20</span></div>
-                    <span class="item-label">${item.note || item.category}</span>
-                </div>
-                <div class="item-amt">-$${item.amount.toFixed(2)}</div>`;
+            const d = new Date(item.created_at);
+            div.innerHTML = `<div class="item-left"><div class="tag-row"><span class="intent-dot" style="background:${dot}"></span><span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span><span class="date-tag">${d.getMonth()+1}/${d.getDate()}</span></div><span class="item-label">${item.note || item.category}</span><span class="item-note">${item.category}</span></div><div class="item-amt">-$${item.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
         });
 
-        const remaining = INCOME - totalS;
-        document.getElementById('balance').innerText = "$" + remaining.toLocaleString(undefined, {minimumFractionDigits: 2});
+        // Recurring Phantom Transactions Logic
+        const recurTotal = recurring.reduce((sum, sub) => {
+            let billDate = new Date(start); if (sub.billing_day < CYCLE_START_DAY) { billDate.setMonth(billDate.getMonth() + 1); } billDate.setDate(sub.billing_day);
+            const logged = history.some(h => h.category === sub.name || h.note === sub.name);
+            if (logged) return sum;
+
+            if (billDate <= new Date()) {
+                needS += sub.amount; 
+                totalS += sub.amount; 
+                const recurIntentDot = `<span class="intent-dot" style="background:var(--need); color:var(--need); margin-right:8px;" title="Need"></span>`;
+                const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
+                div.setAttribute('data-amt', sub.amount);
+                div.innerHTML = `<div class="item-left"><div class="tag-row">${recurIntentDot}<span class="name-tag tag-auto">AUTO-SYNC</span><span class="date-tag">${billDate.getMonth()+1}/${billDate.getDate()}</span></div><span class="item-label">${sub.name}</span><span class="item-note">Recurring Bill</span></div><div class="item-amt">-$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
+                list.prepend(div);
+            }
+            return sum + sub.amount;
+        }, 0);
+
+        document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString();
         document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString();
-        
-        const pN = Math.min(100, Math.round((needS / INCOME) * 100));
-        const pW = Math.min(100, Math.round((wantS / INCOME) * 100));
-        const pG = Math.min(100, Math.round((goalS / INCOME) * 100));
-
-        document.getElementById('barNeed').style.width = pN + '%';
-        document.getElementById('barWant').style.width = pW + '%';
-        document.getElementById('barGoal').style.width = pG + '%';
-        document.getElementById('percNeed').innerText = pN; document.getElementById('percWant').innerText = pW; document.getElementById('percGoal').innerText = pG;
-        
-        const days = 25; 
-        document.getElementById('paceDisplay').innerText = `Pace: $${(remaining / days).toFixed(2)} / day`;
-        if(myChart) { myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, 0, 0, 0, 0, 0, 0, 0, totalS]; myChart.update(); }
+        document.getElementById('barNeed').style.width = Math.min(100, (needS/INCOME)*100) + '%';
+        document.getElementById('barWant').style.width = Math.min(100, (wantS/INCOME)*100) + '%';
+        document.getElementById('percNeed').innerText = Math.round((needS/INCOME)*100);
+        document.getElementById('percWant').innerText = Math.round((wantS/INCOME)*100);
+        if(myChart) { myChart.data.datasets[0].data = [INCOME - totalS < 0 ? 0 : INCOME - totalS, totalS]; myChart.update(); }
+        filterHistory();
     }
-
-    function getCycleDates(baseDate) {
-        let start = new Date(baseDate.getFullYear(), baseDate.getMonth(), CYCLE_START_DAY);
-        if (baseDate.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1);
-        let end = new Date(start); end.setMonth(end.getMonth() + 1);
-        return { start, end };
-    }
-    function initCycles() { /* Restore full logic as needed */ }
-    function setType(t) { currentType = t; }
-    function autoSuggest(c) { /* Restore logic as needed */ }
-    async function addEntry() { /* Restore full supabase logic */ }
 </script>
 </body>
 </html>
