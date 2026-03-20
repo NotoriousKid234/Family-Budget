@@ -17,14 +17,27 @@
             --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); }
-        #loginScreen, #app { background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px; }
-        #app { display: none; } 
+        body { 
+            font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; color: var(--text); overflow-x: hidden;
+        }
+
+        /* Login Screen Styles */
+        #loginScreen { 
+            background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 340px; 
+            border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center;
+        }
+
+        /* App Screen Styles (Hidden by default) */
+        #app { 
+            display: none; background: var(--card); backdrop-filter: blur(20px); padding: 40px; border-radius: 32px; width: 440px; 
+            border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin: 20px;
+        } 
 
         .hero-section { text-align: center; margin-bottom: 20px; }
-        .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; letter-spacing: -2px; margin-bottom: 5px; }
+        .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; letter-spacing: -2px; }
         
-        /* New Analysis Row */
         .analysis-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         .tag-pill { padding: 4px 12px; border-radius: 100px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
 
@@ -32,33 +45,28 @@
         .stat-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .stat-card { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
 
-        /* Need/Want Toggle Styling */
-        .type-toggle { 
-            display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; 
-            padding: 4px; margin-bottom: 15px; border: 1px solid var(--border);
-        }
-        .type-btn { 
-            flex: 1; padding: 10px; border-radius: 10px; border: none; 
-            background: none; color: #94a3b8; cursor: pointer; font-weight: 600; font-size: 0.8rem;
-            transition: all 0.2s;
-        }
+        /* Need/Want Toggle */
+        .type-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .type-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: none; color: #94a3b8; cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: 0.2s; }
         .type-btn.active { background: #fff; color: #0f172a; }
 
-        input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 0.9rem; box-sizing: border-box; }
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); }
+        input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 0.9rem; box-sizing: border-box; }
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 700; width: 100%; cursor: pointer; transition: transform 0.1s; }
+        .btn-elite:active { transform: scale(0.98); }
+
         .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
-        .intent-dot { height: 6px; width: 6px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .intent-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
     </style>
 </head>
 <body>
 
     <div id="loginScreen">
-        <div style="background: var(--primary); width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+        <div style="background: var(--primary); width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
             <i class="fa-solid fa-bolt-lightning fa-2x" style="color: white;"></i>
         </div>
         <h2 style="margin:0;">Elite Access</h2>
-        <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem; margin: 20px 0;">
-        <button class="btn-elite" onclick="checkPin()">Unlock</button>
+        <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem; width: 100%; margin: 20px 0; background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; border-radius: 12px; padding: 10px;">
+        <button class="btn-elite" onclick="checkPin()">Unlock Vault</button>
     </div>
 
     <div id="app">
@@ -74,7 +82,7 @@
 
         <div class="stat-group">
             <div class="stat-card"><div style="color:var(--brandon); font-size:0.6rem; font-weight:700;">BRANDON</div><div id="brandonSpend" style="font-weight:700;">$0</div></div>
-            <div class="stat-card"><div style="color:var(--gina); font-size:0.6rem; font-weight:700;">GINA</div><div id="ginaSpend" style="font-weight:700;">$0</div></div>
+            <div class="stat-card"><div style="color:var(--gina); font-size:0.7rem; font-weight:700;">GINA</div><div id="ginaSpend" style="font-weight:700;">$0</div></div>
         </div>
 
         <div style="margin-bottom: 25px;">
@@ -83,19 +91,19 @@
                 <button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <select id="memberSelect"><option>Brandon</option><option>Gina</option></select>
+                <select id="memberSelect" onchange="this.style.color = this.value === 'Brandon' ? '#3b82f6' : '#ec4899';"><option>Brandon</option><option>Gina</option></select>
                 <input type="number" id="amount" placeholder="0.00">
             </div>
-            <select id="category">
+            <select id="category" onchange="autoSuggestIntent(this.value)">
                 <option value="Mortgage">🏠 Mortgage</option>
                 <option value="Car">🚗 Car Payment</option>
                 <option value="Groceries">🛒 Groceries</option>
                 <option value="Dining">🍔 Dining / Takeout</option>
+                <option value="Utilities">💡 Utilities</option>
                 <option value="Misc">📦 Miscellaneous</option>
             </select>
             <button class="btn-elite" onclick="addEntry()">Confirm Transaction</button>
         </div>
-
         <div id="historyList" style="max-height: 140px; overflow-y: auto;"></div>
     </div>
 
@@ -105,6 +113,16 @@
     let history = JSON.parse(localStorage.getItem('fam_history')) || [];
     let currentType = 'Need';
     let myChart;
+
+    // Fixed Logic: Auto-suggest Need vs Want
+    function autoSuggestIntent(category) {
+        const needs = ['Mortgage', 'Car', 'Utilities', 'Groceries'];
+        if (needs.includes(category)) {
+            setType('Need');
+        } else if (category === 'Dining') {
+            setType('Want');
+        }
+    }
 
     function setType(type) {
         currentType = type;
@@ -116,8 +134,10 @@
         if (document.getElementById('pinField').value === MY_PIN) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
+            document.body.style.alignItems = 'flex-start'; // Align top for mobile scrolling
+            document.body.style.paddingTop = '40px';
             initChart(); updateDisplay();
-        } else { alert("Access Denied"); }
+        } else { alert("Access Denied"); document.getElementById('pinField').value = ''; }
     }
 
     function initChart() {
@@ -125,10 +145,10 @@
         myChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Remaining', 'Mortgage', 'Car', 'Groceries', 'Dining', 'Misc'],
+                labels: ['Remaining', 'Mortgage', 'Car', 'Groceries', 'Dining', 'Utilities', 'Misc'],
                 datasets: [{
-                    data: [INCOME, 0, 0, 0, 0, 0],
-                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#10b981', '#f43f5e', '#94a3b8'],
+                    data: [INCOME, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#10b981', '#f43f5e', '#8b5cf6', '#94a3b8'],
                     borderWidth: 0
                 }]
             },
@@ -140,19 +160,21 @@
         const amt = document.getElementById('amount');
         const val = parseFloat(amt.value);
         if (isNaN(val) || val <= 0) return;
+        
         history.unshift({
             amount: val, member: document.getElementById('memberSelect').value,
             category: document.getElementById('category').value,
             intent: currentType,
             date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
         });
+        
         localStorage.setItem('fam_history', JSON.stringify(history));
         updateDisplay();
         amt.value = '';
     }
 
     function updateDisplay() {
-        let totals = { Mortgage:0, Car:0, Groceries:0, Dining:0, Misc:0 };
+        let totals = { Mortgage:0, Car:0, Groceries:0, Dining:0, Utilities:0, Misc:0 };
         let bSpend = 0, gSpend = 0, totalSpent = 0, needSpend = 0, wantSpend = 0;
         const list = document.getElementById('historyList');
         list.innerHTML = '';
@@ -177,17 +199,21 @@
         document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
         document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
         
-        // Percentages
         const needP = totalSpent > 0 ? Math.round((needSpend / totalSpent) * 100) : 0;
         const wantP = totalSpent > 0 ? Math.round((wantSpend / totalSpent) * 100) : 0;
         document.getElementById('needPerc').innerText = needP;
         document.getElementById('wantPerc').innerText = wantP;
 
         if(myChart) {
-            myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totals.Mortgage, totals.Car, totals.Groceries, totals.Dining, totals.Misc];
+            myChart.data.datasets[0].data = [remaining < 0 ? 0 : remaining, totals.Mortgage, totals.Car, totals.Groceries, totals.Dining, totals.Utilities, totals.Misc];
             myChart.update();
         }
     }
+
+    // Enter key support for PIN
+    document.getElementById('pinField').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') checkPin();
+    });
 </script>
 </body>
 </html>
