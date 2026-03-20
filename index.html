@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Montoya Budget Elite</title>
+    <title>Montoya Ledger Elite</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -25,6 +25,7 @@
             min-height: 100vh; color: var(--text); overflow-x: hidden;
         }
 
+        /* NEW: Professional Ledger Login */
         #loginScreen { 
             background: var(--card); backdrop-filter: blur(20px); 
             padding: 40px; border-radius: 32px; width: 340px; 
@@ -76,17 +77,19 @@
 <body>
 
     <div id="loginScreen">
-        <div style="background: var(--primary); width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-            <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color: white;"></i>
+        <div style="background: var(--primary); width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);">
+            <i class="fa-solid fa-vault fa-2x" style="color: white;"></i>
         </div>
-        <h2 style="margin:0;">Cloud Vault</h2>
+        <h2 style="margin:0; font-size: 1.5rem; font-weight: 700;">Montoya Ledger</h2>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 5px;">Elite Spending Control</p>
+        
         <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem; width: 100%; margin: 20px 0; background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; border-radius: 12px; padding: 10px;">
-        <button class="btn-elite" onclick="checkPin()">Unlock & Sync</button>
+        <button class="btn-elite" onclick="checkPin()">Authorize Access</button>
     </div>
 
     <div id="app">
         <div class="hero-section">
-            <div class="balance-label">Cycle Remaining (Reset 16th)</div>
+            <div class="balance-label">Current Cycle (16th-16th)</div>
             <div id="balance" class="balance-amount">$7,400</div>
             <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
         </div>
@@ -245,7 +248,7 @@
         });
 
         const remaining = INCOME - totalSpent;
-        document.getElementById('balance').innerText = "$" + remaining.toLocaleString();
+        document.getElementById('balance').innerText = "$" + (remaining < 0 ? 0 : remaining).toLocaleString();
         document.getElementById('brandonSpend').innerText = "$" + bSpend.toLocaleString();
         document.getElementById('ginaSpend').innerText = "$" + gSpend.toLocaleString();
 
