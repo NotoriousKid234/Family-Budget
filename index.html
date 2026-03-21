@@ -26,25 +26,26 @@
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text); overflow-x: hidden;}
         
-        #loginScreen, #app, #subManager { 
+        #offlineBanner {
+            display: none; background: #ef4444; color: white; text-align: center;
+            font-size: 0.75rem; font-weight: 700; padding: 8px; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000; letter-spacing: 1px;
+        }
+
+        #loginScreen, #app, #subManager, #analyticsModal { 
             background: var(--card); backdrop-filter: blur(20px); padding: 30px 20px; 
             border-radius: 32px; width: 92%; max-width: 440px; 
             border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
-            margin: 20px auto; box-sizing: border-box; 
+            margin: 40px auto 20px auto; box-sizing: border-box; 
         }
-        #app, #subManager { display: none; } 
+        #app, #subManager, #analyticsModal { display: none; } 
         
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); z-index: 999;
-        }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); z-index: 999; }
 
         #settingsModal { 
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: var(--card); backdrop-filter: blur(20px); padding: 30px 20px; 
             border-radius: 32px; width: 92%; max-width: 400px; max-height: 85vh; overflow-y: auto;
-            border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
-            z-index: 1000; box-sizing: border-box; 
+            border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); z-index: 1000; box-sizing: border-box; 
         }
 
         .header-stack { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; margin-bottom: 20px; }
@@ -62,7 +63,10 @@
         .cycle-selector option { background: #0f172a; color: #f8fafc; font-weight: 500; }
 
         .balance-amount { font-size: 3.2rem; font-weight: 700; color: #fff; text-align: center; letter-spacing: -2px; margin-bottom: 5px;}
-        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; display: block; width: fit-content; margin: 0 auto 20px auto; }
+        
+        .pill-container { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 8px 14px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .safe-pill { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
 
         .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; position: relative; }
         .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 5px 0; }
@@ -93,7 +97,6 @@
 
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); margin-bottom: 12px; transition: 0.2s; }
         .btn-elite:hover { filter: brightness(1.1); transform: translateY(-1px); }
-        
         .btn-manage { background: var(--secondary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; transition: 0.2s; box-shadow: 0 8px 15px -5px rgba(79, 70, 229, 0.4); }
         .btn-manage:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
@@ -110,6 +113,8 @@
         .item-label { font-size: 1rem; font-weight: 700; color: #fff; }
         .item-note { font-size: 0.8rem; color: #94a3b8; font-weight: 500; }
         .item-amt { font-size: 1.1rem; font-weight: 700; color: #fff; text-align: right; }
+        .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; pointer-events: auto; }
+        .clickable-tag:hover { color: #e879f9; }
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.8); color: white; font-size: 1rem; box-sizing: border-box; }
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; margin-bottom: 15px; }
@@ -126,6 +131,8 @@
     </style>
 </head>
 <body>
+
+    <div id="offlineBanner"><i class="fa-solid fa-triangle-exclamation"></i> OFFLINE - SYNC PAUSED. CHANGES QUEUED.</div>
 
     <div id="settingsOverlay" class="modal-overlay" onclick="toggleSettings()"></div>
     <div id="settingsModal">
@@ -162,8 +169,9 @@
     </div>
 
     <div id="app">
-        <div style="text-align:right; margin-bottom:10px;">
-            <button onclick="toggleSettings()" style="background:none; border:none; color:#94a3b8; cursor:pointer;"><i class="fa-solid fa-cloud"></i> Cloud Settings</button>
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <button onclick="toggleAnalytics()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:600;"><i class="fa-solid fa-chart-simple"></i> Analytics</button>
+            <button onclick="toggleSettings()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:600;"><i class="fa-solid fa-cloud"></i> Settings</button>
         </div>
 
         <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
@@ -185,7 +193,11 @@
             <div id="balance" class="balance-amount" style="display: inline-block;">$0.00</div>
             <button onclick="updateMonthlyBudget()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.8rem; vertical-align: middle; margin-left: 5px;"><i class="fa-solid fa-pen-to-square"></i></button>
         </div>
-        <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
+        
+        <div class="pill-container">
+            <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
+            <div id="safeToSpend" class="pace-pill safe-pill" title="Remaining Balance minus Pending Bills">Safe: $0.00</div>
+        </div>
 
         <div class="health-dashboard">
             <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; text-align: center; letter-spacing: 1px;">Wealth Allocation (50/30/20)</div>
@@ -259,6 +271,34 @@
         <button class="btn-manage" onclick="toggleManager()">Back to Ledger</button>
     </div>
 
+    <div id="analyticsModal">
+        <div class="header-stack">
+            <h3 style="margin:0;">Cycle Analytics</h3>
+            <p style="font-size:0.7rem; color:#94a3b8; margin:5px 0 0 0;">Discretionary Spend Comparison</p>
+        </div>
+        
+        <div class="chart-container" style="height: 250px;">
+            <canvas id="analyticsBarChart"></canvas>
+        </div>
+        
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 16px; margin-bottom: 20px; font-size: 0.8rem; border: 1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:#94a3b8;">Last Cycle Total:</span>
+                <span id="lastCycleTotal" style="font-weight:700;">$0.00</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="color:#94a3b8;">This Cycle Total:</span>
+                <span id="thisCycleTotal" style="font-weight:700;">$0.00</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px;">
+                <span style="color:#c4b5fd; font-weight:700;">Creep/Savings:</span>
+                <span id="creepTotal" style="font-weight:700;">$0.00</span>
+            </div>
+        </div>
+
+        <button class="btn-manage" onclick="toggleAnalytics()">Back to Ledger</button>
+    </div>
+
 <script>
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
@@ -266,38 +306,48 @@
     const MY_PIN = "1991"; 
     const CYCLE_START_DAY = 16;
     
-    let history = [], recurring = [], allTimeGoals = [], currentType = 'Need', myChart;
+    let history = [], recurring = [], allTimeGoals = [], currentType = 'Need', myChart, analyticsChart;
     let currentViewDate = new Date();
     
     let config = { budget: 7400, m_balance: 0, m_rate: 0, c_balance: 0, c_rate: 0 };
     let INCOME = config.budget;
 
-    function togglePinVisibility() {
-        const pinField = document.getElementById('pinField');
-        const toggleIcon = document.getElementById('togglePin');
-        if (pinField.type === 'password') {
-            pinField.type = 'text';
-            toggleIcon.classList.remove('fa-eye');
-            toggleIcon.classList.add('fa-eye-slash');
-        } else {
-            pinField.type = 'password';
-            toggleIcon.classList.remove('fa-eye-slash');
-            toggleIcon.classList.add('fa-eye');
+    // OFFLINE QUEUE
+    let syncQueue = JSON.parse(localStorage.getItem('montoya_sync_queue')) || [];
+
+    // CONNECTION LISTENERS
+    window.addEventListener('online', processSyncQueue);
+    window.addEventListener('offline', () => {
+        document.getElementById('offlineBanner').style.display = 'block';
+    });
+
+    async function processSyncQueue() {
+        document.getElementById('offlineBanner').style.display = 'none';
+        if (syncQueue.length === 0) return;
+        
+        // Push queued transactions
+        const { error } = await _supabase.from('transactions').insert(syncQueue);
+        if (!error) {
+            syncQueue = [];
+            localStorage.removeItem('montoya_sync_queue');
+            await fetchData();
         }
+    }
+
+    function togglePinVisibility() {
+        const pinField = document.getElementById('pinField'); const toggleIcon = document.getElementById('togglePin');
+        if (pinField.type === 'password') { pinField.type = 'text'; toggleIcon.classList.replace('fa-eye', 'fa-eye-slash'); } 
+        else { pinField.type = 'password'; toggleIcon.classList.replace('fa-eye-slash', 'fa-eye'); }
     }
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
     function autoSuggest(c) { setType(['Mortgage','Car','CreditCard','Utilities','Phone','Groceries','Subscription'].includes(c) ? 'Need' : 'Want'); }
 
     function toggleSettings() {
-        const modal = document.getElementById('settingsModal');
-        const overlay = document.getElementById('settingsOverlay');
-        if (modal.style.display === 'block') {
-            modal.style.display = 'none';
-            overlay.style.display = 'none';
-        } else {
-            modal.style.display = 'block';
-            overlay.style.display = 'block';
+        const modal = document.getElementById('settingsModal'); const overlay = document.getElementById('settingsOverlay');
+        if (modal.style.display === 'block') { modal.style.display = 'none'; overlay.style.display = 'none'; } 
+        else {
+            modal.style.display = 'block'; overlay.style.display = 'block';
             document.getElementById('conf_income').value = config.budget || 0;
             document.getElementById('conf_mbal').value = config.m_balance || 0;
             document.getElementById('conf_mrate').value = config.m_rate || 0;
@@ -308,130 +358,118 @@
 
     async function saveConfig() {
         config = {
-            budget: parseFloat(document.getElementById('conf_income').value) || 0,
-            m_balance: parseFloat(document.getElementById('conf_mbal').value) || 0,
-            m_rate: parseFloat(document.getElementById('conf_mrate').value) || 0,
-            c_balance: parseFloat(document.getElementById('conf_cbal').value) || 0,
-            c_rate: parseFloat(document.getElementById('conf_crate').value) || 0
+            budget: parseFloat(document.getElementById('conf_income').value) || 0, m_balance: parseFloat(document.getElementById('conf_mbal').value) || 0, m_rate: parseFloat(document.getElementById('conf_mrate').value) || 0,
+            c_balance: parseFloat(document.getElementById('conf_cbal').value) || 0, c_rate: parseFloat(document.getElementById('conf_crate').value) || 0
         };
         INCOME = config.budget;
         
-        await _supabase.from('app_settings').upsert({ id: 1, ...config });
-        
-        toggleSettings();
-        updateUI();
+        if(navigator.onLine) { await _supabase.from('app_settings').upsert({ id: 1, ...config }); }
+        toggleSettings(); updateUI();
     }
 
     async function updateMonthlyBudget() {
         const newBudget = prompt("Enter monthly budget:", INCOME);
         if (newBudget !== null && !isNaN(parseFloat(newBudget))) {
-            config.budget = parseFloat(newBudget);
-            INCOME = config.budget;
-            await _supabase.from('app_settings').upsert({ id: 1, ...config });
+            config.budget = parseFloat(newBudget); INCOME = config.budget;
+            if(navigator.onLine) { await _supabase.from('app_settings').upsert({ id: 1, ...config }); }
             updateUI();
         }
     }
 
     async function fetchSettings() {
+        if (!navigator.onLine) return; // Ignore if offline
         const { data } = await _supabase.from('app_settings').select('*').eq('id', 1).single();
-        if (data) {
-            config = data;
-            INCOME = config.budget;
-        } else {
-            await _supabase.from('app_settings').insert([{ id: 1, budget: 7400, m_balance: 0, m_rate: 0, c_balance: 0, c_rate: 0 }]);
-        }
+        if (data) { config = data; INCOME = config.budget; } 
+        else { await _supabase.from('app_settings').insert([{ id: 1, budget: 7400, m_balance: 0, m_rate: 0, c_balance: 0, c_rate: 0 }]); }
     }
 
     async function toggleManager() { 
-        const app = document.getElementById('app'); 
-        const manager = document.getElementById('subManager'); 
-        if (app.style.display === 'none') { 
-            app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); 
-        } else { 
-            app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); 
-        } 
+        const app = document.getElementById('app'); const manager = document.getElementById('subManager'); 
+        if (app.style.display === 'none') { app.style.display = 'block'; manager.style.display = 'none'; await fetchData(); } 
+        else { app.style.display = 'none'; manager.style.display = 'block'; await fetchData(); } 
+    }
+
+    async function toggleAnalytics() {
+        const app = document.getElementById('app'); const analytics = document.getElementById('analyticsModal');
+        if (app.style.display === 'none') { app.style.display = 'block'; analytics.style.display = 'none'; } 
+        else { app.style.display = 'none'; analytics.style.display = 'block'; await renderAnalytics(); }
+    }
+
+    async function renderAnalytics() {
+        if (!navigator.onLine) { alert("Analytics require an internet connection."); return; }
+        const { start: currStart } = getCycleDates(currentViewDate);
+        let lastDate = new Date(currStart); lastDate.setMonth(lastDate.getMonth() - 1);
+        const { start: lastStart, end: lastEnd } = getCycleDates(lastDate);
+
+        const { data } = await _supabase.from('transactions').select('*').gte('created_at', lastStart.toISOString()).lt('created_at', lastEnd.toISOString());
+        const lastHistory = data || [];
+
+        let lastB = 0, lastG = 0, currB = 0, currG = 0;
+        lastHistory.forEach(i => { if(!['Mortgage','Car','Utilities'].includes(i.category)) { if(i.member === 'Brandon') lastB += i.amount; else lastG += i.amount; } });
+        history.forEach(i => { if(!['Mortgage','Car','Utilities'].includes(i.category)) { if(i.member === 'Brandon') currB += i.amount; else currG += i.amount; } });
+
+        const lastTotal = lastB + lastG; const currTotal = currB + currG;
+        document.getElementById('lastCycleTotal').innerText = "$" + lastTotal.toFixed(2);
+        document.getElementById('thisCycleTotal').innerText = "$" + currTotal.toFixed(2);
+        
+        const diff = currTotal - lastTotal; const creepEl = document.getElementById('creepTotal');
+        if (diff > 0) { creepEl.innerText = "+$" + diff.toFixed(2) + " (Creep)"; creepEl.style.color = "#ef4444"; } 
+        else { creepEl.innerText = "-$" + Math.abs(diff).toFixed(2) + " (Savings)"; creepEl.style.color = "#10b981"; }
+
+        const ctx = document.getElementById('analyticsBarChart').getContext('2d');
+        if(analyticsChart) analyticsChart.destroy();
+        analyticsChart = new Chart(ctx, {
+            type: 'bar', data: { labels: ['Last Cycle', 'This Cycle'], datasets: [{ label: 'Brandon', data: [lastB, currB], backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'Gina', data: [lastG, currG], backgroundColor: '#ec4899', borderRadius: 4 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { labels: { color: '#f8fafc' } } } }
+        });
     }
 
     async function checkPin() { 
         if (document.getElementById('pinField').value === MY_PIN) { 
-            document.getElementById('loginScreen').style.display = 'none'; 
-            document.getElementById('app').style.display = 'block'; 
-            await fetchSettings();
-            initCycles(); initChart(); await fetchData(); 
+            document.getElementById('loginScreen').style.display = 'none'; document.getElementById('app').style.display = 'block'; 
+            if (!navigator.onLine) document.getElementById('offlineBanner').style.display = 'block';
+            await fetchSettings(); initCycles(); initChart(); await fetchData(); processSyncQueue();
         } else { alert("Access Denied"); } 
     }
 
     function initChart() { 
         const ctx = document.getElementById('budgetChart').getContext('2d'); 
         myChart = new Chart(ctx, { 
-            type: 'doughnut', 
-            data: { 
-                labels: ['Remaining', 'Mortgage', 'Car', 'CreditCard', 'Utilities', 'Phone', 'Groceries', 'Dining', 'Beauty', 'Subscription', 'Goal', 'Misc'], 
-                datasets: [{ 
-                    data: [INCOME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                    backgroundColor: [
-                        'rgba(255,255,255,0.05)', 
-                        '#6366f1', '#3b82f6', '#ef4444', 
-                        '#eab308', '#06b6d4', '#10b981', 
-                        '#f59e0b', '#ec4899', '#8b5cf6', 
-                        '#14b8a6', '#94a3b8'
-                    ], 
-                    borderWidth: 0 
-                }] 
-            }, 
-            options: { 
-                cutout: '80%', 
-                plugins: { 
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: function(context) { return context.label + ': $' + context.raw.toFixed(2); } } }
-                } 
-            } 
+            type: 'doughnut', data: { labels: ['Remaining', 'Mortgage', 'Car', 'CreditCard', 'Utilities', 'Phone', 'Groceries', 'Dining', 'Beauty', 'Subscription', 'Goal', 'Misc'], datasets: [{ data: [INCOME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1', '#3b82f6', '#ef4444', '#eab308', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#94a3b8'], borderWidth: 0 }] }, 
+            options: { cutout: '80%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return context.label + ': $' + context.raw.toFixed(2); } } } } } 
         }); 
     }
 
     function getCycleDates(baseDate = currentViewDate) { 
-        let d = new Date(baseDate); 
-        let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY, 0, 0, 0); 
+        let d = new Date(baseDate); let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY, 0, 0, 0); 
         if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); 
         let end = new Date(start); end.setMonth(end.getMonth() + 1); 
         return { start, end }; 
     }
 
     function initCycles() {
-        const select = document.getElementById('cycleSelect');
-        if(!select) return;
-        select.innerHTML = '';
-        let now = new Date();
+        const select = document.getElementById('cycleSelect'); if(!select) return; select.innerHTML = ''; let now = new Date();
         for(let i=0; i<6; i++) {
             let d = new Date(now.getFullYear(), now.getMonth() - i, now.getDate());
-            let { start, end } = getCycleDates(d);
-            let endDisplay = new Date(end); endDisplay.setDate(endDisplay.getDate() - 1);
+            let { start, end } = getCycleDates(d); let endDisplay = new Date(end); endDisplay.setDate(endDisplay.getDate() - 1);
             let label = `${start.toLocaleString('default', {month:'short'})} ${start.getDate()} - ${endDisplay.toLocaleString('default', {month:'short'})} ${endDisplay.getDate()}`;
             if (i === 0) label = "Current Cycle (" + label + ")";
-            
-            let option = document.createElement('option');
-            option.value = d.toISOString();
-            option.text = label;
-            select.appendChild(option);
+            let option = document.createElement('option'); option.value = d.toISOString(); option.text = label; select.appendChild(option);
         }
     }
 
     async function changeCycle() { currentViewDate = new Date(document.getElementById('cycleSelect').value); await fetchData(); }
 
     async function fetchData() {
+        if (!navigator.onLine) { updateUI(); updateSubList(); return; } // Just refresh UI if offline
         const { start, end } = getCycleDates(currentViewDate);
-        
         const [transRes, recurRes, goalsRes] = await Promise.all([
             _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
             _supabase.from('recurring_expenses').select('*'),
             _supabase.from('transactions').select('amount, note').eq('category', 'Goal').lt('created_at', end.toISOString())
         ]);
-        history = transRes.data || [];
-        recurring = recurRes.data || [];
-        allTimeGoals = goalsRes.data || [];
-        
-        updateUI();
-        updateSubList();
+        history = transRes.data || []; recurring = recurRes.data || []; allTimeGoals = goalsRes.data || [];
+        updateUI(); updateSubList();
     }
 
     async function addEntry() {
@@ -445,82 +483,78 @@
         if (cat === 'Subscription') promptStr = "Enter Subscription Name (e.g. Netflix):";
         if (cat === 'Goal') promptStr = "Enter Vault Goal (e.g. Orlando Trip):";
         
-        let note = prompt(promptStr);
-        if (note === null) return; 
+        let note = prompt(promptStr); if (note === null) return; 
 
         let updatedSettings = false;
         if (cat === 'Mortgage' && config.m_balance > 0) { config.m_balance -= amt; updatedSettings = true; }
         if (cat === 'Car' && config.c_balance > 0) { config.c_balance -= amt; updatedSettings = true; }
-        if (updatedSettings) { await _supabase.from('app_settings').upsert({ id: 1, ...config }); }
+        if (updatedSettings && navigator.onLine) { await _supabase.from('app_settings').upsert({ id: 1, ...config }); }
 
         if (isRecur || cat === 'Subscription') {
             const billDay = prompt(`What day of the month is this billed? (1-31):`, new Date().getDate());
-            if (billDay !== null) {
-                await _supabase.from('recurring_expenses').insert([{ name: note || cat, amount: amt, billing_day: parseInt(billDay), member: mem }]);
-            }
+            if (billDay !== null && navigator.onLine) await _supabase.from('recurring_expenses').insert([{ name: note || cat, amount: amt, billing_day: parseInt(billDay), member: mem }]);
+            else if (billDay !== null) alert("Cannot create recurring subscriptions while offline.");
         }
 
-        await _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note, intent: currentType, created_at: new Date().toISOString() }]);
-        document.getElementById('amount').value = ''; 
-        document.getElementById('isRecurring').checked = false;
-        document.getElementById('cycleSelect').selectedIndex = 0;
-        currentViewDate = new Date();
-        fetchData();
+        const newTx = { amount: amt, member: mem, category: cat, note: note, intent: currentType, created_at: new Date().toISOString() };
+
+        // OFFLINE HANDLING
+        if (!navigator.onLine) {
+            syncQueue.push(newTx);
+            localStorage.setItem('montoya_sync_queue', JSON.stringify(syncQueue));
+            history.unshift(newTx); // Display immediately locally
+            updateUI();
+        } else {
+            await _supabase.from('transactions').insert([newTx]);
+            currentViewDate = new Date(); fetchData();
+        }
+
+        document.getElementById('amount').value = ''; document.getElementById('isRecurring').checked = false; document.getElementById('cycleSelect').selectedIndex = 0; 
     }
 
     async function deleteEntry(id) {
+        if (!navigator.onLine) { alert("Cannot delete transactions while offline."); return; }
         if (confirm("Delete this transaction?")) {
             const { data } = await _supabase.from('transactions').select('*').eq('id', id).single();
-            
             let updatedSettings = false;
             if (data && data.category === 'Mortgage' && config.m_balance > 0) { config.m_balance += data.amount; updatedSettings = true; }
             if (data && data.category === 'Car' && config.c_balance > 0) { config.c_balance += data.amount; updatedSettings = true; }
             if (updatedSettings) { await _supabase.from('app_settings').upsert({ id: 1, ...config }); }
-
-            await _supabase.from('transactions').delete().eq('id', id);
-            fetchData();
+            await _supabase.from('transactions').delete().eq('id', id); fetchData();
         }
     }
 
-    async function deleteSub(id) { if (confirm("Remove this subscription permanently?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); await fetchData(); } }
+    async function deleteSub(id) { 
+        if (!navigator.onLine) { alert("Cannot delete subscriptions while offline."); return; }
+        if (confirm("Remove this subscription permanently?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); await fetchData(); } 
+    }
     
     async function editSub(id) {
+        if (!navigator.onLine) { alert("Cannot edit subscriptions while offline."); return; }
         const sub = recurring.find(s => s.id === id); if (!sub) return;
         const newName = prompt("Edit Name:", sub.name); if (newName === null) return;
         const newAmt = prompt("Edit Amount:", sub.amount); if (newAmt === null) return;
         const newDay = prompt("Edit Billing Day:", sub.billing_day); if (newDay === null) return;
-        await _supabase.from('recurring_expenses').update({ name: newName, amount: parseFloat(newAmt), billing_day: parseInt(newDay) }).eq('id', id);
-        await fetchData();
+        await _supabase.from('recurring_expenses').update({ name: newName, amount: parseFloat(newAmt), billing_day: parseInt(newDay) }).eq('id', id); fetchData();
     }
 
+    function quickSearch(tag) { document.getElementById('searchBar').value = tag; filterHistory(); }
+
     function exportToCSV() {
-        const { start } = getCycleDates(currentViewDate);
-        let csvContent = "data:text/csv;charset=utf-8,Date,Member,Category,Note,Amount,Type\n";
-        history.forEach(item => {
-            const date = new Date(item.created_at).toLocaleDateString();
-            csvContent += `${date},${item.member},${item.category},${(item.note || '').replace(/,/g, "")},-${item.amount.toFixed(2)},Manual\n`;
-        });
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Montoya_Ledger_Export.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const { start } = getCycleDates(currentViewDate); let csvContent = "data:text/csv;charset=utf-8,Date,Member,Category,Note,Amount,Type\n";
+        history.forEach(item => { const date = new Date(item.created_at).toLocaleDateString(); csvContent += `${date},${item.member},${item.category},${(item.note || '').replace(/,/g, "")},-${item.amount.toFixed(2)},Manual\n`; });
+        const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", `Montoya_Ledger_Export.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
     function filterHistory() {
-        const q = document.getElementById('searchBar').value.toLowerCase();
-        const totalDiv = document.getElementById('searchTotal');
+        const q = document.getElementById('searchBar').value.toLowerCase(); const totalDiv = document.getElementById('searchTotal');
         let runningSum = 0; let itemsFound = 0;
         document.querySelectorAll('.history-item').forEach(item => {
-            if (item.innerText.toLowerCase().includes(q)) {
-                item.style.display = 'flex'; runningSum += parseFloat(item.getAttribute('data-amt')); itemsFound++;
-            } else { item.style.display = 'none'; }
+            if (item.innerText.toLowerCase().includes(q)) { item.style.display = 'flex'; runningSum += parseFloat(item.getAttribute('data-amt')); itemsFound++; } 
+            else { item.style.display = 'none'; }
         });
-        if (q !== '' && itemsFound > 0) {
-            totalDiv.style.display = 'block'; totalDiv.innerText = `Filtered Total: $${runningSum.toFixed(2)}`;
-        } else { totalDiv.style.display = 'none'; }
+        if (q !== '' && itemsFound > 0) { totalDiv.style.display = 'block'; totalDiv.innerText = `Filtered Total: $${runningSum.toFixed(2)}`; } 
+        else { totalDiv.style.display = 'none'; }
     }
 
     function updateSubList() {
@@ -534,54 +568,37 @@
 
     function updateUI() {
         const { start, end } = getCycleDates(currentViewDate);
-        let totalS = 0, needS = 0, wantS = 0, goalS = 0, bS = 0, gS = 0;
+        let totalS = 0, needS = 0, wantS = 0, goalS = 0, bS = 0, gS = 0, pendingBillsTotal = 0;
         let catTotals = { Remaining: 0, Mortgage: 0, Car: 0, CreditCard: 0, Utilities: 0, Phone: 0, Groceries: 0, Dining: 0, Beauty: 0, Subscription: 0, Goal: 0, Misc: 0 };
         const list = document.getElementById('historyList'); list.innerHTML = '';
 
         document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-        if (config.m_balance > 0) { document.getElementById('equityGain').innerText = `Manual Tracking (${config.m_rate}% Rate)`; } 
-        else { document.getElementById('equityGain').innerText = `Click ⚙️ Settings to configure`; }
-
+        if (config.m_balance > 0) document.getElementById('equityGain').innerText = `Manual Tracking (${config.m_rate}% Rate)`; else document.getElementById('equityGain').innerText = `Click ⚙️ Settings to configure`;
+        
         document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-        if (config.c_balance > 0) { document.getElementById('carEquityGain').innerText = `Manual Tracking (${config.c_rate}% Rate)`; } 
-        else { document.getElementById('carEquityGain').innerText = `Click ⚙️ Settings to configure`; }
+        if (config.c_balance > 0) document.getElementById('carEquityGain').innerText = `Manual Tracking (${config.c_rate}% Rate)`; else document.getElementById('carEquityGain').innerText = `Click ⚙️ Settings to configure`;
 
-        let accumulatedGoals = {};
-        allTimeGoals.forEach(g => { if (!accumulatedGoals[g.note]) accumulatedGoals[g.note] = 0; accumulatedGoals[g.note] += g.amount; });
-
-        const goalsContainer = document.getElementById('goalsContainer');
-        const goalsList = document.getElementById('goalsList');
-        goalsList.innerHTML = '';
+        let accumulatedGoals = {}; allTimeGoals.forEach(g => { if (!accumulatedGoals[g.note]) accumulatedGoals[g.note] = 0; accumulatedGoals[g.note] += g.amount; });
+        const goalsContainer = document.getElementById('goalsContainer'); const goalsList = document.getElementById('goalsList'); goalsList.innerHTML = '';
         if (Object.keys(accumulatedGoals).length > 0) {
-            goalsContainer.style.display = 'block';
-            Object.keys(accumulatedGoals).forEach(goalName => { goalsList.innerHTML += `<div class="goal-item"><span class="goal-name"><i class="fa-solid fa-vault" style="margin-right:8px;"></i>${goalName}</span><span class="goal-amt">$${accumulatedGoals[goalName].toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`; });
+            goalsContainer.style.display = 'block'; Object.keys(accumulatedGoals).forEach(goalName => { goalsList.innerHTML += `<div class="goal-item"><span class="goal-name"><i class="fa-solid fa-vault" style="margin-right:8px;"></i>${goalName}</span><span class="goal-amt">$${accumulatedGoals[goalName].toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`; });
         } else { goalsContainer.style.display = 'none'; }
 
         history.forEach(item => {
             totalS += item.amount;
-            
-            // Excluded Overhead from individual spending cards
-            if (item.category !== 'Mortgage' && item.category !== 'Car' && item.category !== 'Utilities') {
-                if (item.member === 'Brandon') bS += item.amount; else gS += item.amount;
-            }
-            
-            if (item.category === 'Goal') goalS += item.amount;
-            else if (item.intent === 'Want') wantS += item.amount;
-            else needS += item.amount;
-            
-            if(catTotals[item.category] !== undefined) { catTotals[item.category] += item.amount; } 
-            else { catTotals.Misc += item.amount; }
+            if (item.category !== 'Mortgage' && item.category !== 'Car' && item.category !== 'Utilities') { if (item.member === 'Brandon') bS += item.amount; else gS += item.amount; }
+            if (item.category === 'Goal') goalS += item.amount; else if (item.intent === 'Want') wantS += item.amount; else needS += item.amount;
+            if(catTotals[item.category] !== undefined) catTotals[item.category] += item.amount; else catTotals.Misc += item.amount;
 
-            const div = document.createElement('div'); div.className = 'history-item';
-            div.setAttribute('data-amt', item.amount);
-            
-            let dotColor = item.intent === 'Want' ? 'var(--want)' : 'var(--need)';
-            if (item.category === 'Goal') dotColor = 'var(--goal)';
-            
+            let safeNote = item.note ? item.note.replace(/</g, "&lt;").replace(/>/g, "&gt;") : item.category;
+            let displayNote = safeNote.replace(/(#[a-zA-Z0-9_]+)/g, `<span class="clickable-tag" onclick="quickSearch('$1'); event.stopPropagation();">$1</span>`);
+
+            const div = document.createElement('div'); div.className = 'history-item'; div.setAttribute('data-amt', item.amount);
+            let dotColor = item.intent === 'Want' ? 'var(--want)' : 'var(--need)'; if (item.category === 'Goal') dotColor = 'var(--goal)';
             const specificTag = item.category === 'Goal' ? `<span class="name-tag tag-goal">VAULT</span>` : `<span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span>`;
             const d = new Date(item.created_at);
             
-            div.innerHTML = `<div class="item-left"><div class="tag-row"><span class="intent-dot" style="background:${dotColor}"></span>${specificTag}<span class="date-tag">${d.getMonth()+1}/${d.getDate()}</span></div><span class="item-label">${item.note || item.category}</span><span class="item-note">${item.category}</span></div><div class="item-amt">-$${item.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteEntry('${item.id}')"></i></div>`;
+            div.innerHTML = `<div class="item-left"><div class="tag-row"><span class="intent-dot" style="background:${dotColor}"></span>${specificTag}<span class="date-tag">${d.getMonth()+1}/${d.getDate()}</span></div><span class="item-label">${displayNote}</span><span class="item-note">${item.category}</span></div><div class="item-amt">-$${item.amount.toFixed(2)} ${item.id ? `<i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteEntry('${item.id}')"></i>` : `<i class="fa-solid fa-cloud-arrow-up" style="color:#94a3b8; margin-left:10px;" title="Queued for Sync"></i>`}</div>`;
             list.appendChild(div);
         });
 
@@ -591,15 +608,12 @@
             if (logged) return sum;
 
             if (billDate <= new Date()) {
-                needS += sub.amount; 
-                totalS += sub.amount; 
-                catTotals.Subscription += sub.amount;
+                needS += sub.amount; totalS += sub.amount; catTotals.Subscription += sub.amount;
                 const recurIntentDot = `<span class="intent-dot" style="background:var(--need); margin-right:8px;" title="Need"></span>`;
-                const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8";
-                div.setAttribute('data-amt', sub.amount);
+                const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = "0.8"; div.setAttribute('data-amt', sub.amount);
                 div.innerHTML = `<div class="item-left"><div class="tag-row">${recurIntentDot}<span class="name-tag tag-auto">AUTO-SYNC</span><span class="date-tag">${billDate.getMonth()+1}/${billDate.getDate()}</span></div><span class="item-label">${sub.name}</span><span class="item-note">Recurring Bill</span></div><div class="item-amt">-$${sub.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="color:#ef4444; opacity:0.3; cursor:pointer; margin-left:10px;" onclick="deleteSub('${sub.id}')"></i></div>`;
                 list.prepend(div);
-            }
+            } else if (billDate > new Date() && billDate <= end) { pendingBillsTotal += sub.amount; }
             return sum + sub.amount;
         }, 0);
 
@@ -607,10 +621,12 @@
         document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2});
         
+        let safeToSpend = (INCOME - totalS) - pendingBillsTotal;
+        document.getElementById('safeToSpend').innerText = `Safe: $${Math.max(0, safeToSpend).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+
         document.getElementById('barNeed').style.width = Math.min(100, (needS/INCOME)*100) + '%';
         document.getElementById('barWant').style.width = Math.min(100, (wantS/INCOME)*100) + '%';
         document.getElementById('barGoal').style.width = Math.min(100, (goalS/INCOME)*100) + '%';
-        
         document.getElementById('percNeed').innerText = Math.round((needS/INCOME)*100);
         document.getElementById('percWant').innerText = Math.round((wantS/INCOME)*100);
         document.getElementById('percGoal').innerText = Math.round((goalS/INCOME)*100);
@@ -623,14 +639,7 @@
         document.getElementById('paceDisplay').innerText = paceText;
 
         catTotals.Remaining = Math.max(0, INCOME - totalS);
-        if(myChart) { 
-            myChart.data.datasets[0].data = [
-                catTotals.Remaining, catTotals.Mortgage, catTotals.Car, catTotals.CreditCard, 
-                catTotals.Utilities, catTotals.Phone, catTotals.Groceries, catTotals.Dining, 
-                catTotals.Beauty, catTotals.Subscription, catTotals.Goal, catTotals.Misc
-            ]; 
-            myChart.update(); 
-        }
+        if(myChart) { myChart.data.datasets[0].data = [catTotals.Remaining, catTotals.Mortgage, catTotals.Car, catTotals.CreditCard, catTotals.Utilities, catTotals.Phone, catTotals.Groceries, catTotals.Dining, catTotals.Beauty, catTotals.Subscription, catTotals.Goal, catTotals.Misc]; myChart.update(); }
         filterHistory();
     }
 </script>
