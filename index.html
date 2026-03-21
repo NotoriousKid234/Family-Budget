@@ -85,6 +85,7 @@
         .member-pill { display: flex; align-items: center; gap: 4px; font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; width: fit-content; }
         .pill-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .pill-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .pill-split { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
         .pill-auto { background: var(--primary); color: white; }
 
         .item-amt-group { display: flex; align-items: center; gap: 12px; }
@@ -100,7 +101,6 @@
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
         
-        /* HARD OVERRIDE FOR MOBILE DROPDOWNS */
         select option { background-color: #0f172a !important; color: #ffffff !important; }
         .cycle-selector option { background-color: #0f172a !important; color: #ffffff !important; }
 
@@ -231,7 +231,11 @@
             </div>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select>
+                <select id="memberSelect">
+                    <option value="Brandon">Brandon</option>
+                    <option value="Gina">Gina</option>
+                    <option value="Split">Split (50/50)</option>
+                </select>
                 <input type="number" id="amount" placeholder="0.00" inputmode="decimal">
             </div>
             <select id="category" onchange="autoSuggest(this.value)">
@@ -336,13 +340,12 @@
         setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
     }
 
-    // VIEW ROUTING ENGINE
     function switchView(viewId) {
         document.getElementById('app').style.display = 'none';
         document.getElementById('subManager').style.display = 'none';
         document.getElementById('analyticsModal').style.display = 'none';
         document.getElementById(viewId).style.display = 'block';
-        window.scrollTo(0, 0); // Forces scroll to top to prevent staring at blank space
+        window.scrollTo(0, 0); 
     }
 
     function showDashboard() { switchView('app'); fetchData(); }
@@ -425,7 +428,6 @@
         btn.style.boxShadow = "0 10px 20px -5px rgba(245, 158, 11, 0.4)";
         document.getElementById('cancelEditBtn').style.display = 'block';
         
-        // Show recurring toggle and uncheck it during edit
         document.getElementById('recurToggleRow').style.display = 'flex'; 
         document.getElementById('isRecurring').checked = false;
         
@@ -467,7 +469,6 @@
                 if (editingId) { dbTask = _supabase.from('transactions').update(payload).eq('id', editingId); } 
                 else { payload.created_at = new Date().toISOString(); dbTask = _supabase.from('transactions').insert([payload]); }
 
-                // FIXED: Android PWA ignores `prompt()`. Grab date silently.
                 let recurTask = Promise.resolve();
                 if (isRecur) {
                     let targetDay = new Date().getDate();
@@ -565,7 +566,9 @@
             totalS += item.amount;
             if (!['Mortgage','Car','Utilities'].includes(item.category)) {
                 const memSafe = item.member || 'Brandon';
-                if (memSafe.toLowerCase() === 'brandon') bS += item.amount; else gS += item.amount;
+                if (memSafe.toLowerCase() === 'brandon') bS += item.amount; 
+                else if (memSafe.toLowerCase() === 'gina') gS += item.amount;
+                else if (memSafe.toLowerCase() === 'split') { bS += (item.amount / 2); gS += (item.amount / 2); }
             }
             if (item.category === 'Goal') goalS += item.amount;
             else if (item.intent === 'Want') wantS += item.amount;
@@ -573,15 +576,24 @@
 
             let displayNote = (item.note || "").replace(/(#[a-zA-Z0-9_]+)/g, `<span class="clickable-tag" onclick="quickSearch('$1')">$1</span>`);
             const color = catColors[item.category] || "#94a3b8";
+            
             const safeMember = item.member || 'Unknown';
-            const pillClass = safeMember.toLowerCase() === 'gina' ? 'pill-gina' : 'pill-brandon';
+            let pillClass = safeMember.toLowerCase() === 'gina' ? 'pill-gina' : 'pill-brandon';
+            let iconClass = 'fa-user';
+            let displayName = safeMember;
+            
+            if (safeMember.toLowerCase() === 'split') {
+                pillClass = 'pill-split';
+                iconClass = 'fa-users';
+                displayName = 'SPLIT';
+            }
             
             const div = document.createElement('div'); div.className = 'history-item';
             div.innerHTML = `
                 <div class="item-info">
                     <span class="cat-pill" style="background:${color}22; color:${color}">${item.category}</span>
                     <span class="item-note-text">${displayNote || item.category}</span>
-                    <div class="member-pill ${pillClass}"><i class="fa-solid fa-user"></i> ${safeMember}</div>
+                    <div class="member-pill ${pillClass}"><i class="fa-solid ${iconClass}"></i> ${displayName}</div>
                 </div>
                 <div class="item-amt-group">
                     <span class="amt-text">-$${item.amount.toFixed(2)}</span>
@@ -666,8 +678,23 @@
             const lastHistory = data || [];
 
             let lastB = 0, lastG = 0, currB = 0, currG = 0;
-            lastHistory.forEach(i => { if(!['Mortgage','Car','Utilities'].includes(i.category)) { const memSafe = i.member || 'Brandon'; if(memSafe.toLowerCase() === 'brandon') lastB += i.amount; else lastG += i.amount; } });
-            history.forEach(i => { if(!['Mortgage','Car','Utilities'].includes(i.category)) { const memSafe = i.member || 'Brandon'; if(memSafe.toLowerCase() === 'brandon') currB += i.amount; else currG += i.amount; } });
+            
+            lastHistory.forEach(i => { 
+                if(!['Mortgage','Car','Utilities'].includes(i.category)) { 
+                    const memSafe = i.member || 'Brandon'; 
+                    if(memSafe.toLowerCase() === 'brandon') lastB += i.amount; 
+                    else if (memSafe.toLowerCase() === 'gina') lastG += i.amount;
+                    else if (memSafe.toLowerCase() === 'split') { lastB += (i.amount / 2); lastG += (i.amount / 2); }
+                } 
+            });
+            history.forEach(i => { 
+                if(!['Mortgage','Car','Utilities'].includes(i.category)) { 
+                    const memSafe = i.member || 'Brandon'; 
+                    if(memSafe.toLowerCase() === 'brandon') currB += i.amount; 
+                    else if (memSafe.toLowerCase() === 'gina') currG += i.amount;
+                    else if (memSafe.toLowerCase() === 'split') { currB += (i.amount / 2); currG += (i.amount / 2); }
+                } 
+            });
 
             const lastTotal = lastB + lastG; const currTotal = currB + currG;
             document.getElementById('lastCycleTotal').innerText = "$" + lastTotal.toFixed(2);
