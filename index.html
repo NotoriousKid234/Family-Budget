@@ -29,9 +29,8 @@
         .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 2500; }
-        .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 3000; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
 
-        #loginScreen, #app, #subManager, #notesManager, #analyticsModal { 
+        #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #settingsManager { 
             background: var(--card); backdrop-filter: blur(25px); padding: 25px; 
             border-radius: 32px; width: 92%; max-width: 440px; 
             border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
@@ -41,8 +40,9 @@
         .dashboard-wrapper { display: none; }
         body.logged-in .dashboard-wrapper { display: block; }
         body.logged-in #loginScreen { display: none !important; }
+        
         #app { display: block; }
-        #subManager, #notesManager, #analyticsModal { display: none; }
+        #subManager, #notesManager, #analyticsModal, #settingsManager { display: none; }
 
         .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg); border-right: 1px solid var(--border); z-index: 3000; transition: left 0.3s ease; display: flex; flex-direction: column; }
         .side-menu.open { left: 0; }
@@ -111,7 +111,7 @@
         @media (min-width: 1100px) {
             body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 40px; padding: 40px; }
             body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal { margin: 0; width: 550px; flex-shrink: 0; }
+            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #settingsManager { margin: 0; width: 550px; flex-shrink: 0; }
             body.logged-in .hamburger { display: none !important; }
         }
     </style>
@@ -121,30 +121,6 @@
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
     <div id="toastContainer"></div>
-
-    <div id="settingsOverlay" class="modal-overlay" onclick="toggleSettings()"></div>
-    <div id="settingsModal" class="custom-modal">
-        <h3 style="text-align:center; margin-top:0;">Ledger Config</h3>
-        <label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET</label>
-        <input type="number" id="conf_income">
-        
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <div><label style="font-size:0.7rem; font-weight:700;">MORTGAGE BAL</label><input type="number" id="conf_mbal"></div>
-            <div><label style="font-size:0.7rem; font-weight:700;">CAR LOAN BAL</label><input type="number" id="conf_cbal"></div>
-        </div>
-        
-        <label style="font-size:0.7rem; font-weight:700; margin-top: 10px; display:block;">ORIGINAL CAR LOAN AMT (For Payoff Tracker)</label>
-        <input type="number" id="conf_corig" placeholder="e.g. 45000">
-
-        <button class="btn-elite" onclick="saveConfig()">Save All Settings</button>
-        <div style="background: rgba(99, 102, 241, 0.1); padding: 15px; border-radius: 16px; margin: 20px 0; border: 1px dashed rgba(99,102,241,0.4);">
-            <h4 style="margin:0 0 5px 0; font-size:0.7rem; color:#818cf8;">LEDGER KEY</h4>
-            <div id="ledgerKeyDisplay" style="background:#000; color:#10b981; font-family:monospace; padding:10px; border-radius:8px; font-size:0.8rem; text-align:center; cursor:pointer;" onclick="copyKey()">Loading...</div>
-        </div>
-        <input type="text" id="joinKeyInput" placeholder="Join Key...">
-        <button class="btn-elite" onclick="joinLedger()" style="background:var(--secondary)">Link Ledger</button>
-        <button onclick="toggleSettings()" style="width:100%; background:none; border:none; color:#94a3b8; cursor:pointer;">Close</button>
-    </div>
 
     <div id="loginScreen">
         <div class="header-stack" style="text-align:center; margin-bottom:30px;">
@@ -170,7 +146,7 @@
             <div class="menu-item" onclick="switchView('subManager');"><i class="fa-solid fa-clock-rotate-left"></i> Bills & Subs</div>
             <div class="menu-item" onclick="switchView('notesManager');"><i class="fa-solid fa-comment-dots"></i> Family Notes</div>
             <div class="menu-item" onclick="switchView('analyticsModal');"><i class="fa-solid fa-chart-line"></i> Cycle Analytics</div>
-            <div class="menu-item" onclick="toggleSettings();"><i class="fa-solid fa-cloud"></i> Ledger Share</div>
+            <div class="menu-item" onclick="switchView('settingsManager');"><i class="fa-solid fa-cloud"></i> Ledger Config</div>
             <div style="flex-grow: 1;"></div>
             <div class="menu-item" onclick="logoutApp();" style="color: #ef4444; border-top: 1px solid var(--border);"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
         </div>
@@ -271,7 +247,7 @@
                     <option value="Groceries">🛒 Groceries</option>
                     <option value="Dining">🍔 Dining</option>
                     <option value="Utilities">💡 Utilities</option>
-                    <option value="Mortgage">🏠 Mortgage</option>
+                    <option value="Mortgage">🏠 Mortgage Payment</option>
                     <option value="Car">🚗 Car Payment</option>
                     <option value="CreditCard">💳 Credit Card</option>
                     <option value="Subscription">📺 Subscription</option>
@@ -285,6 +261,39 @@
 
             <input type="text" id="searchBar" placeholder="🔍 Search tags or category..." onkeyup="filterHistory()">
             <div id="historyList" style="margin-top: 15px;"></div>
+        </div>
+
+        <div id="settingsManager">
+            <div class="top-header">
+                <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+                <div class="app-title">LEDGER CONFIG</div>
+                <div style="width:24px;"></div> 
+            </div>
+            
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
+                <label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET</label>
+                <input type="number" id="conf_income">
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div><label style="font-size:0.7rem; font-weight:700;">MORTGAGE BAL</label><input type="number" id="conf_mbal"></div>
+                    <div><label style="font-size:0.7rem; font-weight:700;">CAR LOAN BAL</label><input type="number" id="conf_cbal"></div>
+                </div>
+                
+                <label style="font-size:0.7rem; font-weight:700; margin-top: 10px; display:block;">ORIGINAL CAR LOAN AMT (For Payoff Tracker)</label>
+                <input type="number" id="conf_corig" placeholder="e.g. 45000">
+
+                <button class="btn-elite" onclick="saveConfig()" style="margin-bottom:0; margin-top:10px;">Save Configuration</button>
+            </div>
+
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);">
+                <div style="background: rgba(99, 102, 241, 0.1); padding: 15px; border-radius: 16px; margin-bottom: 20px; border: 1px dashed rgba(99,102,241,0.4);">
+                    <h4 style="margin:0 0 5px 0; font-size:0.7rem; color:#818cf8;">YOUR LEDGER KEY</h4>
+                    <div id="ledgerKeyDisplay" style="background:#000; color:#10b981; font-family:monospace; padding:10px; border-radius:8px; font-size:0.8rem; text-align:center; cursor:pointer;" onclick="copyKey()">Loading...</div>
+                </div>
+                <label style="font-size:0.7rem; font-weight:700;">JOIN A SHARED LEDGER</label>
+                <input type="text" id="joinKeyInput" placeholder="Paste Inviter's Key Here...">
+                <button class="btn-elite" onclick="joinLedger()" style="background:var(--secondary); margin-bottom:0;">Link Ledger</button>
+            </div>
         </div>
 
         <div id="subManager">
@@ -383,6 +392,7 @@
         document.getElementById('subManager').style.display = 'none';
         document.getElementById('notesManager').style.display = 'none';
         document.getElementById('analyticsModal').style.display = 'none';
+        document.getElementById('settingsManager').style.display = 'none';
         document.getElementById(viewId).style.display = 'block';
         window.scrollTo(0,0);
         
@@ -499,6 +509,9 @@
 
             let dateObj = new Date(item.created_at);
             let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            
+            // WHO SYNCED LOGIC
+            let submitterName = item.user_id ? (item.user_id === currentUser ? 'You' : 'Partner') : 'System';
 
             const div = document.createElement('div'); div.className = 'history-item';
             div.innerHTML = `
@@ -508,6 +521,9 @@
                     <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
                         <div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}" style="margin:0;">${item.member}</div>
                         <div style="font-size:0.65rem; color:#64748b; font-weight:600;"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
+                    </div>
+                    <div style="font-size:0.6rem; color:#64748b; font-weight:600; margin-top:4px;">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Synced by ${submitterName}
                     </div>
                 </div>
                 <div style="text-align:right;">
@@ -673,7 +689,7 @@
         config.c_balance = parseFloat(document.getElementById('conf_cbal').value); 
         config.c_orig = parseFloat(document.getElementById('conf_corig').value); 
         await _supabase.from('app_settings').update(config).eq('group_id', currentGroup); 
-        fetchData(); toggleSettings(); showToast("Settings Saved!"); 
+        switchView('app'); showToast("Settings Saved!"); 
     }
 
     function filterHistory() { const q = document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('.history-item').forEach(item => { item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none'; }); }
@@ -681,21 +697,11 @@
     function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard','Groceries'].includes(c)) setType('Need'); else setType('Want'); }
 
     function toggleMenu() { 
+        if (window.innerWidth >= 1100) return; // Prevent mobile menu logic on desktop
         const menu = document.getElementById('sideMenu');
         const overlay = document.getElementById('sideMenuOverlay');
-        if (window.getComputedStyle(document.querySelector('.hamburger')).display === 'none') return;
         menu.classList.toggle('open'); 
         overlay.style.display = menu.classList.contains('open') ? 'block' : 'none'; 
-    }
-    
-    function toggleSettings() { 
-        const m = document.getElementById('settingsModal'); 
-        const o = document.getElementById('settingsOverlay'); 
-        const isV = m.style.display === 'block'; 
-        m.style.display = isV ? 'none' : 'block'; 
-        o.style.display = isV ? 'none' : 'block'; 
-        const menu = document.getElementById('sideMenu');
-        if (menu.classList.contains('open')) toggleMenu();
     }
     
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t==='Need'); document.getElementById('wantBtn').classList.toggle('active', t==='Want'); }
