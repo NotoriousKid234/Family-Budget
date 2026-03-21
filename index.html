@@ -24,7 +24,6 @@
         .bg-orb { position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; opacity: 0.35; animation: float 20s infinite ease-in-out alternate; pointer-events: none; }
         .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; }
         .orb-2 { width: 600px; height: 600px; background: #ec4899; bottom: -200px; right: -150px; animation-delay: -10s; }
-        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(50px, 30px) scale(1.05); } 100% { transform: translate(-30px, 50px) scale(0.95); } }
 
         #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 4000; width: 80%; pointer-events: none; }
         .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -38,7 +37,7 @@
         #app, #subManager, #analyticsModal, #notesManager { display: none; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 1000; transition: opacity 0.3s; }
-        .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 3000; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 3000; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
 
         .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg); border-right: 1px solid var(--border); z-index: 2000; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
         .side-menu.open { left: 0; }
@@ -59,14 +58,14 @@
         .cat-pill { font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; width: fit-content; background: rgba(255,255,255,0.1); }
         .item-note-text { font-size: 1rem; font-weight: 700; color: #fff; }
         
-        .member-pill { display: flex; align-items: center; gap: 4px; font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+        .member-pill { display: flex; align-items: center; gap: 4px; font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; margin-top: 5px; width: fit-content; }
         .pill-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .pill-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
         .pill-split { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
 
-        .edit-icon { color: #60a5fa; cursor: pointer; opacity: 0.6; padding: 8px; transition: 0.2s; }
-        .trash-icon { color: #ef4444; cursor: pointer; opacity: 0.6; padding: 8px; transition: 0.2s; }
-        .edit-icon:hover, .trash-icon:hover { opacity: 1; }
+        .edit-icon { color: #60a5fa; cursor: pointer; opacity: 0.6; padding: 8px; font-size: 1rem; }
+        .trash-icon { color: #ef4444; cursor: pointer; opacity: 0.6; padding: 8px; font-size: 1rem; }
+        .edit-icon:hover, .trash-icon:hover { opacity: 1; transform: scale(1.1); }
 
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; }
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; }
@@ -80,9 +79,9 @@
 
         @media (min-width: 1100px) {
             body.logged-in { display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; gap: 30px; }
-            body.logged-in .side-menu { position: relative; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; background: var(--card); }
-            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager { margin: 0; width: 440px; display: block; }
-            body.logged-in #analyticsModal { position: relative; margin: 0; width: 440px; display: block !important; transform: none; }
+            body.logged-in .side-menu { position: relative; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; background: var(--card); flex-shrink: 0; }
+            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager { margin: 0; width: 440px; display: block; flex-shrink: 0; }
+            body.logged-in #analyticsModal { position: relative; margin: 0; width: 440px; display: block !important; transform: none; flex-shrink: 0; }
             body.logged-in .hamburger { display: none; }
         }
     </style>
@@ -107,19 +106,29 @@
     <div id="settingsOverlay" class="modal-overlay" onclick="toggleSettings()"></div>
     <div id="settingsModal" class="custom-modal">
         <h3 style="text-align:center; margin-top:0;">Shared Ledger Config</h3>
-        
-        <label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET</label>
+        <label style="font-size:0.7rem; font-weight:700; color:#94a3b8;">MONTHLY BUDGET</label>
         <input type="number" id="conf_income">
         
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div>
+                <label style="font-size:0.7rem; font-weight:700; color:#94a3b8;">MORTGAGE BAL</label>
+                <input type="number" id="conf_mbal">
+            </div>
+            <div>
+                <label style="font-size:0.7rem; font-weight:700; color:#94a3b8;">CAR LOAN BAL</label>
+                <input type="number" id="conf_cbal">
+            </div>
+        </div>
+        <button class="btn-elite" onclick="saveConfig()">Save All Settings</button>
+
         <div style="background: rgba(99, 102, 241, 0.1); padding: 15px; border-radius: 16px; margin: 20px 0; border: 1px dashed rgba(99,102,241,0.4);">
-            <h4 style="margin:0 0 10px 0; font-size:0.8rem; color:#818cf8;">YOUR LEDGER KEY</h4>
+            <h4 style="margin:0 0 10px 0; font-size:0.8rem; color:#818cf8; text-transform:uppercase;">Invite Gina (Ledger Key)</h4>
             <div id="ledgerKeyDisplay" style="background:#000; color:#10b981; font-family:monospace; padding:10px; border-radius:8px; font-size:0.8rem; word-break:break-all; text-align:center; cursor:pointer;" onclick="copyKey()">Loading...</div>
-            <p style="font-size:0.65rem; color:#94a3b8; margin:10px 0 0 0;">Give this code to Gina. She pastes it below to join.</p>
         </div>
 
-        <label style="font-size:0.7rem; font-weight:700;">JOIN A LEDGER</label>
+        <label style="font-size:0.7rem; font-weight:700; color:#94a3b8;">JOIN A LEDGER</label>
         <input type="text" id="joinKeyInput" placeholder="Paste Key Here...">
-        <button class="btn-elite" onclick="joinLedger()">Link Shared Ledger</button>
+        <button class="btn-elite" onclick="joinLedger()" style="background:var(--secondary)">Link Shared Ledger</button>
         <button onclick="toggleSettings()" style="width:100%; background:none; border:none; color:#94a3b8; cursor:pointer; padding:10px;">Close</button>
     </div>
 
@@ -141,6 +150,17 @@
             <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
             <div class="app-title">MONTOYA LEDGER</div>
             <div style="width:24px;"></div> 
+        </div>
+
+        <div class="vault-grid">
+            <div class="mortgage-vault">
+                <div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Mortgage</div>
+                <div id="mortgageBalanceText" class="clock-time">$0.00</div>
+            </div>
+            <div class="mortgage-vault">
+                <div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Car Loan</div>
+                <div id="carBalanceText" class="clock-time">$0.00</div>
+            </div>
         </div>
 
         <div id="balance" class="balance-amount">$0.00</div>
@@ -167,6 +187,7 @@
                 <option value="Dining">🍔 Dining</option>
                 <option value="Utilities">💡 Utilities</option>
                 <option value="Mortgage">🏠 Mortgage</option>
+                <option value="Car">🚗 Car Payment</option>
                 <option value="Misc">📦 Misc</option>
             </select>
             <input type="text" id="noteInput" placeholder="Note or #tags">
@@ -192,8 +213,8 @@
 
     <div id="analyticsModal">
         <div class="top-header"><div class="app-title">CYCLE ANALYTICS</div></div>
-        <div style="height:200px;"><canvas id="budgetChart"></canvas></div>
-        <div id="analyticsStats" style="margin-top:20px; font-size:0.9rem;"></div>
+        <div style="height:220px; position:relative;"><canvas id="budgetChart"></canvas></div>
+        <div id="analyticsStats" style="margin-top:20px; font-size:0.9rem; text-align:center;"></div>
     </div>
 
 <script>
@@ -201,7 +222,7 @@
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
     
     let history = [], recurring = [], notes = [], currentType = 'Need', currentGroup = null, currentUser = null, editingId = null;
-    let config = { budget: 7400 };
+    let config = { budget: 7400, m_balance: 0, c_balance: 0 };
     let _supabase, myChart, isSignUpMode = false;
 
     try {
@@ -224,6 +245,8 @@
             currentGroup = data.group_id;
             document.getElementById('ledgerKeyDisplay').innerText = currentGroup;
             document.getElementById('conf_income').value = data.budget;
+            document.getElementById('conf_mbal').value = data.m_balance || 0;
+            document.getElementById('conf_cbal').value = data.c_balance || 0;
         }
         initChart(); fetchData();
     }
@@ -243,18 +266,20 @@
 
     function updateUI() {
         let totalS = 0;
-        const list = document.getElementById('historyList'); 
-        list.innerHTML = '';
+        const list = document.getElementById('historyList'); list.innerHTML = '';
         
+        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString();
+        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString();
+
         history.forEach(item => {
             totalS += item.amount;
             const div = document.createElement('div'); 
             div.className = 'history-item';
             div.innerHTML = `
                 <div>
-                    <span class="cat-pill">${item.category}</span><br>
+                    <span class="cat-pill" style="background:rgba(255,255,255,0.1)">${item.category}</span><br>
                     <b class="item-note-text">${item.note || item.category}</b><br>
-                    <small style="color:#94a3b8">${item.member}</small>
+                    <div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-weight:700; margin-bottom:5px;">-$${item.amount.toFixed(2)}</div>
@@ -268,13 +293,29 @@
         if(myChart) { myChart.data.datasets[0].data = [Math.max(0, config.budget-totalS), totalS]; myChart.update(); }
     }
 
+    async function saveConfig() {
+        const payload = {
+            budget: parseFloat(document.getElementById('conf_income').value),
+            m_balance: parseFloat(document.getElementById('conf_mbal').value),
+            c_balance: parseFloat(document.getElementById('conf_cbal').value)
+        };
+        await _supabase.from('app_settings').update(payload).eq('user_id', currentUser);
+        loadAppEngine(); toggleSettings();
+    }
+
     async function addEntry() {
         const amt = parseFloat(document.getElementById('amount').value);
         if (!amt) return;
+        const cat = document.getElementById('category').value;
+        
+        // Auto-deduct from vaults if category matches
+        if (cat === 'Mortgage') config.m_balance -= amt;
+        if (cat === 'Car') config.c_balance -= amt;
+
         const payload = { 
             amount: amt, 
             member: document.getElementById('memberSelect').value,
-            category: document.getElementById('category').value,
+            category: cat,
             note: document.getElementById('noteInput').value,
             intent: currentType,
             user_id: currentUser,
@@ -288,6 +329,9 @@
         } else {
             await _supabase.from('transactions').insert([payload]);
         }
+        
+        // Update vault balances in cloud
+        await _supabase.from('app_settings').update({ m_balance: config.m_balance, c_balance: config.c_balance }).eq('user_id', currentUser);
         
         document.getElementById('amount').value = '';
         document.getElementById('noteInput').value = '';
@@ -334,19 +378,6 @@
         document.getElementById('wantBtn').classList.toggle('active', t==='Want');
     }
 
-    function toggleMenu() { document.getElementById('sideMenu').classList.toggle('open'); document.getElementById('sideMenuOverlay').style.display = document.getElementById('sideMenuOverlay').style.display === 'block' ? 'none' : 'block'; }
-    function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
-    function showDashboard() { document.getElementById('app').style.display = 'block'; document.getElementById('subManager').style.display = 'none'; document.getElementById('notesManager').style.display = 'none'; }
-    function openManager() { document.getElementById('app').style.display = 'none'; document.getElementById('subManager').style.display = 'block'; }
-    function openNotes() { document.getElementById('app').style.display = 'none'; document.getElementById('notesManager').style.display = 'block'; }
-    function copyKey() { navigator.clipboard.writeText(currentGroup); alert("Key Copied!"); }
-    async function logoutApp() { await _supabase.auth.signOut(); location.reload(); }
-    
-    function initChart() {
-        const ctx = document.getElementById('budgetChart').getContext('2d');
-        myChart = new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [100, 0], backgroundColor: ['#6366f1', 'rgba(255,255,255,0.05)'], borderWidth: 0 }] }, options: { cutout: '80%' } });
-    }
-
     function updateNotesUI() {
         const list = document.getElementById('notesList'); list.innerHTML = '';
         notes.forEach(n => {
@@ -355,6 +386,28 @@
             list.appendChild(div);
         });
     }
+
+    async function addNote() {
+        const msg = document.getElementById('noteMessage').value;
+        if(!msg) return;
+        await _supabase.from('app_notes').insert([{ author: 'Brandon', message: msg, group_id: currentGroup, user_id: currentUser }]);
+        document.getElementById('noteMessage').value = '';
+        fetchData();
+    }
+
+    function initChart() {
+        const ctx = document.getElementById('budgetChart').getContext('2d');
+        if(myChart) myChart.destroy();
+        myChart = new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [100, 0], backgroundColor: ['#6366f1', 'rgba(255,255,255,0.05)'], borderWidth: 0 }] }, options: { cutout: '80%', maintainAspectRatio: false } });
+    }
+
+    function toggleMenu() { document.getElementById('sideMenu').classList.toggle('open'); }
+    function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+    function showDashboard() { document.getElementById('app').style.display = 'block'; document.getElementById('subManager').style.display = 'none'; document.getElementById('notesManager').style.display = 'none'; }
+    function openManager() { document.getElementById('app').style.display = 'none'; document.getElementById('subManager').style.display = 'block'; }
+    function openNotes() { document.getElementById('app').style.display = 'none'; document.getElementById('notesManager').style.display = 'block'; }
+    function copyKey() { navigator.clipboard.writeText(currentGroup); alert("Key Copied!"); }
+    async function logoutApp() { await _supabase.auth.signOut(); location.reload(); }
 
     async function authenticateUser() {
         const email = document.getElementById('emailField').value;
