@@ -29,8 +29,9 @@
         .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 2500; }
+        .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 3000; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
 
-        #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #settingsManager { 
+        #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #configManager, #shareManager { 
             background: var(--card); backdrop-filter: blur(25px); padding: 25px; 
             border-radius: 32px; width: 92%; max-width: 440px; 
             border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
@@ -42,7 +43,7 @@
         body.logged-in #loginScreen { display: none !important; }
         
         #app { display: block; }
-        #subManager, #notesManager, #analyticsModal, #settingsManager { display: none; }
+        #subManager, #notesManager, #analyticsModal, #configManager, #shareManager { display: none; }
 
         .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg); border-right: 1px solid var(--border); z-index: 3000; transition: left 0.3s ease; display: flex; flex-direction: column; }
         .side-menu.open { left: 0; }
@@ -65,7 +66,7 @@
         .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; }
         .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 5px; }
 
-        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); }
         .tracker-bar-bg { height: 10px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; margin-top: 8px; display: flex; }
         .tracker-bar-fill { background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
 
@@ -111,7 +112,7 @@
         @media (min-width: 1100px) {
             body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 40px; padding: 40px; }
             body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #settingsManager { margin: 0; width: 550px; flex-shrink: 0; }
+            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #configManager, body.logged-in #shareManager { margin: 0; width: 550px; flex-shrink: 0; }
             body.logged-in .hamburger { display: none !important; }
         }
     </style>
@@ -121,6 +122,13 @@
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
     <div id="toastContainer"></div>
+
+    <div id="notifOverlay" class="modal-overlay" onclick="toggleNotifications()"></div>
+    <div id="notifModal" class="custom-modal">
+        <h3 style="text-align:center; margin-top:0; margin-bottom: 20px; color: #fff;"><i class="fa-solid fa-clock-rotate-left" style="color:#60a5fa; margin-right:10px;"></i>Recent Activity</h3>
+        <div id="notifList" style="max-height:400px; overflow-y:auto; margin-bottom: 15px; padding-right: 5px;"></div>
+        <button class="btn-elite" onclick="toggleNotifications(); switchView('notesManager');" style="background:var(--secondary); margin-bottom:0;">Open Family Notes</button>
+    </div>
 
     <div id="loginScreen">
         <div class="header-stack" style="text-align:center; margin-bottom:30px;">
@@ -146,7 +154,8 @@
             <div class="menu-item" onclick="switchView('subManager');"><i class="fa-solid fa-clock-rotate-left"></i> Bills & Subs</div>
             <div class="menu-item" onclick="switchView('notesManager');"><i class="fa-solid fa-comment-dots"></i> Family Notes</div>
             <div class="menu-item" onclick="switchView('analyticsModal');"><i class="fa-solid fa-chart-line"></i> Cycle Analytics</div>
-            <div class="menu-item" onclick="switchView('settingsManager');"><i class="fa-solid fa-cloud"></i> Ledger Config</div>
+            <div class="menu-item" onclick="switchView('configManager');"><i class="fa-solid fa-gear"></i> Ledger Config</div>
+            <div class="menu-item" onclick="switchView('shareManager');"><i class="fa-solid fa-cloud"></i> Ledger Share</div>
             <div style="flex-grow: 1;"></div>
             <div class="menu-item" onclick="logoutApp();" style="color: #ef4444; border-top: 1px solid var(--border);"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
         </div>
@@ -155,7 +164,7 @@
             <div class="top-header">
                 <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
                 <div class="app-title">MONTOYA LEDGER</div>
-                <div style="position:relative; cursor:pointer;" onclick="switchView('notesManager')">
+                <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
                     <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
                     <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
                 </div>
@@ -174,17 +183,33 @@
                 </div>
             </div>
 
-            <div class="payoff-tracker">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-weight:700; font-size:0.85rem; color:#f8fafc;"><i class="fa-solid fa-car" style="color:#3b82f6; margin-right:8px;"></i>Car Payoff Progress</span>
-                    <span id="carPayoffPerc" style="font-weight:800; color:#60a5fa; font-size:0.85rem;">0%</span>
+            <div style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;">
+                <div class="payoff-tracker" style="margin-bottom:0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:700; font-size:0.85rem; color:#f8fafc;"><i class="fa-solid fa-house" style="color:#6366f1; margin-right:8px;"></i>Mortgage Payoff</span>
+                        <span id="mortgagePayoffPerc" style="font-weight:800; color:#818cf8; font-size:0.85rem;">0%</span>
+                    </div>
+                    <div class="tracker-bar-bg">
+                        <div id="mortgagePayoffBar" class="tracker-bar-fill" style="background: linear-gradient(90deg, #4f46e5, #818cf8); width: 0%;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#94a3b8; margin-top:8px; font-weight:600;">
+                        <span id="mortgagePaidAmount">Paid: $0.00</span>
+                        <span id="mortgageRemainingAmount">Remaining: $0.00</span>
+                    </div>
                 </div>
-                <div class="tracker-bar-bg">
-                    <div id="carPayoffBar" class="tracker-bar-fill" style="width: 0%;"></div>
-                </div>
-                <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#94a3b8; margin-top:8px; font-weight:600;">
-                    <span id="carPaidAmount">Paid: $0.00</span>
-                    <span id="carRemainingAmount">Remaining: $0.00</span>
+
+                <div class="payoff-tracker" style="margin-bottom:0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:700; font-size:0.85rem; color:#f8fafc;"><i class="fa-solid fa-car" style="color:#3b82f6; margin-right:8px;"></i>Car Payoff</span>
+                        <span id="carPayoffPerc" style="font-weight:800; color:#60a5fa; font-size:0.85rem;">0%</span>
+                    </div>
+                    <div class="tracker-bar-bg">
+                        <div id="carPayoffBar" class="tracker-bar-fill" style="width: 0%;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#94a3b8; margin-top:8px; font-weight:600;">
+                        <span id="carPaidAmount">Paid: $0.00</span>
+                        <span id="carRemainingAmount">Remaining: $0.00</span>
+                    </div>
                 </div>
             </div>
 
@@ -263,11 +288,14 @@
             <div id="historyList" style="margin-top: 15px;"></div>
         </div>
 
-        <div id="settingsManager">
+        <div id="configManager">
             <div class="top-header">
                 <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
                 <div class="app-title">LEDGER CONFIG</div>
-                <div style="width:24px;"></div> 
+                <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
+                    <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
+                    <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
+                </div>
             </div>
             
             <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
@@ -279,10 +307,24 @@
                     <div><label style="font-size:0.7rem; font-weight:700;">CAR LOAN BAL</label><input type="number" id="conf_cbal"></div>
                 </div>
                 
-                <label style="font-size:0.7rem; font-weight:700; margin-top: 10px; display:block;">ORIGINAL CAR LOAN AMT (For Payoff Tracker)</label>
-                <input type="number" id="conf_corig" placeholder="e.g. 45000">
+                <label style="font-size:0.7rem; font-weight:700; margin-top: 15px; display:block;">ORIGINAL LOAN AMOUNTS (For Trackers)</label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <input type="number" id="conf_morig" placeholder="Mortgage Orig">
+                    <input type="number" id="conf_corig" placeholder="Car Orig">
+                </div>
 
                 <button class="btn-elite" onclick="saveConfig()" style="margin-bottom:0; margin-top:10px;">Save Configuration</button>
+            </div>
+        </div>
+
+        <div id="shareManager">
+            <div class="top-header">
+                <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+                <div class="app-title">LEDGER SHARE</div>
+                <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
+                    <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
+                    <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
+                </div>
             </div>
 
             <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);">
@@ -300,7 +342,7 @@
             <div class="top-header">
                 <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
                 <div class="app-title">BILLS & SUBSCRIPTIONS</div>
-                <div style="position:relative; cursor:pointer;" onclick="switchView('notesManager')">
+                <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
                     <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
                     <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
                 </div>
@@ -320,7 +362,7 @@
             <div class="top-header">
                 <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
                 <div class="app-title">FAMILY NOTES</div>
-                <div style="position:relative; cursor:pointer;" onclick="switchView('notesManager')">
+                <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
                     <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
                     <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
                 </div>
@@ -336,7 +378,7 @@
             <div class="top-header">
                 <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
                 <div class="app-title">CYCLE ANALYTICS</div>
-                <div style="position:relative; cursor:pointer;" onclick="switchView('notesManager')">
+                <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
                     <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
                     <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
                 </div>
@@ -367,7 +409,7 @@
     const CYCLE_START_DAY = 16;
     
     let history = [], recurring = [], notes = [], currentType = 'Need', currentGroup = null, currentUser = null, editingId = null;
-    let config = { budget: 7400, m_balance: 0, c_balance: 0, c_orig: 45000 };
+    let config = { budget: 7400, m_balance: 0, c_balance: 0, m_orig: 500000, c_orig: 45000 };
     let currentViewDate = new Date();
     let _supabase, catChart, isSignUpMode = false;
 
@@ -392,18 +434,29 @@
         document.getElementById('subManager').style.display = 'none';
         document.getElementById('notesManager').style.display = 'none';
         document.getElementById('analyticsModal').style.display = 'none';
-        document.getElementById('settingsManager').style.display = 'none';
+        document.getElementById('configManager').style.display = 'none';
+        document.getElementById('shareManager').style.display = 'none';
+        
         document.getElementById(viewId).style.display = 'block';
         window.scrollTo(0,0);
         
-        if (viewId === 'notesManager') {
-            localStorage.setItem('montoya_notes_viewed', Date.now().toString());
-            document.querySelectorAll('.note-ping').forEach(p => p.style.display = 'none');
-        }
         if (viewId === 'app' || viewId === 'analyticsModal') fetchData();
         
         const menu = document.getElementById('sideMenu');
         if (menu.classList.contains('open')) toggleMenu();
+    }
+
+    function toggleNotifications() {
+        const m = document.getElementById('notifModal');
+        const o = document.getElementById('notifOverlay');
+        const isV = m.style.display === 'block';
+        m.style.display = isV ? 'none' : 'block';
+        o.style.display = isV ? 'none' : 'block';
+        
+        if (!isV) {
+            localStorage.setItem('montoya_notifs_viewed', Date.now().toString());
+            document.querySelectorAll('.note-ping').forEach(p => p.style.display = 'none');
+        }
     }
 
     function toggleAuthMode() {
@@ -436,6 +489,7 @@
             document.getElementById('conf_income').value = data.budget;
             document.getElementById('conf_mbal').value = data.m_balance || 0;
             document.getElementById('conf_cbal').value = data.c_balance || 0;
+            document.getElementById('conf_morig').value = data.m_orig || 500000;
             document.getElementById('conf_corig').value = data.c_orig || 45000;
         }
         initCycles(); fetchData();
@@ -471,7 +525,7 @@
             _supabase.from('app_notes').select('*').eq('group_id', currentGroup).order('created_at', { ascending: false })
         ]);
         history = transRes.data || []; recurring = recurRes.data || []; notes = noteRes.data || [];
-        updateUI(); updateNotesUI(); renderSubList(); renderAnalytics();
+        updateUI(); updateNotesUI(); renderSubList(); renderAnalytics(); updateNotificationsUI();
     }
 
     function updateUI() {
@@ -482,15 +536,28 @@
         document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-        const origAmt = config.c_orig || 45000;
-        const currBal = config.c_balance || 0;
-        const amtPaid = Math.max(0, origAmt - currBal);
-        const payoffPerc = Math.min(100, Math.max(0, (amtPaid / origAmt) * 100));
+        // MORTGAGE PROGRESS
+        const mOrigAmt = config.m_orig || 500000;
+        const currMBal = config.m_balance || 0;
+        const mAmtPaid = Math.max(0, mOrigAmt - currMBal);
+        const mPayoffPerc = Math.min(100, Math.max(0, (mAmtPaid / mOrigAmt) * 100));
 
-        document.getElementById('carPayoffBar').style.width = payoffPerc + "%";
-        document.getElementById('carPayoffPerc').innerText = Math.round(payoffPerc) + "%";
-        document.getElementById('carPaidAmount').innerText = "Paid: $" + amtPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('carRemainingAmount').innerText = "Remaining: $" + currBal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('mortgagePayoffBar').style.width = mPayoffPerc + "%";
+        document.getElementById('mortgagePayoffPerc').innerText = Math.round(mPayoffPerc) + "%";
+        document.getElementById('mortgagePaidAmount').innerText = "Paid: $" + mAmtPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('mortgageRemainingAmount').innerText = "Remaining: $" + currMBal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        // CAR PROGRESS
+        const cOrigAmt = config.c_orig || 45000;
+        const currCBal = config.c_balance || 0;
+        const cAmtPaid = Math.max(0, cOrigAmt - currCBal);
+        const cPayoffPerc = Math.min(100, Math.max(0, (cAmtPaid / cOrigAmt) * 100));
+
+        document.getElementById('carPayoffBar').style.width = cPayoffPerc + "%";
+        document.getElementById('carPayoffPerc').innerText = Math.round(cPayoffPerc) + "%";
+        document.getElementById('carPaidAmount').innerText = "Paid: $" + cAmtPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('carRemainingAmount').innerText = "Remaining: $" + currCBal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
 
         history.forEach(item => {
             totalS += item.amount;
@@ -510,7 +577,6 @@
             let dateObj = new Date(item.created_at);
             let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
             
-            // WHO SYNCED LOGIC
             let submitterName = item.user_id ? (item.user_id === currentUser ? 'You' : 'Partner') : 'System';
 
             const div = document.createElement('div'); div.className = 'history-item';
@@ -590,11 +656,7 @@
 
     function updateNotesUI() {
         const list = document.getElementById('notesList'); list.innerHTML = '';
-        let latestTime = 0;
         notes.forEach(n => {
-            const noteTime = new Date(n.created_at).getTime();
-            if (noteTime > latestTime) latestTime = noteTime;
-            
             let dateObj = new Date(n.created_at);
             let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
             
@@ -610,10 +672,43 @@
                 <i class="fa-solid fa-trash-can trash-icon" style="margin-left:15px;" onclick="deleteNote('${n.id}')"></i>`;
             list.appendChild(div);
         });
+    }
+
+    function updateNotificationsUI() {
+        let activities = [];
+        notes.forEach(n => activities.push({ type: 'note', text: `<b style="color:#fff;">${n.author}</b> posted a family note`, time: new Date(n.created_at), rawTime: new Date(n.created_at).getTime(), user: n.user_id }));
+        history.forEach(t => {
+            let submitter = t.user_id === currentUser ? 'You' : 'Partner';
+            if(t.user_id !== currentUser && t.user_id) activities.push({ type: 'transaction', text: `<b style="color:#fff;">Partner</b> synced $${t.amount.toFixed(2)} for ${t.category}`, time: new Date(t.created_at), rawTime: new Date(t.created_at).getTime(), user: t.user_id });
+        });
         
-        const lastViewed = parseInt(localStorage.getItem('montoya_notes_viewed') || '0');
+        activities.sort((a,b) => b.rawTime - a.rawTime);
+        
+        const list = document.getElementById('notifList'); list.innerHTML = '';
+        let otherPersonLatestTime = 0;
+        
+        if(activities.length === 0) { list.innerHTML = '<div style="text-align:center; color:#64748b; font-size:0.8rem; padding:20px;">No recent activity</div>'; }
+
+        activities.slice(0, 15).forEach(act => {
+            if(act.user !== currentUser && act.user !== null && act.rawTime > otherPersonLatestTime) otherPersonLatestTime = act.rawTime;
+            let dateStr = isNaN(act.time) ? '' : act.time.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+            const icon = act.type === 'note' ? '<i class="fa-solid fa-comment" style="color:#10b981;"></i>' : '<i class="fa-solid fa-money-bill-transfer" style="color:#3b82f6;"></i>';
+            
+            const div = document.createElement('div'); 
+            div.style.padding = '12px 10px'; div.style.borderBottom = '1px solid rgba(255,255,255,0.05)'; div.style.fontSize = '0.85rem';
+            div.innerHTML = `<div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="margin-top:2px;">${icon}</div>
+                <div>
+                    <div style="color:#94a3b8;">${act.text}</div>
+                    <div style="font-size:0.65rem; color:#64748b; margin-top:4px;">${dateStr}</div>
+                </div>
+            </div>`;
+            list.appendChild(div);
+        });
+
+        const lastViewed = parseInt(localStorage.getItem('montoya_notifs_viewed') || '0');
         const pings = document.querySelectorAll('.note-ping');
-        pings.forEach(p => p.style.display = (latestTime > lastViewed && notes.length > 0) ? 'block' : 'none');
+        pings.forEach(p => p.style.display = (otherPersonLatestTime > lastViewed) ? 'block' : 'none');
     }
 
     async function renderAnalytics() {
@@ -687,6 +782,7 @@
         config.budget = parseFloat(document.getElementById('conf_income').value); 
         config.m_balance = parseFloat(document.getElementById('conf_mbal').value); 
         config.c_balance = parseFloat(document.getElementById('conf_cbal').value); 
+        config.m_orig = parseFloat(document.getElementById('conf_morig').value); 
         config.c_orig = parseFloat(document.getElementById('conf_corig').value); 
         await _supabase.from('app_settings').update(config).eq('group_id', currentGroup); 
         switchView('app'); showToast("Settings Saved!"); 
