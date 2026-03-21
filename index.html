@@ -95,19 +95,18 @@
         .trash-icon { color: #ef4444; cursor: pointer; opacity: 0.6; padding: 8px; background: rgba(239, 68, 68, 0.1); border-radius: 10px; transition: all 0.2s; }
         .trash-icon:hover { opacity: 1; transform: scale(1.1); }
 
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); margin-bottom: 12px; transition: all 0.3s ease; }
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); margin-bottom: 12px; transition: all 0.3s ease;}
         .btn-manage { background: var(--secondary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
         
-        /* FIX FOR DROP DOWNS */
-        select option { background: var(--bg); color: var(--text); }
-        .cycle-selector option { background: var(--bg); color: var(--text); }
+        /* HARD OVERRIDE FOR MOBILE DROPDOWNS */
+        select option { background-color: #0f172a !important; color: #ffffff !important; }
+        .cycle-selector option { background-color: #0f172a !important; color: #ffffff !important; }
 
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; }
         .type-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; background: transparent; color: #94a3b8; font-weight: 700; transition: 0.2s; }
         .type-btn.active { background: white; color: #0f172a; }
-        
         .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; }
 
         .recur-row { 
@@ -220,7 +219,7 @@
             </div>
         </div>
 
-        <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:25px;">
+        <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:15px;">
             <div class="type-toggle">
                 <button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button>
                 <button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button>
@@ -343,6 +342,7 @@
         document.getElementById('subManager').style.display = 'none';
         document.getElementById('analyticsModal').style.display = 'none';
         document.getElementById(viewId).style.display = 'block';
+        window.scrollTo(0, 0); // Forces scroll to top to prevent staring at blank space
     }
 
     function showDashboard() { switchView('app'); fetchData(); }
@@ -381,6 +381,7 @@
                 if (_supabase) {
                     const { data, error } = await _supabase.from('app_settings').select('*').eq('id', 1).single();
                     if(data) config = data;
+                    if(error && error.code !== 'PGRST116') console.error("Config load error", error);
                     initCycles(); initChart(); await fetchData();
                 } else {
                     document.getElementById('offlineBanner').style.display = 'block';
@@ -423,6 +424,11 @@
         btn.style.background = "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)";
         btn.style.boxShadow = "0 10px 20px -5px rgba(245, 158, 11, 0.4)";
         document.getElementById('cancelEditBtn').style.display = 'block';
+        
+        // Show recurring toggle and uncheck it during edit
+        document.getElementById('recurToggleRow').style.display = 'flex'; 
+        document.getElementById('isRecurring').checked = false;
+        
         window.scrollTo({ top: document.querySelector('.type-toggle').offsetTop - 20, behavior: 'smooth' });
     }
 
@@ -461,13 +467,15 @@
                 if (editingId) { dbTask = _supabase.from('transactions').update(payload).eq('id', editingId); } 
                 else { payload.created_at = new Date().toISOString(); dbTask = _supabase.from('transactions').insert([payload]); }
 
-                // FIXED RECURRING BUG
+                // FIXED: Android PWA ignores `prompt()`. Grab date silently.
                 let recurTask = Promise.resolve();
                 if (isRecur) {
-                    const billDay = prompt("What day of the month does this bill post? (1-31):", new Date().getDate());
-                    if (billDay !== null && !isNaN(parseInt(billDay))) {
-                        recurTask = _supabase.from('recurring_expenses').insert([{ name: note || cat, amount: amt, billing_day: parseInt(billDay) }]);
+                    let targetDay = new Date().getDate();
+                    if (editingId) {
+                        const oldItem = history.find(h => h.id === editingId);
+                        if (oldItem && oldItem.created_at) targetDay = new Date(oldItem.created_at).getDate();
                     }
+                    recurTask = _supabase.from('recurring_expenses').insert([{ name: note || cat, amount: amt, billing_day: targetDay }]);
                 }
 
                 await Promise.all([ dbTask, recurTask, _supabase.from('app_settings').upsert({ id: 1, ...config }) ]);
