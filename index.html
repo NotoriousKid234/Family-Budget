@@ -19,7 +19,7 @@
             --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; }
         
         .bg-orb { position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; opacity: 0.35; pointer-events: none; }
         .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; }
@@ -41,13 +41,14 @@
         .dashboard-wrapper { display: none; }
         body.logged-in .dashboard-wrapper { display: block; }
         body.logged-in #loginScreen { display: none !important; }
-        #app, #subManager, #notesManager, #analyticsModal { display: none; }
-        .right-column { display: block; } 
+        #app { display: block; }
+        #subManager, #notesManager, #analyticsModal { display: none; }
 
         .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg); border-right: 1px solid var(--border); z-index: 3000; transition: left 0.3s ease; display: flex; flex-direction: column; }
         .side-menu.open { left: 0; }
         .menu-header { padding: 30px 20px; font-size: 1.5rem; font-weight: 800; border-bottom: 1px solid var(--border); background: var(--card); color: #fff; }
-        .menu-item { padding: 20px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; color: var(--text); }
+        .menu-item { padding: 20px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; color: var(--text); transition: background 0.2s; }
+        .menu-item:hover { background: rgba(255,255,255,0.05); }
 
         .top-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .hamburger { font-size: 1.5rem; color: #94a3b8; cursor: pointer; }
@@ -76,14 +77,14 @@
         .history-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; margin-bottom: 10px; }
         .cat-pill { font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; width: fit-content; background: rgba(255,255,255,0.1); color: #fff; }
         .item-note-text { font-size: 1rem; font-weight: 700; color: #fff; display: block; margin-top: 4px; }
-        .member-pill { display: flex; align-items: center; gap: 4px; font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; margin-top: 5px; width: fit-content; }
+        .member-pill { display: flex; align-items: center; gap: 4px; font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; width: fit-content; }
         .pill-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .pill-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
         .pill-split { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
         .pill-auto { background: var(--primary); color: white; }
 
-        .edit-icon { color: #60a5fa; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
-        .trash-icon { color: #ef4444; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
+        .edit-icon { color: #60a5fa; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; transition: 0.2s; }
+        .trash-icon { color: #ef4444; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; transition: 0.2s; }
         .edit-icon:hover, .trash-icon:hover { opacity: 1; transform: scale(1.1); }
 
         .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; }
@@ -92,20 +93,21 @@
         .type-btn.active { background: white; color: #0f172a; }
 
         .quick-sync-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
-        .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 6px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .quick-sync-row::-webkit-scrollbar { display: none; }
+        .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 6px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.2s; }
+        .quick-chip:hover { background: rgba(255,255,255,0.15); }
         .recur-row { display: flex; justify-content: space-between; align-items: center; background: rgba(168, 85, 247, 0.05); padding: 12px 16px; border-radius: 14px; margin-bottom: 15px; border: 1px solid rgba(168, 85, 247, 0.2); font-size: 0.8rem; font-weight: 700; color: #e0e7ff; }
         
         input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
         select option { background-color: #0f172a !important; color: #ffffff !important; }
         .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; }
 
+        /* DESKTOP SAAS LAYOUT */
         @media (min-width: 1100px) {
-            body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 25px; padding: 40px; }
-            body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 260px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-            body.logged-in #app { display: block !important; margin: 0; width: 440px; flex-shrink: 0; }
-            body.logged-in .right-column { display: flex; flex-direction: column; gap: 25px; width: 440px; flex-shrink: 0; }
-            body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal { display: block !important; margin: 0; width: 100%; }
-            body.logged-in .hamburger, body.logged-in .btn-back { display: none !important; }
+            body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 40px; padding: 40px; }
+            body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal { margin: 0; width: 550px; flex-shrink: 0; }
+            body.logged-in .hamburger { display: none !important; }
         }
     </style>
 </head>
@@ -155,14 +157,15 @@
         <div id="sideMenu" class="side-menu">
             <div class="menu-header">Elite Ledger</div>
             <div class="menu-item" onclick="toggleMenu(); switchView('app');"><i class="fa-solid fa-house"></i> Dashboard</div>
-            <div class="menu-item" onclick="toggleMenu(); switchView('subManager');"><i class="fa-solid fa-clock-rotate-left"></i> Recurring Bills</div>
+            <div class="menu-item" onclick="toggleMenu(); switchView('subManager');"><i class="fa-solid fa-clock-rotate-left"></i> Bills & Subs</div>
             <div class="menu-item" onclick="toggleMenu(); switchView('notesManager');"><i class="fa-solid fa-comment-dots"></i> Family Notes</div>
+            <div class="menu-item" onclick="toggleMenu(); switchView('analyticsModal');"><i class="fa-solid fa-chart-line"></i> Cycle Analytics</div>
             <div class="menu-item" onclick="toggleMenu(); toggleSettings();"><i class="fa-solid fa-cloud"></i> Ledger Share</div>
             <div style="flex-grow: 1;"></div>
-            <div class="menu-item" onclick="logoutApp();" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
+            <div class="menu-item" onclick="logoutApp();" style="color: #ef4444; border-top: 1px solid var(--border);"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
         </div>
 
-        <div id="app" style="display: block;">
+        <div id="app">
             <div class="top-header">
                 <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
                 <div class="app-title">MONTOYA LEDGER</div>
@@ -217,10 +220,15 @@
                     <button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button>
                     <button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button>
                 </div>
+                
                 <div class="quick-sync-row">
                     <div class="quick-chip" onclick="quickFill(15.00, 'Dining', 'McDonalds', 'Want')"><i class="fa-solid fa-burger" style="color:#f59e0b"></i> McDonalds</div>
                     <div class="quick-chip" onclick="quickFill(40.00, 'Car', 'Gas', 'Need')"><i class="fa-solid fa-gas-pump" style="color:#3b82f6"></i> Gas</div>
                     <div class="quick-chip" onclick="quickFill(100.00, 'Groceries', 'Publix', 'Need')"><i class="fa-solid fa-basket-shopping" style="color:#10b981"></i> Publix</div>
+                    <div class="quick-chip" onclick="quickFill(450.00, 'Car', 'Car Loan', 'Need')"><i class="fa-solid fa-car" style="color:#3b82f6"></i> Car Loan</div>
+                    <div class="quick-chip" onclick="quickFill(2100.00, 'Mortgage', 'Mortgage', 'Need')"><i class="fa-solid fa-house" style="color:#6366f1"></i> Mortgage</div>
+                    <div class="quick-chip" onclick="quickFill(80.00, 'Utilities', 'Phone Bill', 'Need')"><i class="fa-solid fa-mobile-screen" style="color:#06b6d4"></i> Phone Bill</div>
+                    <div class="quick-chip" onclick="quickFill(150.00, 'Utilities', 'Utilities', 'Need')"><i class="fa-solid fa-lightbulb" style="color:#06b6d4"></i> Utilities</div>
                 </div>
 
                 <div class="recur-row" id="recurToggleRow">
@@ -249,57 +257,69 @@
             </div>
 
             <input type="text" id="searchBar" placeholder="🔍 Search tags or category..." onkeyup="filterHistory()">
-            <div id="historyList"></div>
+            <div id="historyList" style="margin-top: 15px;"></div>
         </div>
 
-        <div class="right-column">
-            <div id="subManager">
-                <div class="top-header"><div class="app-title">BILLS</div></div>
-                <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:20px; margin-bottom:20px;">
-                    <input type="text" id="subName" placeholder="Bill Name">
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <input type="number" id="subAmt" placeholder="Amount">
-                        <input type="number" id="subDay" placeholder="Day (1-31)">
-                    </div>
-                    <button class="btn-elite" onclick="addSub()">Add New Bill</button>
+        <div id="subManager">
+            <div class="top-header">
+                <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+                <div class="app-title">BILLS & SUBSCRIPTIONS</div>
+                <div style="width:24px;"></div> 
+            </div>
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
+                <input type="text" id="subName" placeholder="Bill Name">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <input type="number" id="subAmt" placeholder="Amount">
+                    <input type="number" id="subDay" placeholder="Day (1-31)">
                 </div>
-                <div id="subList"></div>
-                <button class="btn-elite btn-back" onclick="switchView('app')">Back to Dashboard</button>
+                <button class="btn-elite" onclick="addSub()" style="margin-bottom:0;">Add New Bill</button>
             </div>
-            
-            <div id="notesManager">
-                <div class="top-header"><div class="app-title">FAMILY NOTES</div></div>
-                <textarea id="noteMessage" placeholder="Type a message..." style="height:80px;"></textarea>
-                <button class="btn-elite" onclick="addNote()">Post Note</button>
-                <div id="notesList" style="margin-top:15px;"></div>
-                <button class="btn-elite btn-back" onclick="switchView('app')">Back to Dashboard</button>
-            </div>
-            
-            <div id="analyticsModal">
-                <div class="top-header"><div class="app-title">CYCLE ANALYTICS</div></div>
-                
-                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 16px; margin-bottom: 20px; font-size: 0.8rem; border: 1px solid var(--border);">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <span style="color:#94a3b8;">Last Cycle Total:</span>
-                        <span id="lastCycleTotal" style="font-weight:700;">$0.00</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <span style="color:#94a3b8;">This Cycle Total:</span>
-                        <span id="thisCycleTotal" style="font-weight:700;">$0.00</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px;">
-                        <span style="color:#c4b5fd; font-weight:700;">Creep/Savings:</span>
-                        <span id="creepTotal" style="font-weight:700;">$0.00</span>
-                    </div>
-                </div>
-
-                <h4 style="text-align:center; color:#94a3b8; margin-top:10px; margin-bottom: 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Discretionary Breakdown</h4>
-                <div style="height:200px; position:relative;"><canvas id="categoryDonutChart"></canvas></div>
-            </div>
+            <div id="subList"></div>
+            <button class="btn-elite btn-back" onclick="switchView('app')" style="background:transparent; border:1px solid var(--border); color:#94a3b8; margin-top: 15px;">Back to Dashboard</button>
         </div>
-    </div> 
+        
+        <div id="notesManager">
+            <div class="top-header">
+                <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+                <div class="app-title">FAMILY NOTES</div>
+                <div style="width:24px;"></div> 
+            </div>
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
+                <textarea id="noteMessage" placeholder="Type a message..." style="height:100px;"></textarea>
+                <button class="btn-elite" onclick="addNote()" style="margin-bottom:0;">Post Note</button>
+            </div>
+            <div id="notesList"></div>
+            <button class="btn-elite btn-back" onclick="switchView('app')" style="background:transparent; border:1px solid var(--border); color:#94a3b8; margin-top: 15px;">Back to Dashboard</button>
+        </div>
+        
+        <div id="analyticsModal">
+            <div class="top-header">
+                <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+                <div class="app-title">CYCLE ANALYTICS</div>
+                <div style="width:24px;"></div> 
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 24px; margin-bottom: 20px; font-size: 0.85rem; border: 1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                    <span style="color:#94a3b8;">Last Cycle Total:</span>
+                    <span id="lastCycleTotal" style="font-weight:700; font-size: 1rem;">$0.00</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                    <span style="color:#94a3b8;">This Cycle Total:</span>
+                    <span id="thisCycleTotal" style="font-weight:700; font-size: 1rem;">$0.00</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">
+                    <span style="color:#c4b5fd; font-weight:700;">Creep/Savings:</span>
+                    <span id="creepTotal" style="font-weight:700; font-size: 1rem;">$0.00</span>
+                </div>
+            </div>
 
-<script>
+            <h4 style="text-align:center; color:#94a3b8; margin-top:20px; margin-bottom: 15px; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Discretionary Breakdown</h4>
+            <div style="height:250px; position:relative;"><canvas id="categoryDonutChart"></canvas></div>
+            <button class="btn-elite btn-back" onclick="switchView('app')" style="background:transparent; border:1px solid var(--border); color:#94a3b8; margin-top: 25px;">Back to Dashboard</button>
+        </div>
+
+    </div> <script>
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
     const CYCLE_START_DAY = 16;
@@ -326,16 +346,16 @@
     } catch (e) { console.error(e); }
 
     function switchView(viewId) {
-        if (window.innerWidth >= 1100) {
-            document.getElementById(viewId).scrollIntoView({ behavior: 'smooth' });
-            return; 
-        }
         document.getElementById('app').style.display = 'none';
         document.getElementById('subManager').style.display = 'none';
         document.getElementById('notesManager').style.display = 'none';
         document.getElementById('analyticsModal').style.display = 'none';
         document.getElementById(viewId).style.display = 'block';
         window.scrollTo(0,0);
+        
+        if (viewId === 'app' || viewId === 'analyticsModal') {
+            fetchData();
+        }
     }
 
     function toggleAuthMode() {
@@ -428,12 +448,19 @@
             let displayNote = (item.note || "").replace(/(#[a-zA-Z0-9_]+)/g, `<span class="clickable-tag" onclick="quickSearch('$1')">$1</span>`);
             const color = catColors[item.category] || "#94a3b8";
 
+            // Timestamp formatting
+            let dateObj = new Date(item.created_at);
+            let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
             const div = document.createElement('div'); div.className = 'history-item';
             div.innerHTML = `
                 <div>
                     <span class="cat-pill" style="background:${color}22; color:${color}">${item.category}</span>
                     <span class="item-note-text">${displayNote || item.category}</span>
-                    <div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                        <div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}" style="margin:0;">${item.member}</div>
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:600;"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
+                    </div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-weight:700; margin-bottom:5px; font-size:1.1rem;">-$${item.amount.toFixed(2)}</div>
@@ -452,8 +479,15 @@
                     totalS += sub.amount; needS += sub.amount;
                     const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = '0.6';
                     div.innerHTML = `
-                        <div><span class="cat-pill" style="background:#8b5cf622; color:#a78bfa">PENDING BILL</span><span class="item-note-text">${sub.name}</span><div class="member-pill pill-auto">Auto-sync Day ${sub.billing_day}</div></div>
-                        <div style="text-align:right; font-weight:700; font-size:1.1rem;">-$${sub.amount.toFixed(2)}</div>`;
+                        <div>
+                            <span class="cat-pill" style="background:#8b5cf622; color:#a78bfa">PENDING BILL</span>
+                            <span class="item-note-text">${sub.name}</span>
+                            <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                                <div class="member-pill pill-auto" style="margin:0;"><i class="fa-solid fa-robot"></i> Auto-sync</div>
+                                <div style="font-size:0.65rem; color:#64748b; font-weight:600;">Day ${sub.billing_day}</div>
+                            </div>
+                        </div>
+                        <div style="text-align:right; font-weight:700; font-size:1.1rem; padding-right:10px;">-$${sub.amount.toFixed(2)}</div>`;
                     list.prepend(div);
                 } else { pendingBills += sub.amount; }
             }
@@ -493,8 +527,19 @@
     function updateNotesUI() {
         const list = document.getElementById('notesList'); list.innerHTML = '';
         notes.forEach(n => {
+            let dateObj = new Date(n.created_at);
+            let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><b>${n.author}:</b> ${n.message}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteNote('${n.id}')"></i>`;
+            div.innerHTML = `
+                <div style="width:100%;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <b style="color:${n.author === 'Gina' ? 'var(--gina)' : 'var(--brandon)'}">${n.author}</b>
+                        <small style="color:#64748b;">${dateStr}</small>
+                    </div>
+                    <div style="color:#e2e8f0; line-height:1.4;">${n.message}</div>
+                </div>
+                <i class="fa-solid fa-trash-can trash-icon" style="margin-left:15px;" onclick="deleteNote('${n.id}')"></i>`;
             list.appendChild(div);
         });
     }
@@ -575,7 +620,7 @@
     function toggleMenu() { document.getElementById('sideMenu').classList.toggle('open'); document.getElementById('sideMenuOverlay').style.display = document.getElementById('sideMenuOverlay').style.display === 'block' ? 'none' : 'block'; }
     function toggleSettings() { const m = document.getElementById('settingsModal'); const o = document.getElementById('settingsOverlay'); const isV = m.style.display === 'block'; m.style.display = isV ? 'none' : 'block'; o.style.display = isV ? 'none' : 'block'; }
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t==='Need'); document.getElementById('wantBtn').classList.toggle('active', t==='Want'); }
-    function quickFill(a, c, n, t) { document.getElementById('amount').value = a; document.getElementById('category').value = c; document.getElementById('noteInput').value = n; setType(t); }
+    function quickFill(a, c, n, t) { document.getElementById('amount').value = a; document.getElementById('category').value = c; document.getElementById('noteInput').value = n; setType(t); window.scrollTo(0, document.querySelector('.type-toggle').offsetTop - 20); }
     function copyKey() { navigator.clipboard.writeText(currentGroup); showToast("Key Copied!"); }
     async function joinLedger() { const key = document.getElementById('joinKeyInput').value.trim(); if(key.length > 20) { await _supabase.from('app_settings').update({ group_id: key }).eq('user_id', currentUser); location.reload(); } }
     async function logoutApp() { await _supabase.auth.signOut(); location.reload(); }
