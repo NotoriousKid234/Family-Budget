@@ -122,19 +122,20 @@
         .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
         .quick-chip:hover { background: rgba(255, 255, 255, 0.15); }
 
-        /* DESKTOP COMMAND CENTER LAYOUT */
+        /* DESKTOP COMMAND CENTER LAYOUT - FIXED FOR LOGIN SCREEN */
         @media (min-width: 1100px) {
-            body { display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; gap: 30px; overflow-y: auto; }
-            #loginScreen { margin-top: 10vh; }
-            .side-menu { position: relative; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(25px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); flex-shrink: 0; }
-            .side-menu .menu-header { border-top-left-radius: 32px; border-top-right-radius: 32px; }
-            #sideMenuOverlay { display: none !important; }
-            #app, #subManager, #notesManager { margin: 0; width: 440px; flex-shrink: 0; height: max-content; }
-            #analyticsModal { position: relative; margin: 0; width: 440px; display: block !important; height: max-content; flex-shrink: 0; transform: none; top: 0; left: 0; }
-            .hamburger { display: none !important; }
-            .app-title { margin: 0 auto; text-align: center; width: 100%; }
-            #analyticsModal .btn-manage { display: none; } 
-            .app-top-nav .nav-analytics-btn { display: none; } 
+            body:not(.logged-in) #loginScreen { margin-top: 15vh; }
+            
+            body.logged-in { display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; gap: 30px; overflow-y: auto; }
+            body.logged-in .side-menu { position: relative; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(25px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); flex-shrink: 0; }
+            body.logged-in .side-menu .menu-header { border-top-left-radius: 32px; border-top-right-radius: 32px; }
+            body.logged-in #sideMenuOverlay { display: none !important; }
+            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager { margin: 0; width: 440px; flex-shrink: 0; height: max-content; }
+            body.logged-in #analyticsModal { position: relative; margin: 0; width: 440px; display: block !important; height: max-content; flex-shrink: 0; transform: none; top: 0; left: 0; }
+            body.logged-in .hamburger { display: none !important; }
+            body.logged-in .app-title { margin: 0 auto; text-align: center; width: 100%; }
+            body.logged-in #analyticsModal .btn-manage { display: none; } 
+            body.logged-in .app-top-nav .nav-analytics-btn { display: none; } 
         }
     </style>
 </head>
@@ -464,11 +465,16 @@
         authBtn.innerText = "Authenticating...";
         try {
             if (document.getElementById('pinField').value === MY_PIN) { 
+                
+                // FIX FOR DESKTOP LOGIN REVEAL
+                document.body.classList.add('logged-in'); 
+                
                 document.getElementById('loginScreen').style.display = 'none'; 
                 document.getElementById('app').style.display = 'block'; 
                 if (_supabase) {
                     const { data, error } = await _supabase.from('app_settings').select('*').eq('id', 1).single();
                     if(data) config = data;
+                    if(error && error.code !== 'PGRST116') console.error("Config load error", error);
                     initCycles(); initChart(); await fetchData();
                 } else {
                     document.getElementById('offlineBanner').style.display = 'block';
@@ -633,7 +639,6 @@
         } catch(err) { showToast("Failed to remove bill"); }
     }
 
-    // FAMILY NOTES LOGIC
     async function addNote() {
         const author = document.getElementById('noteAuthor').value;
         const msg = document.getElementById('noteMessage').value;
