@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Montoya Ledger Elite</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -23,183 +18,175 @@
             --bg: #0f172a; --card: rgba(30, 41, 59, 0.75); 
             --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; }
         
-        /* Layout Structure */
-        #container { width: 100%; display: flex; flex-direction: column; align-items: center; padding-bottom: 100px; }
+        #offlineBanner { display: none; background: #ef4444; color: white; text-align: center; font-size: 0.75rem; font-weight: 700; padding: 8px; position: fixed; top: 0; left: 0; width: 100%; z-index: 3000; }
+
         #loginScreen, #app, #subManager, #analyticsModal { 
             background: var(--card); backdrop-filter: blur(25px); padding: 30px 20px; 
             border-radius: 32px; width: 92%; max-width: 440px; 
             border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
-            margin: 20px auto; box-sizing: border-box; transition: transform 0.3s ease;
+            margin: 20px auto; box-sizing: border-box; 
         }
         #app, #subManager, #analyticsModal { display: none; }
 
-        /* Floating Action Button */
-        #fab {
-            position: fixed; bottom: 30px; right: 30px; width: 64px; height: 64px;
-            background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.5); color: white; font-size: 1.5rem;
-            cursor: pointer; z-index: 900; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #fab:active { transform: scale(0.9); }
-
-        /* Modals & Overlays */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); z-index: 1000; animation: fadeIn 0.2s ease; }
-        .custom-modal {
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 1000; }
+        #settingsModal { 
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #1e293b; border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px;
-            width: 90%; max-width: 400px; z-index: 1001; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: slideUp 0.3s ease;
+            width: 90%; max-width: 400px; z-index: 1001; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
-        /* Notifications (Toasts) */
         #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; width: 80%; pointer-events: none; }
-        .toast {
-            background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(10px);
-            padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600;
-            text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            animation: slideInDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideInDown 0.4s ease; }
 
-        /* UI Elements */
-        .collapsible-header { cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .collapsible-header i { transition: transform 0.3s; color: #94a3b8; }
-        .collapsed i { transform: rotate(-90deg); }
-        .collapsible-content { overflow: hidden; transition: max-height 0.3s ease-out; max-height: 1000px; }
-        
-        .header-stack { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; margin-bottom: 20px; }
+        .header-stack { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 20px; }
         .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.1); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(129, 140, 248, 0.3); color: #818cf8; }
 
-        .cycle-selector { background: var(--primary); border: none; color: #fff; padding: 10px 20px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; width: fit-content; margin: 0 auto 15px auto; display: block; }
-        .balance-amount { font-size: 3.2rem; font-weight: 700; letter-spacing: -2px; }
+        .cycle-selector { background: var(--primary); border: none; color: #fff; padding: 10px 20px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; width: fit-content; margin: 0 auto 15px auto; display: block; cursor: pointer; }
+        .balance-amount { font-size: 3.2rem; font-weight: 700; text-align: center; margin-bottom: 5px; }
         .pill-container { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
         .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 8px 14px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; border: 1px solid transparent; }
         .safe-pill { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
 
-        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); animation: fadeInRow 0.4s ease forwards; }
-        .name-tag { font-size: 0.65rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
-        .tag-brandon { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-        .tag-gina { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
-        
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); margin-bottom: 12px; }
-        .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; }
+        .vault-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; }
+        .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 5px; }
 
-        input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
+        .health-dashboard { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 15px; margin-bottom: 25px; border: 1px solid var(--border); }
+        .health-bar { display: flex; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+        .health-fill-need { background: var(--need); height: 100%; transition: width 0.5s; }
+        .health-fill-want { background: var(--want); height: 100%; transition: width 0.5s; }
+        .health-fill-goal { background: var(--goal); height: 100%; transition: width 0.5s; }
+
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); margin-bottom: 12px; }
+        .btn-manage { background: var(--secondary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
+
+        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
+        .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; }
         
+        input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
+        .type-toggle { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; }
+        .type-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; background: transparent; color: #94a3b8; font-weight: 700; }
+        .type-btn.active { background: white; color: #0f172a; }
+
         @keyframes slideInDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes slideUp { from { transform: translate(-50%, 0%); opacity: 0; } to { transform: translate(-50%, -50%); opacity: 1; } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes fadeInRow { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
 <body>
 
+    <div id="offlineBanner"><i class="fa-solid fa-triangle-exclamation"></i> OFFLINE - SYNC PAUSED</div>
     <div id="toastContainer"></div>
 
-    <div id="txOverlay" class="modal-overlay" onclick="closeTxModal()"></div>
-    <div id="txModal" class="custom-modal">
-        <h3 style="margin-top:0; text-align:center;">Sync New Transaction</h3>
-        <div class="type-toggle" style="display:flex; background:rgba(0,0,0,0.3); padding:4px; border-radius:12px; margin-bottom:15px;">
-            <button id="needBtn" class="type-btn active" onclick="setType('Need')" style="flex:1; border:none; padding:10px; border-radius:8px; cursor:pointer; background:white; font-weight:700;">NEED</button>
-            <button id="wantBtn" class="type-btn" onclick="setType('Want')" style="flex:1; border:none; padding:10px; border-radius:8px; cursor:pointer; background:transparent; color:#94a3b8; font-weight:700;">WANT</button>
-        </div>
-        <select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select>
-        <input type="number" id="amount" placeholder="0.00" inputmode="decimal">
-        <select id="category" onchange="autoSuggest(this.value)">
-            <option value="Mortgage">🏠 Mortgage</option>
-            <option value="Car">🚗 Car Payment</option>
-            <option value="Utilities">💡 Utilities</option>
-            <option value="Groceries">🛒 Groceries</option>
-            <option value="Dining">🍔 Dining / Takeout</option>
-            <option value="Misc">📦 Miscellaneous</option>
-            <option value="Goal">🎯 Vault / Goal</option>
-        </select>
-        <input type="text" id="noteInput" placeholder="Note or #tags (e.g. #PCBuild)">
-        <button class="btn-elite" onclick="addEntry()">Confirm Transaction</button>
-        <button onclick="closeTxModal()" style="width:100%; background:none; border:none; color:#94a3b8; cursor:pointer; padding:10px;">Cancel</button>
+    <div id="settingsOverlay" class="modal-overlay" onclick="toggleSettings()"></div>
+    <div id="settingsModal">
+        <h3 style="margin-top:0; text-align:center;">Cloud Config</h3>
+        <label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET</label>
+        <input type="number" id="conf_income">
+        <label style="font-size:0.7rem; font-weight:700;">MORTGAGE BALANCE</label>
+        <input type="number" id="conf_mbal">
+        <label style="font-size:0.7rem; font-weight:700;">CAR LOAN BALANCE</label>
+        <input type="number" id="conf_cbal">
+        <button class="btn-elite" onclick="saveConfig()">Save to Cloud</button>
+        <button onclick="toggleSettings()" style="width:100%; background:none; border:none; color:#94a3b8; cursor:pointer;">Cancel</button>
     </div>
 
-    <div id="container">
-        <div id="loginScreen">
-            <div class="header-stack">
-                <div class="logo-glow"><svg width="40" height="40" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
-                <h2 style="margin:0;">Montoya Ledger</h2>
-            </div>
-            <div style="position: relative; margin: 20px 0;">
-                <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem;">
-            </div>
-            <button class="btn-elite" onclick="checkPin()">Authorize Access</button>
+    <div id="loginScreen">
+        <div class="header-stack">
+            <div class="logo-glow"><svg width="40" height="40" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
+            <h2>Montoya Ledger</h2>
         </div>
-
-        <div id="app">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <button onclick="toggleAnalytics()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:600;"><i class="fa-solid fa-chart-line"></i> Analytics</button>
-                <button onclick="toggleSettings()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:600;"><i class="fa-solid fa-cloud"></i> Config</button>
-            </div>
-
-            <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
-
-            <div class="collapsible-header" onclick="toggleCollapsible('vaults')">
-                <span style="font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase;">Vault Reserves</span>
-                <i class="fa-solid fa-chevron-down"></i>
-            </div>
-            <div id="vaults-content" class="collapsible-content vault-grid" style="margin-top:10px;">
-                <div class="mortgage-vault">
-                    <div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Mortgage</div>
-                    <div id="mortgageBalanceText" class="clock-time">$0.00</div>
-                </div>
-                <div class="mortgage-vault">
-                    <div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Car Loan</div>
-                    <div id="carBalanceText" class="clock-time">$0.00</div>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin: 25px 0 5px 0;">
-                <div id="balance" class="balance-amount">$0.00</div>
-            </div>
-            
-            <div class="pill-container">
-                <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
-                <div id="safeToSpend" class="pace-pill safe-pill">Safe: $0.00</div>
-            </div>
-
-            <div class="collapsible-header" onclick="toggleCollapsible('wealth')" style="margin-bottom:10px;">
-                <span style="font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase;">Wealth Allocation</span>
-                <i class="fa-solid fa-chevron-down"></i>
-            </div>
-            <div id="wealth-content" class="collapsible-content">
-                <div class="health-dashboard">
-                    <div class="health-bar">
-                        <div id="barNeed" class="health-fill-need" style="width: 0%;"></div>
-                        <div id="barWant" class="health-fill-want" style="width: 0%;"></div>
-                        <div id="barGoal" class="health-fill-goal" style="width: 0%;"></div>
-                    </div>
-                    <div class="health-stats">
-                        <span style="color:var(--need)">NEED: <span id="percNeed">0</span>%</span>
-                        <span style="color:var(--want)">WANT: <span id="percWant">0</span>%</span>
-                        <span style="color:var(--goal)">VAULT: <span id="percGoal">0</span>%</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="chart-container"><canvas id="budgetChart"></canvas></div>
-            
-            <div class="stat-group">
-                <div class="stat-card"><div style="color:var(--brandon); font-size:0.6rem; font-weight:700;">BRANDON</div><div id="brandonSpend" style="font-weight:700;">$0</div></div>
-                <div class="stat-card"><div style="color:var(--gina); font-size:0.6rem; font-weight:700;">GINA</div><div id="ginaSpend" style="font-weight:700;">$0</div></div>
-            </div>
-
-            <div class="toolbar-row">
-                <div class="search-wrapper">
-                    <input type="text" id="searchBar" placeholder="🔍 Search tags or category..." onkeyup="filterHistory()">
-                </div>
-            </div>
-            
-            <div id="historyList" style="max-height: 500px; overflow-y: auto;"></div>
-        </div>
+        <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem;">
+        <button class="btn-elite" onclick="checkPin()">Authorize Access</button>
     </div>
 
-    <div id="fab" onclick="openTxModal()"><i class="fa-solid fa-plus"></i></div>
+    <div id="app">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <button onclick="toggleAnalytics()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:600;"><i class="fa-solid fa-chart-line"></i> Analytics</button>
+            <button onclick="toggleSettings()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:600;"><i class="fa-solid fa-cloud"></i> Config</button>
+        </div>
+
+        <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
+
+        <div class="vault-grid">
+            <div class="mortgage-vault">
+                <div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Mortgage</div>
+                <div id="mortgageBalanceText" class="clock-time">$0.00</div>
+            </div>
+            <div class="mortgage-vault">
+                <div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Car Loan</div>
+                <div id="carBalanceText" class="clock-time">$0.00</div>
+            </div>
+        </div>
+
+        <div id="balance" class="balance-amount">$0.00</div>
+        <div class="pill-container">
+            <div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div>
+            <div id="safeToSpend" class="pace-pill safe-pill">Safe: $0.00</div>
+        </div>
+
+        <div class="health-dashboard">
+            <div class="health-bar">
+                <div id="barNeed" class="health-fill-need" style="width: 0%;"></div>
+                <div id="barWant" class="health-fill-want" style="width: 0%;"></div>
+                <div id="barGoal" class="health-fill-goal" style="width: 0%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.7rem; font-weight:700;">
+                <span style="color:var(--need)">NEED: <span id="percNeed">0</span>%</span>
+                <span style="color:var(--want)">WANT: <span id="percWant">0</span>%</span>
+                <span style="color:var(--goal)">VAULT: <span id="percGoal">0</span>%</span>
+            </div>
+        </div>
+        
+        <div class="chart-container" style="position:relative; height:180px; margin-bottom:25px;"><canvas id="budgetChart"></canvas></div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:25px;">
+            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:20px; text-align:center;">
+                <div style="color:var(--brandon); font-size:0.6rem; font-weight:700;">BRANDON</div>
+                <div id="brandonSpend" style="font-weight:700;">$0</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:20px; text-align:center;">
+                <div style="color:var(--gina); font-size:0.6rem; font-weight:700;">GINA</div>
+                <div id="ginaSpend" style="font-weight:700;">$0</div>
+            </div>
+        </div>
+
+        <div id="goalsContainer" style="display:none; margin-bottom:25px;">
+            <div id="goalsList"></div>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:25px;">
+            <div class="type-toggle">
+                <button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button>
+                <button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select>
+                <input type="number" id="amount" placeholder="0.00" inputmode="decimal">
+            </div>
+            <select id="category" onchange="autoSuggest(this.value)">
+                <option value="Mortgage">🏠 Mortgage</option>
+                <option value="Car">🚗 Car Payment</option>
+                <option value="Utilities">💡 Utilities</option>
+                <option value="Groceries">🛒 Groceries</option>
+                <option value="Dining">🍔 Dining</option>
+                <option value="Misc">📦 Misc</option>
+                <option value="Goal">🎯 Vault / Goal</option>
+            </select>
+            <input type="text" id="noteInput" placeholder="Note or #tags">
+            <button class="btn-elite" onclick="addEntry()">Sync Transaction</button>
+            <button class="btn-manage" onclick="toggleManager()">Manage Recurring Bills</button>
+        </div>
+
+        <input type="text" id="searchBar" placeholder="🔍 Search tags or category..." onkeyup="filterHistory()">
+        <div id="historyList"></div>
+    </div>
+
+    <div id="analyticsModal" style="position:fixed; top:20px; z-index:2000; height: 90vh; overflow-y:auto;">
+        <h3 style="text-align:center;">Cycle Analytics</h3>
+        <div style="height:250px;"><canvas id="analyticsBarChart"></canvas></div>
+        <button class="btn-manage" onclick="toggleAnalytics()" style="margin-top:20px;">Close</button>
+    </div>
 
 <script>
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
@@ -212,45 +199,53 @@
     let config = { budget: 7400, m_balance: 0, c_balance: 0 };
     let currentViewDate = new Date();
 
-    /* UI Logic */
-    function showToast(msg, isError = false) {
+    function showToast(msg) {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
-        toast.className = 'toast';
-        if(isError) toast.style.borderColor = '#ef4444';
-        toast.innerText = msg;
+        toast.className = 'toast'; toast.innerText = msg;
         container.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
 
-    function toggleCollapsible(id) {
-        const content = document.getElementById(id + '-content');
-        const header = content.previousElementSibling;
-        header.classList.toggle('collapsed');
-        content.style.maxHeight = header.classList.contains('collapsed') ? '0' : '1000px';
-    }
-
-    function openTxModal() { document.getElementById('txOverlay').style.display = 'block'; document.getElementById('txModal').style.display = 'block'; }
-    function closeTxModal() { document.getElementById('txOverlay').style.display = 'none'; document.getElementById('txModal').style.display = 'none'; }
-
     function setType(t) { 
         currentType = t;
-        const nb = document.getElementById('needBtn'), wb = document.getElementById('wantBtn');
-        if(t === 'Need') { nb.style.background = 'white'; nb.style.color = '#0f172a'; wb.style.background = 'transparent'; wb.style.color = '#94a3b8'; }
-        else { wb.style.background = 'white'; wb.style.color = '#0f172a'; nb.style.background = 'transparent'; nb.style.color = '#94a3b8'; }
+        document.getElementById('needBtn').classList.toggle('active', t === 'Need');
+        document.getElementById('wantBtn').classList.toggle('active', t === 'Want');
+    }
+
+    function autoSuggest(c) { if(['Mortgage','Car','Utilities','Groceries'].includes(c)) setType('Need'); else setType('Want'); }
+
+    function toggleSettings() {
+        const modal = document.getElementById('settingsModal');
+        const overlay = document.getElementById('settingsOverlay');
+        const isVisible = modal.style.display === 'block';
+        modal.style.display = isVisible ? 'none' : 'block';
+        overlay.style.display = isVisible ? 'none' : 'block';
+        if(!isVisible) {
+            document.getElementById('conf_income').value = config.budget;
+            document.getElementById('conf_mbal').value = config.m_balance;
+            document.getElementById('conf_cbal').value = config.c_balance;
+        }
+    }
+
+    async function saveConfig() {
+        config.budget = parseFloat(document.getElementById('conf_income').value);
+        config.m_balance = parseFloat(document.getElementById('conf_mbal').value);
+        config.c_balance = parseFloat(document.getElementById('conf_cbal').value);
+        await _supabase.from('app_settings').upsert({ id: 1, ...config });
+        showToast("Config Saved to Cloud");
+        toggleSettings();
+        updateUI();
     }
 
     async function checkPin() { 
         if (document.getElementById('pinField').value === MY_PIN) { 
-            document.getElementById('loginScreen').style.display = 'none'; document.getElementById('app').style.display = 'block'; 
-            await fetchSettings(); initCycles(); initChart(); await fetchData();
-            showToast("Authenticated: Syncing Cloud Data...");
-        } else { showToast("Access Denied", true); } 
-    }
-
-    async function fetchSettings() {
-        const { data } = await _supabase.from('app_settings').select('*').eq('id', 1).single();
-        if (data) { config = data; }
+            document.getElementById('loginScreen').style.display = 'none'; 
+            document.getElementById('app').style.display = 'block'; 
+            const { data } = await _supabase.from('app_settings').select('*').eq('id', 1).single();
+            if(data) config = data;
+            initCycles(); initChart(); await fetchData();
+        } else { showToast("Invalid PIN"); } 
     }
 
     async function fetchData() {
@@ -260,9 +255,7 @@
             _supabase.from('transactions').select('amount, note').eq('category', 'Goal'),
             _supabase.from('recurring_expenses').select('*')
         ]);
-        history = transRes.data || [];
-        allTimeGoals = goalsRes.data || [];
-        recurring = recurRes.data || [];
+        history = transRes.data || []; allTimeGoals = goalsRes.data || []; recurring = recurRes.data || [];
         updateUI();
     }
 
@@ -273,7 +266,6 @@
         const note = document.getElementById('noteInput').value;
         if (isNaN(amt) || amt <= 0) return;
 
-        // Auto-vault deduction
         if (cat === 'Mortgage') config.m_balance -= amt;
         if (cat === 'Car') config.c_balance -= amt;
         
@@ -282,16 +274,15 @@
             _supabase.from('app_settings').upsert({ id: 1, ...config })
         ]);
 
-        showToast("Transaction Synced Successfully");
+        showToast("Synced!");
         document.getElementById('amount').value = '';
         document.getElementById('noteInput').value = '';
-        closeTxModal();
         fetchData();
     }
 
     async function deleteEntry(id) {
-        if (!confirm("Permanently delete this record?")) return;
-        const { data: item } = await _supabase.from('transactions').select('*').eq('id', id).single();
+        if (!confirm("Delete?")) return;
+        const item = history.find(h => h.id === id);
         if (item.category === 'Mortgage') config.m_balance += item.amount;
         if (item.category === 'Car') config.c_balance += item.amount;
         
@@ -299,7 +290,6 @@
             _supabase.from('transactions').delete().eq('id', id),
             _supabase.from('app_settings').upsert({ id: 1, ...config })
         ]);
-        showToast("Record Removed");
         fetchData();
     }
 
@@ -323,28 +313,14 @@
             else needS += item.amount;
 
             let displayNote = (item.note || item.category).replace(/(#[a-zA-Z0-9_]+)/g, `<span class="clickable-tag" onclick="quickSearch('$1')">$1</span>`);
-            
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `
-                <div class="item-left">
-                    <div class="tag-row"><span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span></div>
-                    <span class="item-label" style="font-weight:700;">${displayNote}</span>
-                </div>
-                <div class="item-amt">-$${item.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="opacity:0.3; margin-left:10px;" onclick="deleteEntry('${item.id}')"></i></div>`;
+            div.innerHTML = `<div><span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span><br><b>${displayNote}</b></div>
+                             <div>-$${item.amount.toFixed(2)} <i class="fa-solid fa-trash-can" style="opacity:0.3; margin-left:10px;" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
-        });
-
-        // Recurring Pending Logic
-        recurring.forEach(sub => {
-            let billDate = new Date(start); if (sub.billing_day < CYCLE_START_DAY) billDate.setMonth(billDate.getMonth() + 1);
-            billDate.setDate(sub.billing_day);
-            const logged = history.some(h => h.category === sub.name || h.note === sub.name);
-            if (!logged && billDate > new Date() && billDate <= end) pendingBills += sub.amount;
         });
 
         const INCOME = config.budget;
         document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString();
-        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS - pendingBills).toLocaleString();
         document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString();
         document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString();
 
@@ -352,10 +328,7 @@
         document.getElementById('barWant').style.width = ((wantS/INCOME)*100) + '%';
         document.getElementById('barGoal').style.width = ((goalS/INCOME)*100) + '%';
         
-        if(myChart) {
-            myChart.data.datasets[0].data = [INCOME-totalS, totalS];
-            myChart.update();
-        }
+        if(myChart) { myChart.data.datasets[0].data = [Math.max(0, INCOME-totalS), totalS]; myChart.update(); }
     }
 
     function getCycleDates(baseDate) {
@@ -375,8 +348,7 @@
         let now = new Date();
         for(let i=0; i<6; i++) {
             let d = new Date(now.getFullYear(), now.getMonth() - i, 16);
-            let opt = document.createElement('option');
-            opt.value = d.toISOString();
+            let opt = document.createElement('option'); opt.value = d.toISOString();
             opt.text = d.toLocaleString('default', { month: 'short' }) + " Cycle";
             select.appendChild(opt);
         }
@@ -388,6 +360,13 @@
             item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
         });
     }
+
+    function toggleAnalytics() {
+        const modal = document.getElementById('analyticsModal');
+        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+    }
+    
+    function toggleManager() { showToast("Recurring Bills Manager is opening..."); }
 </script>
 </body>
 </html>
