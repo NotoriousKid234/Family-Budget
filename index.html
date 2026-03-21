@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { 
             --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
@@ -68,7 +69,7 @@
         .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; }
         .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 5px; }
 
-        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); }
+        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 15px; }
         .tracker-bar-bg { height: 10px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; margin-top: 8px; display: flex; }
         .tracker-bar-fill { background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
 
@@ -119,7 +120,7 @@
         .prof-icon-opt { width: 50px; height: 50px; background: rgba(0,0,0,0.3); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; border: 2px solid transparent; transition: 0.2s; color: #94a3b8; }
         .prof-icon-opt:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
-        .user-badge { width: 35px; height: 35px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; cursor: pointer; }
+        .user-badge { width: 35px; height: 35px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; cursor: pointer; color: white; }
 
         @media (min-width: 1100px) {
             body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 40px; padding: 40px; }
@@ -148,10 +149,8 @@
             <div class="logo-glow" style="margin:0 auto 15px auto; width: 60px; height: 60px; background: rgba(99, 102, 241, 0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #818cf8;"><svg width="30" height="30" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg></div>
             <h2 id="authTitle" style="margin:0;">Montoya Ledger</h2>
         </div>
-        <div style="margin: 20px 0;">
-            <input type="email" id="emailField" placeholder="Email" autocomplete="username">
-            <input type="password" id="passwordField" placeholder="Password" autocomplete="current-password">
-        </div>
+        <input type="email" id="emailField" placeholder="Email" autocomplete="username">
+        <input type="password" id="passwordField" placeholder="Password" autocomplete="current-password">
         <button id="authBtn" class="btn-elite" onclick="authenticateUser()">Secure Login</button>
         <div style="text-align: center; margin-top: 20px;">
             <span id="authToggleText" style="color: #94a3b8; font-size: 0.85rem; cursor: pointer;" onclick="toggleAuthMode()">New user? <b style="color: #c084fc;">Sign Up</b></span>
@@ -183,7 +182,7 @@
                 <div style="display:flex; align-items:center; gap:15px;">
                     <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
                         <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8;"></i>
-                        <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
+                        <div class="note-ping" id="headerPing" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
                     </div>
                     <div id="topAvatarBadge" class="user-badge" onclick="switchView('profileManager')"><i class="fa-solid fa-user"></i></div>
                 </div>
@@ -300,6 +299,7 @@
     let config = { budget: 7400, m_balance: 0, c_balance: 0, m_orig: 500000, c_orig: 45000 };
     let currentViewDate = new Date();
     let _supabase, catChart, isSignUpMode = false;
+    let celebratedMilestones = { car: false, mortgage: false };
 
     const catColors = { Groceries: "#10b981", Dining: "#f59e0b", Utilities: "#06b6d4", Mortgage: "#6366f1", Car: "#3b82f6", CreditCard: "#ef4444", Subscription: "#c084fc", Beauty: "#ec4899", Goal: "#a855f7", Misc: "#94a3b8" };
 
@@ -331,8 +331,6 @@
 
     async function setProfileIcon(iconClass) {
         localStorage.setItem('montoya_profile_icon', iconClass);
-        document.querySelectorAll('.prof-icon-opt').forEach(el => el.style.border = '2px solid transparent');
-        document.getElementById('icon_' + iconClass).style.border = '2px solid var(--primary)';
         loadProfileIcon();
         showToast("Avatar Updated!");
         updateUI(); 
@@ -343,6 +341,7 @@
         const finalIcon = `<i class="fa-solid ${savedIcon.replace('fa-','')}"></i>`;
         document.getElementById('sidebarAvatar').innerHTML = finalIcon;
         document.getElementById('topAvatarBadge').innerHTML = finalIcon;
+        document.querySelectorAll('.prof-icon-opt').forEach(el => el.style.border = '2px solid transparent');
         const opt = document.getElementById('icon_' + savedIcon);
         if(opt) opt.style.border = '2px solid var(--primary)';
     }
@@ -374,90 +373,70 @@
         updateUI(); updateNotesUI(); updateNotificationsUI(); calculateMilestones();
     }
 
+    function triggerCelebration(type) {
+        if (celebratedMilestones[type]) return;
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#6366f1', '#a855f7', '#10b981'] });
+        showToast(`🎉 MAJOR WIN! Your ${type} is officially paid off!`);
+        celebratedMilestones[type] = true;
+    }
+
     function updateUI() {
         const { start, end } = getCycleDates(currentViewDate);
-        let totalS = 0, needS = 0, wantS = 0, goalS = 0, bS = 0, gS = 0;
+        let totalS = 0, bS = 0, gS = 0, needS = 0, wantS = 0, goalS = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
         
         document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
 
-        const mOrig = config.m_orig || 500000; const currMBal = config.m_balance || 0;
-        const mAmtPaid = Math.max(0, mOrig - currMBal); const mPerc = Math.min(100, (mAmtPaid / mOrig) * 100);
+        const mPerc = Math.min(100, ((config.m_orig - config.m_balance) / config.m_orig) * 100);
         document.getElementById('mortgagePayoffBar').style.width = mPerc + "%";
         document.getElementById('mortgagePayoffPerc').innerText = Math.round(mPerc) + "%";
-        document.getElementById('mortgagePaidAmount').innerText = "Paid: $" + mAmtPaid.toLocaleString();
-        document.getElementById('mortgageRemainingAmount').innerText = "Rem: $" + currMBal.toLocaleString();
+        if(mPerc >= 100) triggerCelebration('mortgage');
 
-        const cOrig = config.c_orig || 45000; const currCBal = config.c_balance || 0;
-        const cAmtPaid = Math.max(0, cOrig - currCBal); const cPerc = Math.min(100, (cAmtPaid / cOrig) * 100);
+        const cPerc = Math.min(100, ((config.c_orig - config.c_balance) / config.c_orig) * 100);
         document.getElementById('carPayoffBar').style.width = cPerc + "%";
         document.getElementById('carPayoffPerc').innerText = Math.round(cPerc) + "%";
-        document.getElementById('carPaidAmount').innerText = "Paid: $" + cAmtPaid.toLocaleString();
-        document.getElementById('carRemainingAmount').innerText = "Rem: $" + currCBal.toLocaleString();
+        if(cPerc >= 100) triggerCelebration('car');
 
         const mySavedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
 
         history.forEach(item => {
             totalS += item.amount;
-            if (!['Mortgage','Car','Utilities'].includes(item.category)) {
-                if (item.member === 'Brandon') bS += item.amount;
-                else if (item.member === 'Gina') gS += item.amount;
-                else if (item.member === 'Split') { bS += (item.amount/2); gS += (item.amount/2); }
-            }
+            if (item.member === 'Brandon') bS += item.amount; else if (item.member === 'Gina') gS += item.amount; else if (item.member === 'Split') { bS += item.amount/2; gS += item.amount/2; }
             if (item.category === 'Goal') goalS += item.amount; else if (item.intent === 'Want') wantS += item.amount; else needS += item.amount;
 
-            let dateObj = new Date(item.created_at);
-            let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
             let isMe = item.user_id === currentUser;
-            let submitterIcon = isMe ? `<i class="fa-solid ${mySavedIcon.replace('fa-','')}"></i>` : `<i class="fa-solid fa-user-group"></i>`;
-
+            let iconHtml = `<i class="fa-solid ${isMe ? mySavedIcon.replace('fa-','') : 'fa-user-group'}"></i>`;
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="display:flex; align-items:center; gap:8px; margin-top:6px;"><div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div><div style="font-size:0.6rem; color:#64748b; display:flex; align-items:center; gap:5px;">${dateStr} • <span style="background:rgba(255,255,255,0.05); padding:2px 5px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;">${submitterIcon} ${isMe ? 'You' : 'Partner'}</span></div></div></div><div style="text-align:right;"><div style="font-weight:700; font-size:1.1rem;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
+            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="display:flex; align-items:center; gap:8px; margin-top:6px;"><div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div><div style="font-size:0.6rem; color:#64748b; display:flex; align-items:center; gap:5px;">Synced by ${iconHtml} ${isMe ? 'You' : 'Partner'}</div></div></div><div style="text-align:right;"><div style="font-weight:700; font-size:1.1rem;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
         });
 
         const INCOME = config.budget || 7400;
         document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString();
         document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString();
-
-        const daysLeft = Math.max(1, Math.ceil((getCycleDates(currentViewDate).end - new Date()) / (1000 * 60 * 60 * 24)));
-        document.getElementById('paceDisplay').innerText = `Pace: $${((INCOME - totalS) / daysLeft).toFixed(2)} / day`;
+        document.getElementById('paceDisplay').innerText = `Pace: $${((INCOME - totalS) / 30).toFixed(2)} / day`;
     }
 
     function calculateMilestones() {
-        const combinedDates = [...history, ...notes].map(x => new Date(x.created_at).toDateString());
-        const uniqueDates = [...new Set(combinedDates)];
-        let streak = 0; let checkDate = new Date();
-        while (uniqueDates.includes(checkDate.toDateString())) {
-            streak++; checkDate.setDate(checkDate.getDate() - 1);
-        }
+        const uniqueDates = [...new Set([...history, ...notes].map(x => new Date(x.created_at).toDateString()))];
+        let streak = 0; let check = new Date();
+        while (uniqueDates.includes(check.toDateString())) { streak++; check.setDate(check.getDate() - 1); }
         document.getElementById('streakDisplay').innerText = streak;
-        const INCOME = config.budget || 7400;
         let spent = 0; history.forEach(i => spent += i.amount);
-        const power = INCOME > 0 ? Math.round(((INCOME - spent) / INCOME) * 100) : 0;
-        document.getElementById('savingsPowerDisplay').innerText = power + "%";
+        document.getElementById('savingsPowerDisplay').innerText = Math.round(((config.budget - spent) / config.budget) * 100) + "%";
     }
 
-    async function authenticateUser() { const email = document.getElementById('emailField').value; const pass = document.getElementById('passwordField').value; const btn = document.getElementById('authBtn'); if(!email || !pass) return; btn.innerText = isSignUpMode ? "Creating..." : "Authenticating..."; try { const { data, error } = isSignUpMode ? await _supabase.auth.signUp({email, password: pass}) : await _supabase.auth.signInWithPassword({email, password: pass}); if (error) throw error; if (data.session) location.reload(); else if (isSignUpMode) { showToast("Sign up success! Login now."); toggleAuthMode(); } } catch (err) { alert(err.message); btn.innerText = isSignUpMode ? "Sign Up" : "Secure Login"; } }
-    async function updatePassword() { const newPass = document.getElementById('newPasswordInput').value; if(newPass.length < 6) { showToast("Password must be at least 6 characters."); return; } try { const { error } = await _supabase.auth.updateUser({ password: newPass }); if (error) throw error; showToast("Password Updated!"); document.getElementById('newPasswordInput').value = ''; } catch (err) { alert(err.message); } }
-    async function addEntry() { const amtInput = document.getElementById('amount').value; const amt = parseFloat(amtInput); if (!amt) return; const cat = document.getElementById('category').value; const isRecur = document.getElementById('isRecurring').checked; if (cat === 'Mortgage') config.m_balance -= amt; if (cat === 'Car') config.c_balance -= amt; const payload = { amount: amt, member: document.getElementById('memberSelect').value, category: cat, note: document.getElementById('noteInput').value, intent: currentType, user_id: currentUser, group_id: currentGroup }; if (editingId) { await _supabase.from('transactions').update(payload).eq('id', editingId); editingId = null; document.getElementById('syncBtn').innerText = "Sync Transaction"; } else { await _supabase.from('transactions').insert([payload]); if (isRecur) await _supabase.from('recurring_expenses').insert([{ name: payload.note || cat, amount: amt, group_id: currentGroup, user_id: currentUser, billing_day: new Date().getDate() }]); } await _supabase.from('app_settings').update({ m_balance: config.m_balance, c_balance: config.c_balance }).eq('group_id', currentGroup); document.getElementById('amount').value = ''; document.getElementById('noteInput').value = ''; document.getElementById('isRecurring').checked = false; fetchData(); }
+    async function authenticateUser() { const email = document.getElementById('emailField').value; const pass = document.getElementById('passwordField').value; const btn = document.getElementById('authBtn'); if(!email || !pass) return; btn.innerText = "Authenticating..."; try { const { data, error } = isSignUpMode ? await _supabase.auth.signUp({email, password: pass}) : await _supabase.auth.signInWithPassword({email, password: pass}); if (error) throw error; if (data.session) location.reload(); } catch (err) { alert(err.message); btn.innerText = isSignUpMode ? "Sign Up" : "Secure Login"; } }
+    async function addEntry() { const amt = parseFloat(document.getElementById('amount').value); if (!amt) return; const cat = document.getElementById('category').value; if (cat === 'Mortgage') config.m_balance -= amt; if (cat === 'Car') config.c_balance -= amt; const payload = { amount: amt, member: document.getElementById('memberSelect').value, category: cat, note: document.getElementById('noteInput').value, intent: currentType, user_id: currentUser, group_id: currentGroup }; if (editingId) { await _supabase.from('transactions').update(payload).eq('id', editingId); editingId = null; } else { await _supabase.from('transactions').insert([payload]); } await _supabase.from('app_settings').update({ m_balance: config.m_balance, c_balance: config.c_balance }).eq('group_id', currentGroup); document.getElementById('amount').value = ''; fetchData(); }
     async function saveConfig() { config.budget = parseFloat(document.getElementById('conf_income').value); config.m_balance = parseFloat(document.getElementById('conf_mbal').value); config.c_balance = parseFloat(document.getElementById('conf_cbal').value); config.m_orig = parseFloat(document.getElementById('conf_morig').value); config.c_orig = parseFloat(document.getElementById('conf_corig').value); await _supabase.from('app_settings').update(config).eq('group_id', currentGroup); switchView('app'); showToast("Settings Saved!"); }
-    function toggleNotifications() { const m = document.getElementById('notifModal'); const o = document.getElementById('notifOverlay'); const isV = m.style.display === 'block'; m.style.display = isV ? 'none' : 'block'; o.style.display = isV ? 'none' : 'block'; if (!isV) { localStorage.setItem('montoya_notifs_viewed', Date.now().toString()); document.querySelectorAll('.note-ping').forEach(p => p.style.display = 'none'); } }
+    function toggleNotifications() { const m = document.getElementById('notifModal'); const o = document.getElementById('notifOverlay'); const isV = m.style.display === 'block'; m.style.display = isV ? 'none' : 'block'; o.style.display = isV ? 'none' : 'block'; if(!isV) localStorage.setItem('montoya_notifs_viewed', Date.now().toString()); }
     function toggleMenu() { if (window.innerWidth >= 1100) return; const m = document.getElementById('sideMenu'); const o = document.getElementById('sideMenuOverlay'); m.classList.toggle('open'); o.style.display = m.classList.contains('open') ? 'block' : 'none'; }
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t==='Need'); document.getElementById('wantBtn').classList.toggle('active', t==='Want'); }
-    function quickFill(a, c, n, t) { document.getElementById('amount').value = a; document.getElementById('category').value = c; document.getElementById('noteInput').value = n; setType(t); window.scrollTo(0, document.querySelector('.type-toggle').offsetTop - 20); }
-    function getCycleDates(baseDate) { let d = new Date(baseDate); let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY); if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); let end = new Date(start); end.setMonth(end.getMonth() + 1); return { start, end }; }
-    function initCycles() { const select = document.getElementById('cycleSelect'); select.innerHTML = ''; let now = new Date(); for(let i=0; i<6; i++) { let d = new Date(now.getFullYear(), now.getMonth() - i, 16); let opt = document.createElement('option'); opt.value = d.toISOString(); opt.text = d.toLocaleString('default', { month: 'short' }) + " Cycle"; select.appendChild(opt); } }
-    async function changeCycle() { currentViewDate = new Date(document.getElementById('cycleSelect').value); await fetchData(); }
+    function quickFill(a, c, n, t) { document.getElementById('amount').value = a; document.getElementById('category').value = c; document.getElementById('noteInput').value = n; setType(t); }
     async function logoutApp() { await _supabase.auth.signOut(); location.reload(); }
     function showToast(m) { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = 'toast'; t.innerText = m; c.appendChild(t); setTimeout(() => t.remove(), 3000); }
-    function updateNotificationsUI() { /* Shared logic from v6.0 */ }
-    function updateNotesUI() { /* Shared logic from v6.0 */ }
-    function renderSubList() { /* Shared logic from v6.0 */ }
-    function renderAnalytics() { /* Shared logic from v6.0 */ }
 </script>
 </body>
 </html>
