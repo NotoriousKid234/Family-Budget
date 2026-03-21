@@ -35,6 +35,16 @@
 
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; transition: background 0.3s ease; }
         
+        /* AMBIENT BACKGROUND ORBS */
+        .bg-orb { position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; opacity: 0.35; animation: float 20s infinite ease-in-out alternate; pointer-events: none; }
+        .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; }
+        .orb-2 { width: 600px; height: 600px; background: #ec4899; bottom: -200px; right: -150px; animation-delay: -10s; }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 30px) scale(1.05); }
+            100% { transform: translate(-30px, 50px) scale(0.95); }
+        }
+
         #offlineBanner { display: none; background: #ef4444; color: white; text-align: center; font-size: 0.75rem; font-weight: 700; padding: 8px; position: fixed; top: 0; left: 0; width: 100%; z-index: 3000; }
         #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 4000; width: 80%; pointer-events: none; }
         .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -62,7 +72,7 @@
         .top-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 0 5px; }
         .hamburger { font-size: 1.5rem; color: #94a3b8; cursor: pointer; transition: color 0.2s; }
         .hamburger:hover { color: #fff; }
-        .app-title { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; color: #fff; }
+        .app-title { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; color: #fff; text-transform: uppercase; }
 
         .header-stack { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 20px; }
         .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.1); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(129, 140, 248, 0.3); color: #818cf8; }
@@ -118,20 +128,46 @@
         #isRecurring { width: 20px; height: 20px; accent-color: #a855f7; cursor: pointer; margin: 0; }
 
         /* QUICK SYNC CHIPS */
-        .quick-sync-row {
-            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px;
-            scrollbar-width: none;
-        }
+        .quick-sync-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
         .quick-sync-row::-webkit-scrollbar { display: none; }
-        .quick-chip {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 8px 16px;
-            border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: #e2e8f0; white-space: nowrap;
-            cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px;
-        }
+        .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
         .quick-chip:hover { background: rgba(255, 255, 255, 0.15); }
+
+        /* DESKTOP COMMAND CENTER LAYOUT */
+        @media (min-width: 1100px) {
+            body { display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; gap: 30px; overflow-y: auto; }
+            #loginScreen { margin-top: 10vh; }
+            
+            /* Pin the side menu to the left */
+            .side-menu {
+                position: relative; left: 0 !important; width: 280px; height: max-content;
+                border-radius: 32px; background: var(--card); border: 1px solid var(--border);
+                backdrop-filter: blur(25px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); flex-shrink: 0;
+            }
+            .side-menu .menu-header { border-top-left-radius: 32px; border-top-right-radius: 32px; }
+            #sideMenuOverlay { display: none !important; }
+
+            /* Center Column (Ledger / Recurring Manager) */
+            #app, #subManager { margin: 0; width: 440px; flex-shrink: 0; height: max-content; }
+
+            /* Right Column (Analytics) */
+            #analyticsModal {
+                position: relative; margin: 0; width: 440px; display: block !important; 
+                height: max-content; flex-shrink: 0; transform: none; top: 0; left: 0;
+            }
+
+            /* Hide mobile-specific buttons on desktop */
+            .hamburger { display: none !important; }
+            .app-title { margin: 0 auto; text-align: center; width: 100%; }
+            #analyticsModal .btn-manage { display: none; } /* Hide back button on analytics */
+            .app-top-nav .nav-analytics-btn { display: none; } /* Hide analytics open button in center app */
+        }
     </style>
 </head>
 <body>
+
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
 
     <div id="offlineBanner">DATABASE CONNECTION FAILED - OFFLINE MODE</div>
     <div id="toastContainer"></div>
@@ -185,6 +221,11 @@
             <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
             <div class="app-title">MONTOYA LEDGER</div>
             <div style="width:24px;"></div> 
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;" class="app-top-nav">
+            <button class="nav-analytics-btn" onclick="toggleAnalytics()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:600;"><i class="fa-solid fa-chart-line"></i> Analytics</button>
+            <button onclick="toggleSettings()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:600; margin-left:auto;"><i class="fa-solid fa-cloud"></i> Config</button>
         </div>
 
         <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
@@ -367,19 +408,33 @@
         setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
     }
 
+    // UPDATED RESPONSIVE ROUTING
     function switchView(viewId) {
-        document.getElementById('app').style.display = 'none';
-        document.getElementById('subManager').style.display = 'none';
-        document.getElementById('analyticsModal').style.display = 'none';
-        document.getElementById(viewId).style.display = 'block';
+        const isDesktop = window.innerWidth >= 1100;
         window.scrollTo(0, 0); 
+        
+        if (isDesktop) {
+            if (viewId === 'analyticsModal') return; // Ignore on desktop, it's pinned to the right
+            document.getElementById('app').style.display = (viewId === 'app') ? 'block' : 'none';
+            document.getElementById('subManager').style.display = (viewId === 'subManager') ? 'block' : 'none';
+        } else {
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('subManager').style.display = 'none';
+            document.getElementById('analyticsModal').style.display = 'none';
+            document.getElementById(viewId).style.display = 'block';
+        }
     }
 
     function showDashboard() { switchView('app'); fetchData(); }
     function openManager() { switchView('subManager'); renderSubList(); }
-    async function openAnalytics() { switchView('analyticsModal'); await renderAnalytics(); }
+    async function openAnalytics() { 
+        if (window.innerWidth >= 1100) return; // Disable button click routing on desktop
+        switchView('analyticsModal'); 
+        await renderAnalytics(); 
+    }
 
     function toggleMenu() {
+        if (window.innerWidth >= 1100) return; // Menu is permanent on desktop
         const menu = document.getElementById('sideMenu');
         const overlay = document.getElementById('sideMenuOverlay');
         const isOpen = menu.classList.contains('open');
@@ -431,6 +486,9 @@
             ]);
             history = transRes.data || []; recurring = recurRes.data || [];
             updateUI();
+            
+            // Auto-refresh right column on desktop
+            if (window.innerWidth >= 1100) { await renderAnalytics(); }
         } catch (err) { showToast("Error loading cloud data"); }
     }
 
@@ -578,7 +636,7 @@
                 <div class="item-info">
                     <span class="cat-pill" style="background:${catColors.Misc}22; color:${catColors.Misc}">RECURRING</span>
                     <b class="item-note-text">${s.name}</b>
-                    <div style="font-size:0.65rem; color:#94a3b8; font-weight:600; margin-top:2px;"><i class="fa-regular fa-calendar"></i> Billed Day ${s.billing_day}</div>
+                    <small style="color:#94a3b8">Billed Day ${s.billing_day}</small>
                 </div>
                 <div class="item-amt-group">
                     <span class="amt-text">$${s.amount.toFixed(2)}</span> 
@@ -623,7 +681,6 @@
                 displayName = 'SPLIT';
             }
             
-            // Format the submission date
             let dateObj = new Date(item.created_at);
             let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
             
