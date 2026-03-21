@@ -184,7 +184,7 @@
     <div id="loginScreen">
         <div class="header-stack">
             <div class="logo-glow"><svg width="40" height="40" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
-            <h2>Montoya Ledger</h2>
+            <h2 id="authTitle">Montoya Ledger</h2>
         </div>
         <div style="margin: 20px 0;">
             <input type="email" id="emailField" placeholder="Email Address" autocomplete="username">
@@ -194,6 +194,9 @@
             </div>
         </div>
         <button id="authBtn" class="btn-elite" onclick="authenticateUser()">Secure Login</button>
+        <div style="text-align: center; margin-top: 20px;">
+            <span id="authToggleText" style="color: #94a3b8; font-size: 0.85rem; cursor: pointer; transition: color 0.2s;" onclick="toggleAuthMode()">Don't have an account? <b style="color: #c084fc;">Sign Up</b></span>
+        </div>
     </div>
 
     <div id="app">
@@ -386,6 +389,7 @@
     let currentViewDate = new Date();
     let myChart, analyticsChart, catChart, _supabase;
     let editingId = null;
+    let isSignUpMode = false;
 
     const catColors = {
         Groceries: "#10b981", Dining: "#f59e0b", Utilities: "#06b6d4",
@@ -497,6 +501,23 @@
         else { passField.type = 'password'; eye.classList.replace('fa-eye-slash', 'fa-eye'); }
     }
 
+    function toggleAuthMode() {
+        isSignUpMode = !isSignUpMode;
+        const title = document.getElementById('authTitle');
+        const btn = document.getElementById('authBtn');
+        const toggleText = document.getElementById('authToggleText');
+
+        if (isSignUpMode) {
+            title.innerText = "Create Account";
+            btn.innerText = "Sign Up";
+            toggleText.innerHTML = "Already have an account? <b style='color: #c084fc;'>Log In</b>";
+        } else {
+            title.innerText = "Montoya Ledger";
+            btn.innerText = "Secure Login";
+            toggleText.innerHTML = "Don't have an account? <b style='color: #c084fc;'>Sign Up</b>";
+        }
+    }
+
     async function authenticateUser() { 
         const authBtn = document.getElementById('authBtn');
         const email = document.getElementById('emailField').value;
@@ -504,22 +525,31 @@
         
         if(!email || !pass) { alert("Please enter email and password."); return; }
         
-        authBtn.innerText = "Authenticating...";
+        authBtn.innerText = isSignUpMode ? "Creating Account..." : "Authenticating...";
         
         try {
-            const { data, error } = await _supabase.auth.signInWithPassword({ email: email, password: pass });
-            if (error) throw error;
+            let authResponse;
+            if (isSignUpMode) {
+                authResponse = await _supabase.auth.signUp({ email: email, password: pass });
+                if (authResponse.error) throw authResponse.error;
+            } else {
+                authResponse = await _supabase.auth.signInWithPassword({ email: email, password: pass });
+                if (authResponse.error) throw authResponse.error;
+            }
             
-            if (data.session) {
+            if (authResponse.data.session) {
                 document.body.classList.add('logged-in'); 
                 document.getElementById('loginScreen').style.display = 'none'; 
                 document.getElementById('app').style.display = 'block'; 
                 resetInactivityTimer();
                 loadAppEngine();
+            } else if (isSignUpMode && !authResponse.data.session) {
+                alert("Account created successfully! You can now log in.");
+                toggleAuthMode();
             }
         } catch (err) { 
-            alert("Login Failed: " + err.message); 
-            authBtn.innerText = "Secure Login"; 
+            alert((isSignUpMode ? "Sign Up Failed: " : "Login Failed: ") + err.message); 
+            authBtn.innerText = isSignUpMode ? "Sign Up" : "Secure Login"; 
         }
     }
 
