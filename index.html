@@ -116,6 +116,19 @@
             border: 1px solid rgba(168, 85, 247, 0.2); font-size: 0.85rem; font-weight: 700; color: #e0e7ff; 
         }
         #isRecurring { width: 20px; height: 20px; accent-color: #a855f7; cursor: pointer; margin: 0; }
+
+        /* QUICK SYNC CHIPS */
+        .quick-sync-row {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px;
+            scrollbar-width: none; /* Firefox */
+        }
+        .quick-sync-row::-webkit-scrollbar { display: none; /* Safari/Chrome */ }
+        .quick-chip {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 8px 16px;
+            border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: #e2e8f0; white-space: nowrap;
+            cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .quick-chip:hover { background: rgba(255, 255, 255, 0.15); }
     </style>
 </head>
 <body>
@@ -225,6 +238,14 @@
                 <button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button>
             </div>
             
+            <div class="quick-sync-row">
+                <div class="quick-chip" onclick="quickFill(15.00, 'Dining', 'McDonalds', 'Want')"><i class="fa-solid fa-burger" style="color:#f59e0b"></i> McDonald's</div>
+                <div class="quick-chip" onclick="quickFill(40.00, 'Car', 'Gas', 'Need')"><i class="fa-solid fa-gas-pump" style="color:#3b82f6"></i> Gas</div>
+                <div class="quick-chip" onclick="quickFill(5.00, 'Dining', 'Coffee', 'Want')"><i class="fa-solid fa-mug-hot" style="color:#f59e0b"></i> Coffee</div>
+                <div class="quick-chip" onclick="quickFill(100.00, 'Groceries', 'Publix', 'Need')"><i class="fa-solid fa-basket-shopping" style="color:#10b981"></i> Publix</div>
+                <div class="quick-chip" onclick="quickFill(60.00, 'Misc', 'Dog Food', 'Need')"><i class="fa-solid fa-dog" style="color:#94a3b8"></i> Dog Food</div>
+            </div>
+
             <div class="recur-row" id="recurToggleRow">
                 <span>Set as Recurring Bill?</span>
                 <input type="checkbox" id="isRecurring">
@@ -416,6 +437,14 @@
     async function changeCycle() { 
         currentViewDate = new Date(document.getElementById('cycleSelect').value); 
         await fetchData(); 
+    }
+
+    function quickFill(amt, cat, note, intent) {
+        document.getElementById('amount').value = amt.toFixed(2);
+        document.getElementById('category').value = cat;
+        document.getElementById('noteInput').value = note;
+        setType(intent);
+        showToast(`Auto-filled ${note}. Hit Sync!`);
     }
 
     function editEntry(id) {
@@ -716,7 +745,6 @@
 
             if (typeof Chart === 'undefined') return;
 
-            // Render Bar Chart
             const ctxEl = document.getElementById('analyticsBarChart'); 
             if (ctxEl) {
                 const ctx = ctxEl.getContext('2d');
@@ -724,7 +752,6 @@
                 analyticsChart = new Chart(ctx, { type: 'bar', data: { labels: ['Last Cycle', 'This Cycle'], datasets: [{ label: 'Brandon', data: [lastB, currB], backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'Gina', data: [lastG, currG], backgroundColor: '#ec4899', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { labels: { color: '#f8fafc' } } } } });
             }
 
-            // Render Donut Chart
             const ctxCatEl = document.getElementById('categoryDonutChart');
             if (ctxCatEl) {
                 const ctxCat = ctxCatEl.getContext('2d');
@@ -735,23 +762,8 @@
                 if(catChart) catChart.destroy();
                 catChart = new Chart(ctxCat, {
                     type: 'doughnut',
-                    data: {
-                        labels: catLabels,
-                        datasets: [{
-                            data: catData,
-                            backgroundColor: catBgColors,
-                            borderWidth: 0,
-                            hoverOffset: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '70%',
-                        plugins: {
-                            legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 10, family: 'Inter' } } }
-                        }
-                    }
+                    data: { labels: catLabels, datasets: [{ data: catData, backgroundColor: catBgColors, borderWidth: 0, hoverOffset: 4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 10, family: 'Inter' } } } } }
                 });
             }
 
