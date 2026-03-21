@@ -35,7 +35,6 @@
 
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; transition: background 0.3s ease; }
         
-        /* AMBIENT BACKGROUND ORBS */
         .bg-orb { position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; opacity: 0.35; animation: float 20s infinite ease-in-out alternate; pointer-events: none; }
         .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; }
         .orb-2 { width: 600px; height: 600px; background: #ec4899; bottom: -200px; right: -150px; animation-delay: -10s; }
@@ -54,7 +53,6 @@
         #app, #subManager, #analyticsModal, #notesManager { display: none; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 1000; transition: opacity 0.3s; }
-        
         .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 3000; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
 
         .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg); border-right: 1px solid var(--border); z-index: 2000; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
@@ -105,7 +103,7 @@
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); margin-bottom: 12px; transition: all 0.3s ease;}
         .btn-manage { background: var(--secondary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
 
-        input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
+        input, select, textarea { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
         select option { background-color: #0f172a !important; color: #ffffff !important; }
         .cycle-selector option { background-color: #0f172a !important; color: #ffffff !important; }
 
@@ -122,10 +120,8 @@
         .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
         .quick-chip:hover { background: rgba(255, 255, 255, 0.15); }
 
-        /* DESKTOP COMMAND CENTER LAYOUT */
         @media (min-width: 1100px) {
             body:not(.logged-in) #loginScreen { margin-top: 15vh; }
-            
             body.logged-in { display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; gap: 30px; overflow-y: auto; }
             body.logged-in .side-menu { position: relative; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(25px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); flex-shrink: 0; }
             body.logged-in .side-menu .menu-header { border-top-left-radius: 32px; border-top-right-radius: 32px; }
@@ -135,8 +131,6 @@
             body.logged-in .hamburger { display: none !important; }
             body.logged-in .app-title { margin: 0 auto; text-align: center; width: 100%; }
             body.logged-in #analyticsModal .btn-manage { display: none; } 
-            
-            /* Hide redundant Analytics buttons on desktop to avoid confusion */
             body.logged-in .app-top-nav .nav-analytics-btn { display: none; } 
             body.logged-in .analytics-nav-item { display: none !important; }
         }
@@ -158,6 +152,9 @@
         <div class="menu-item" onclick="toggleMenu(); openNotes();"><i class="fa-solid fa-comment-dots" style="color:#10b981"></i> Family Notes</div>
         <div class="menu-item" onclick="toggleMenu(); toggleSettings();"><i class="fa-solid fa-cloud" style="color:#c084fc"></i> Cloud Config</div>
         <div class="menu-item" onclick="toggleMenu(); document.getElementById('themeModalOverlay').style.display='block'; document.getElementById('themeModal').style.display='block';"><i class="fa-solid fa-palette" style="color:#f472b6"></i> Theme Settings</div>
+        
+        <div style="flex-grow: 1;"></div>
+        <div class="menu-item" onclick="logoutApp();" style="border-top: 1px solid var(--border); border-bottom: none; color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Secure Log Out</div>
     </div>
 
     <div id="themeModalOverlay" class="modal-overlay" onclick="document.getElementById('themeModalOverlay').style.display='none'; document.getElementById('themeModal').style.display='none';"></div>
@@ -187,11 +184,11 @@
             <div class="logo-glow"><svg width="40" height="40" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
             <h2>Montoya Ledger</h2>
         </div>
-        <div style="position: relative; margin: 20px 0;">
-            <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem;">
-            <i class="fa-solid fa-eye" id="togglePin" onclick="togglePinView()" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer;"></i>
+        <div style="margin: 20px 0;">
+            <input type="email" id="emailField" placeholder="Email Address">
+            <input type="password" id="passwordField" placeholder="Password">
         </div>
-        <button id="authBtn" class="btn-elite" onclick="checkPin()">Authorize Access</button>
+        <button id="authBtn" class="btn-elite" onclick="authenticateUser()">Secure Login</button>
     </div>
 
     <div id="app">
@@ -377,7 +374,6 @@
 <script>
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
-    const MY_PIN = "1991"; 
     const CYCLE_START_DAY = 16;
     
     let history = [], recurring = [], notes = [], currentType = 'Need';
@@ -395,7 +391,19 @@
     if(savedTheme) document.body.setAttribute('data-theme', savedTheme);
 
     try {
-        if (typeof supabase !== 'undefined') { _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } 
+        if (typeof supabase !== 'undefined') { 
+            _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
+            
+            // SESSION CHECKER ON LOAD
+            _supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    document.body.classList.add('logged-in');
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                    loadAppEngine();
+                }
+            });
+        } 
         else { console.warn("Supabase library blocked."); }
     } catch (e) { console.error("Database connection failure:", e); }
 
@@ -456,34 +464,41 @@
         document.getElementById('themeModal').style.display = 'none';
     }
 
-    function togglePinView() {
-        const pinField = document.getElementById('pinField');
-        const eye = document.getElementById('togglePin');
-        if (pinField.type === 'password') { pinField.type = 'text'; eye.classList.replace('fa-eye', 'fa-eye-slash'); } 
-        else { pinField.type = 'password'; eye.classList.replace('fa-eye-slash', 'fa-eye'); }
-    }
-
-    async function checkPin() { 
+    // REAL SECURE LOGIN FUNCTION
+    async function authenticateUser() { 
         const authBtn = document.getElementById('authBtn');
+        const email = document.getElementById('emailField').value;
+        const pass = document.getElementById('passwordField').value;
+        
+        if(!email || !pass) { alert("Please enter email and password."); return; }
+        
         authBtn.innerText = "Authenticating...";
+        
         try {
-            if (document.getElementById('pinField').value === MY_PIN) { 
-                
+            const { data, error } = await _supabase.auth.signInWithPassword({ email: email, password: pass });
+            if (error) throw error;
+            
+            if (data.session) {
                 document.body.classList.add('logged-in'); 
-                
                 document.getElementById('loginScreen').style.display = 'none'; 
                 document.getElementById('app').style.display = 'block'; 
-                if (_supabase) {
-                    const { data, error } = await _supabase.from('app_settings').select('*').eq('id', 1).single();
-                    if(data) config = data;
-                    if(error && error.code !== 'PGRST116') console.error("Config load error", error);
-                    initCycles(); initChart(); await fetchData();
-                } else {
-                    document.getElementById('offlineBanner').style.display = 'block';
-                    initCycles(); initChart(); updateUI();
-                }
-            } else { alert("Incorrect PIN entered."); authBtn.innerText = "Authorize Access"; } 
-        } catch (err) { alert("System Error."); authBtn.innerText = "Authorize Access"; }
+                loadAppEngine();
+            }
+        } catch (err) { 
+            alert("Login Failed: " + err.message); 
+            authBtn.innerText = "Secure Login"; 
+        }
+    }
+
+    async function logoutApp() {
+        await _supabase.auth.signOut();
+        location.reload(); // Hard reset to force login screen
+    }
+
+    async function loadAppEngine() {
+        const { data, error } = await _supabase.from('app_settings').select('*').eq('id', 1).single();
+        if(data) config = data;
+        initCycles(); initChart(); await fetchData();
     }
 
     async function fetchData() {
