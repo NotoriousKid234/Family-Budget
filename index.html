@@ -122,7 +122,7 @@
         .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
         .quick-chip:hover { background: rgba(255, 255, 255, 0.15); }
 
-        /* DESKTOP COMMAND CENTER LAYOUT - FIXED FOR LOGIN SCREEN */
+        /* DESKTOP COMMAND CENTER LAYOUT */
         @media (min-width: 1100px) {
             body:not(.logged-in) #loginScreen { margin-top: 15vh; }
             
@@ -135,7 +135,10 @@
             body.logged-in .hamburger { display: none !important; }
             body.logged-in .app-title { margin: 0 auto; text-align: center; width: 100%; }
             body.logged-in #analyticsModal .btn-manage { display: none; } 
+            
+            /* Hide redundant Analytics buttons on desktop to avoid confusion */
             body.logged-in .app-top-nav .nav-analytics-btn { display: none; } 
+            body.logged-in .analytics-nav-item { display: none !important; }
         }
     </style>
 </head>
@@ -151,7 +154,7 @@
         <div class="menu-header">Elite Ledger</div>
         <div class="menu-item" onclick="toggleMenu(); showDashboard();"><i class="fa-solid fa-house" style="color:var(--need)"></i> Dashboard</div>
         <div class="menu-item" onclick="toggleMenu(); openManager();"><i class="fa-solid fa-clock-rotate-left" style="color:var(--want)"></i> Recurring Bills</div>
-        <div class="menu-item" onclick="toggleMenu(); openAnalytics();"><i class="fa-solid fa-chart-line" style="color:#60a5fa"></i> Analytics</div>
+        <div class="menu-item analytics-nav-item" onclick="toggleMenu(); openAnalytics();"><i class="fa-solid fa-chart-line" style="color:#60a5fa"></i> Analytics</div>
         <div class="menu-item" onclick="toggleMenu(); openNotes();"><i class="fa-solid fa-comment-dots" style="color:#10b981"></i> Family Notes</div>
         <div class="menu-item" onclick="toggleMenu(); toggleSettings();"><i class="fa-solid fa-cloud" style="color:#c084fc"></i> Cloud Config</div>
         <div class="menu-item" onclick="toggleMenu(); document.getElementById('themeModalOverlay').style.display='block'; document.getElementById('themeModal').style.display='block';"><i class="fa-solid fa-palette" style="color:#f472b6"></i> Theme Settings</div>
@@ -466,7 +469,6 @@
         try {
             if (document.getElementById('pinField').value === MY_PIN) { 
                 
-                // FIX FOR DESKTOP LOGIN REVEAL
                 document.body.classList.add('logged-in'); 
                 
                 document.getElementById('loginScreen').style.display = 'none'; 
