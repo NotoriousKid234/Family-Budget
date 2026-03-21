@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <style>
         :root { 
             --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
@@ -53,11 +52,7 @@
         .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; }
         .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 5px; }
 
-        /* UPGRADED HISTORY LIST */
-        .history-item { 
-            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 18px;
-            display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; margin-bottom: 10px;
-        }
+        .history-item { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; margin-bottom: 10px; }
         .item-info { display: flex; flex-direction: column; gap: 5px; }
         .cat-pill { font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; width: fit-content; background: rgba(255,255,255,0.1); }
         .item-note-text { font-size: 1rem; font-weight: 700; color: #fff; }
@@ -79,13 +74,12 @@
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; }
         .type-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; background: transparent; color: #94a3b8; font-weight: 700; transition: 0.2s; }
         .type-btn.active { background: white; color: #0f172a; }
-        
         .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; }
     </style>
 </head>
 <body>
 
-    <div id="offlineBanner">OFFLINE - SYNC PAUSED</div>
+    <div id="offlineBanner">DATABASE CONNECTION FAILED - OFFLINE MODE</div>
     <div id="toastContainer"></div>
 
     <div id="settingsOverlay" class="modal-overlay" onclick="toggleSettings()"></div>
@@ -112,7 +106,7 @@
             <i class="fa-solid fa-eye" id="togglePin" onclick="togglePinView()" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer;"></i>
         </div>
         
-        <button class="btn-elite" onclick="checkPin()">Authorize Access</button>
+        <button id="authBtn" class="btn-elite" onclick="checkPin()">Authorize Access</button>
     </div>
 
     <div id="app">
@@ -182,6 +176,9 @@
                 <option value="Mortgage">🏠 Mortgage</option>
                 <option value="Car">🚗 Car Payment</option>
                 <option value="CreditCard">💳 Credit Card</option>
+                <option value="Subscription">📺 Subscription</option>
+                <option value="Beauty">✂️ Beauty</option>
+                <option value="Goal">🎯 Vault / Goal</option>
                 <option value="Misc">📦 Misc</option>
             </select>
             <input type="text" id="noteInput" placeholder="Note or #tags">
@@ -231,37 +228,46 @@
     </div>
 
 <script>
-    // HARDENED SCRIPT ENGINE
+    // ---------------------------------------------
+    // BULLETPROOF INITIALIZATION
+    // ---------------------------------------------
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
-    
-    // Safety check: Ensure Supabase library loaded properly
-    if (typeof supabase === 'undefined') {
-        alert("CRITICAL ERROR: Supabase Database library failed to load. Please check your internet connection or ad-blocker.");
-    }
-    
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const MY_PIN = "1991"; 
     const CYCLE_START_DAY = 16;
     
     let history = [], recurring = [], currentType = 'Need';
     let config = { budget: 7400, m_balance: 0, c_balance: 0 };
     let currentViewDate = new Date();
-    let myChart, analyticsChart;
+    let myChart, analyticsChart, _supabase;
 
     const catColors = {
         Groceries: "#10b981", Dining: "#f59e0b", Utilities: "#06b6d4",
-        Mortgage: "#6366f1", Car: "#3b82f6", CreditCard: "#ef4444", Misc: "#94a3b8"
+        Mortgage: "#6366f1", Car: "#3b82f6", CreditCard: "#ef4444", Subscription: "#c084fc", Misc: "#94a3b8"
     };
+
+    // Safely try to initialize Supabase
+    try {
+        if (typeof supabase !== 'undefined') {
+            _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } else {
+            console.warn("Supabase library blocked by browser.");
+        }
+    } catch (e) {
+        console.error("Database connection failure:", e);
+    }
+
+    // ---------------------------------------------
+    // CORE LOGIC
+    // ---------------------------------------------
 
     function showToast(msg) {
         const container = document.getElementById('toastContainer');
         if (!container) return;
         const toast = document.createElement('div');
-        toast.className = 'toast'; 
-        toast.innerText = msg;
+        toast.className = 'toast'; toast.innerText = msg;
         container.appendChild(toast);
-        setTimeout(() => { if (toast.parentNode) toast.remove() }, 3000);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
     }
 
     function togglePinView() {
@@ -269,70 +275,57 @@
         const eye = document.getElementById('togglePin');
         if (pinField.type === 'password') { 
             pinField.type = 'text'; 
-            eye.classList.remove('fa-eye');
-            eye.classList.add('fa-eye-slash'); 
+            eye.classList.replace('fa-eye', 'fa-eye-slash'); 
         } else { 
             pinField.type = 'password'; 
-            eye.classList.remove('fa-eye-slash');
-            eye.classList.add('fa-eye'); 
+            eye.classList.replace('fa-eye-slash', 'fa-eye'); 
         }
     }
 
     async function checkPin() { 
+        const authBtn = document.getElementById('authBtn');
+        authBtn.innerText = "Authenticating...";
+
         try {
-            const enteredPin = document.getElementById('pinField').value;
-            if (enteredPin === MY_PIN) { 
-                // Hide login immediately to show action is happening
+            if (document.getElementById('pinField').value === MY_PIN) { 
                 document.getElementById('loginScreen').style.display = 'none'; 
                 document.getElementById('app').style.display = 'block'; 
                 
-                showToast("Authenticating...");
-                
-                const { data, error } = await _supabase.from('app_settings').select('*').eq('id', 1).single();
-                if (error && error.code !== 'PGRST116') {
-                    console.error("Config fetch error:", error);
+                if (_supabase) {
+                    const { data, error } = await _supabase.from('app_settings').select('*').eq('id', 1).single();
+                    if(data) config = data;
+                    if(error && error.code !== 'PGRST116') console.error("Config load error", error);
+                    
+                    initCycles(); 
+                    initChart(); 
+                    await fetchData();
+                } else {
+                    document.getElementById('offlineBanner').style.display = 'block';
+                    initCycles();
+                    initChart();
+                    updateUI();
                 }
-                if (data) {
-                    config = data;
-                }
-                
-                initCycles(); 
-                initChart(); 
-                await fetchData();
             } else { 
-                showToast("Invalid PIN"); 
+                alert("Incorrect PIN entered."); 
+                authBtn.innerText = "Authorize Access";
             } 
         } catch (err) {
-            alert("Application Error during login: " + err.message);
-            document.getElementById('loginScreen').style.display = 'block'; 
-            document.getElementById('app').style.display = 'none'; 
+            alert("A system error occurred during login. Please refresh the page.");
+            console.error(err);
+            authBtn.innerText = "Authorize Access";
         }
     }
 
     async function fetchData() {
+        if (!_supabase) return;
         try {
             const { start, end } = getCycleDates(currentViewDate);
             const [transRes, recurRes] = await Promise.all([
                 _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
                 _supabase.from('recurring_expenses').select('*')
             ]);
-            
             history = transRes.data || []; 
             recurring = recurRes.data || [];
             updateUI();
         } catch (err) {
-            console.error("Data fetch error:", err);
-            showToast("Error loading transaction data");
-        }
-    }
-
-    async function addEntry() {
-        const amtInput = document.getElementById('amount').value;
-        const amt = parseFloat(amtInput);
-        const cat = document.getElementById('category').value;
-        const mem = document.getElementById('memberSelect').value;
-        const note = document.getElementById('noteInput').value;
-        
-        if (!amtInput || isNaN(amt) || amt <= 0) {
-            showToast("Please enter a valid amount");
-            return;
+            console.error("Error fetching data", er
