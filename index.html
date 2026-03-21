@@ -52,7 +52,7 @@
         .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; }
         .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 5px; }
 
-        .history-item { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; margin-bottom: 10px; }
+        .history-item { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; margin-bottom: 10px; transition: transform 0.2s ease; }
         .item-info { display: flex; flex-direction: column; gap: 5px; }
         .cat-pill { font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; width: fit-content; background: rgba(255,255,255,0.1); }
         .item-note-text { font-size: 1rem; font-weight: 700; color: #fff; }
@@ -65,7 +65,6 @@
         .item-amt-group { display: flex; align-items: center; gap: 12px; }
         .amt-text { font-size: 1.1rem; font-weight: 700; color: #fff; }
         
-        /* NEW EDIT ICON STYLES */
         .edit-icon { color: #60a5fa; cursor: pointer; opacity: 0.6; padding: 8px; background: rgba(96, 165, 250, 0.1); border-radius: 10px; transition: all 0.2s; }
         .edit-icon:hover { opacity: 1; transform: scale(1.1); }
 
@@ -79,7 +78,16 @@
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; }
         .type-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; background: transparent; color: #94a3b8; font-weight: 700; transition: 0.2s; }
         .type-btn.active { background: white; color: #0f172a; }
+        
         .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; }
+
+        .recur-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%); 
+            padding: 14px 18px; border-radius: 14px; margin-bottom: 15px; 
+            border: 1px solid rgba(168, 85, 247, 0.2); font-size: 0.85rem; font-weight: 700; color: #e0e7ff; 
+        }
+        #isRecurring { width: 20px; height: 20px; accent-color: #a855f7; cursor: pointer; margin: 0; }
     </style>
 </head>
 <body>
@@ -170,6 +178,12 @@
                 <button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button>
                 <button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button>
             </div>
+            
+            <div class="recur-row" id="recurToggleRow">
+                <span>Set as Recurring Bill?</span>
+                <input type="checkbox" id="isRecurring">
+            </div>
+
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select>
                 <input type="number" id="amount" placeholder="0.00" inputmode="decimal">
@@ -203,17 +217,12 @@
     </div>
 
     <div id="subManager">
-        <div class="header-stack"><h3>Recurring Bills</h3></div>
-        <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:20px; margin-bottom:20px;">
-            <input type="text" id="subName" placeholder="Bill Name">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <input type="number" id="subAmt" placeholder="Amount">
-                <input type="number" id="subDay" placeholder="Day (1-31)">
-            </div>
-            <button class="btn-elite" onclick="addSub()">Add New Bill</button>
+        <div class="header-stack">
+            <h3>Recurring Bills</h3>
+            <p style="font-size:0.7rem; color:#94a3b8;">Manage automated structural costs</p>
         </div>
         <div id="subList"></div>
-        <button class="btn-manage" onclick="toggleManager()" style="margin-top:20px; width:100%;">Back</button>
+        <button class="btn-manage" onclick="toggleManager()" style="margin-top:20px; width:100%;">Back to Ledger</button>
     </div>
 
     <div id="analyticsModal">
@@ -249,7 +258,7 @@
     let config = { budget: 7400, m_balance: 0, c_balance: 0 };
     let currentViewDate = new Date();
     let myChart, analyticsChart, _supabase;
-    let editingId = null; // NEW: Edit State tracking
+    let editingId = null;
 
     const catColors = {
         Groceries: "#10b981", Dining: "#f59e0b", Utilities: "#06b6d4",
@@ -336,7 +345,6 @@
         } catch (err) { showToast("Error loading cloud data"); }
     }
 
-    // NEW EDIT FUNCTIONS
     function editEntry(id) {
         const item = history.find(h => h.id === id);
         if (!item) return;
@@ -354,8 +362,8 @@
         btn.style.boxShadow = "0 10px 20px -5px rgba(245, 158, 11, 0.4)";
         
         document.getElementById('cancelEditBtn').style.display = 'block';
+        document.getElementById('recurToggleRow').style.display = 'none'; // Hide recurring toggle while editing
         
-        // Scroll to the input area
         window.scrollTo({ top: document.querySelector('.type-toggle').offsetTop - 20, behavior: 'smooth' });
     }
 
@@ -363,6 +371,7 @@
         editingId = null;
         document.getElementById('amount').value = '';
         document.getElementById('noteInput').value = '';
+        document.getElementById('isRecurring').checked = false;
         
         const btn = document.getElementById('syncBtn');
         btn.innerText = "Sync Transaction";
@@ -370,6 +379,7 @@
         btn.style.boxShadow = "0 10px 20px -5px rgba(99, 102, 241, 0.4)";
         
         document.getElementById('cancelEditBtn').style.display = 'none';
+        document.getElementById('recurToggleRow').style.display = 'flex';
     }
 
     async function addEntry() {
@@ -378,6 +388,7 @@
         const cat = document.getElementById('category').value;
         const mem = document.getElementById('memberSelect').value;
         const note = document.getElementById('noteInput').value;
+        const isRecur = document.getElementById('isRecurring').checked;
         
         if (!amtInput || isNaN(amt) || amt <= 0) {
             showToast("Please enter a valid amount");
@@ -385,13 +396,11 @@
         }
 
         if (editingId) {
-            // Reverse old balances for local logic
             const oldItem = history.find(h => h.id === editingId);
             if (oldItem && oldItem.category === 'Mortgage') config.m_balance += oldItem.amount;
             if (oldItem && oldItem.category === 'Car') config.c_balance += oldItem.amount;
         }
 
-        // Apply new balances
         if (cat === 'Mortgage') config.m_balance -= amt;
         if (cat === 'Car') config.c_balance -= amt;
         
@@ -400,7 +409,6 @@
                 showToast(editingId ? "Updating..." : "Syncing...");
                 
                 const payload = { amount: amt, member: mem, category: cat, note: note, intent: currentType };
-                
                 let dbTask;
                 if (editingId) {
                     dbTask = _supabase.from('transactions').update(payload).eq('id', editingId);
@@ -409,13 +417,23 @@
                     dbTask = _supabase.from('transactions').insert([payload]);
                 }
 
+                // If user checked "Recurring" on a new entry
+                let recurTask = Promise.resolve();
+                if (isRecur && !editingId) {
+                    const billDay = prompt("What day of the month does this bill post? (1-31):", new Date().getDate());
+                    if (billDay !== null && !isNaN(parseInt(billDay))) {
+                        recurTask = _supabase.from('recurring_expenses').insert([{ name: note || cat, amount: amt, billing_day: parseInt(billDay) }]);
+                    }
+                }
+
                 await Promise.all([
                     dbTask,
+                    recurTask,
                     _supabase.from('app_settings').upsert({ id: 1, ...config })
                 ]);
                 
                 const isEdit = editingId !== null;
-                cancelEdit(); // Reset form and ID
+                cancelEdit(); 
                 fetchData(); 
                 showToast(isEdit ? "Transaction Updated!" : "Transaction Synced!");
             } catch (err) {
@@ -449,19 +467,18 @@
         else { app.style.display = 'none'; mgr.style.display = 'block'; renderSubList(); }
     }
 
-    async function addSub() {
-        const n = document.getElementById('subName').value, a = parseFloat(document.getElementById('subAmt').value), d = parseInt(document.getElementById('subDay').value);
-        if(!n || isNaN(a) || isNaN(d)) { showToast("Please fill all recurring fields"); return; }
+    async function editSub(id) {
+        const sub = recurring.find(s => s.id === id); if (!sub) return;
+        const newName = prompt("Edit Name:", sub.name); if (newName === null) return;
+        const newAmt = prompt("Edit Amount:", sub.amount); if (newAmt === null || isNaN(parseFloat(newAmt))) return;
+        const newDay = prompt("Edit Billing Day (1-31):", sub.billing_day); if (newDay === null || isNaN(parseInt(newDay))) return;
         
-        if (_supabase) {
-            try {
-                await _supabase.from('recurring_expenses').insert([{ name: n, amount: a, billing_day: d }]);
-                const { data } = await _supabase.from('recurring_expenses').select('*');
-                recurring = data || []; renderSubList(); 
-                document.getElementById('subName').value = ''; document.getElementById('subAmt').value = ''; document.getElementById('subDay').value = '';
-                showToast("Recurring Bill Added!");
-            } catch (err) { showToast("Failed to add recurring bill"); }
-        }
+        try {
+            await _supabase.from('recurring_expenses').update({ name: newName, amount: parseFloat(newAmt), billing_day: parseInt(newDay) }).eq('id', id);
+            const { data } = await _supabase.from('recurring_expenses').select('*');
+            recurring = data || []; 
+            renderSubList(); showToast("Bill Updated");
+        } catch(err) { showToast("Failed to update bill"); }
     }
 
     async function deleteSub(id) {
@@ -469,21 +486,27 @@
         try {
             await _supabase.from('recurring_expenses').delete().eq('id', id);
             const { data } = await _supabase.from('recurring_expenses').select('*');
-            recurring = data || []; renderSubList(); showToast("Bill Removed");
+            recurring = data || []; 
+            renderSubList();
+            showToast("Bill Removed");
         } catch(err) { showToast("Failed to remove bill"); }
     }
 
     function renderSubList() {
-        const list = document.getElementById('subList'); list.innerHTML = '';
+        const list = document.getElementById('subList'); 
+        list.innerHTML = '';
         recurring.forEach(s => {
-            const div = document.createElement('div'); div.className = 'history-item';
+            const div = document.createElement('div'); 
+            div.className = 'history-item';
             div.innerHTML = `
                 <div class="item-info">
                     <span class="cat-pill" style="background:${catColors.Misc}22; color:${catColors.Misc}">RECURRING</span>
-                    <b class="item-note-text">${s.name}</b><small style="color:#94a3b8">Billed Day ${s.billing_day}</small>
+                    <b class="item-note-text">${s.name}</b>
+                    <small style="color:#94a3b8">Billed Day ${s.billing_day}</small>
                 </div>
                 <div class="item-amt-group">
                     <span class="amt-text">$${s.amount.toFixed(2)}</span> 
+                    <i class="fa-solid fa-pen-to-square edit-icon" onclick="editSub('${s.id}')"></i>
                     <i class="fa-solid fa-trash-can trash-icon" onclick="deleteSub('${s.id}')"></i>
                 </div>`;
             list.appendChild(div);
@@ -578,9 +601,11 @@
     }
 
     function getCycleDates(baseDate) {
-        let d = new Date(baseDate); let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY);
+        let d = new Date(baseDate); 
+        let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY);
         if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1);
-        let end = new Date(start); end.setMonth(end.getMonth() + 1); return { start, end };
+        let end = new Date(start); end.setMonth(end.getMonth() + 1);
+        return { start, end };
     }
 
     function initChart() {
