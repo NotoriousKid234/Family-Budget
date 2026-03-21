@@ -39,23 +39,19 @@
         .bg-orb { position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; opacity: 0.35; animation: float 20s infinite ease-in-out alternate; pointer-events: none; }
         .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; }
         .orb-2 { width: 600px; height: 600px; background: #ec4899; bottom: -200px; right: -150px; animation-delay: -10s; }
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(50px, 30px) scale(1.05); }
-            100% { transform: translate(-30px, 50px) scale(0.95); }
-        }
+        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(50px, 30px) scale(1.05); } 100% { transform: translate(-30px, 50px) scale(0.95); } }
 
         #offlineBanner { display: none; background: #ef4444; color: white; text-align: center; font-size: 0.75rem; font-weight: 700; padding: 8px; position: fixed; top: 0; left: 0; width: 100%; z-index: 3000; }
         #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 4000; width: 80%; pointer-events: none; }
         .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        #loginScreen, #app, #subManager, #analyticsModal { 
+        #loginScreen, #app, #subManager, #analyticsModal, #notesManager { 
             background: var(--card); backdrop-filter: blur(25px); padding: 30px 20px; 
             border-radius: 32px; width: 92%; max-width: 440px; 
             border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
             margin: 20px auto; box-sizing: border-box; transition: background 0.3s ease;
         }
-        #app, #subManager, #analyticsModal { display: none; }
+        #app, #subManager, #analyticsModal, #notesManager { display: none; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 1000; transition: opacity 0.3s; }
         
@@ -110,7 +106,6 @@
         .btn-manage { background: var(--secondary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
-        
         select option { background-color: #0f172a !important; color: #ffffff !important; }
         .cycle-selector option { background-color: #0f172a !important; color: #ffffff !important; }
 
@@ -119,15 +114,9 @@
         .type-btn.active { background: white; color: #0f172a; }
         .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; }
 
-        .recur-row { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%); 
-            padding: 14px 18px; border-radius: 14px; margin-bottom: 15px; 
-            border: 1px solid rgba(168, 85, 247, 0.2); font-size: 0.85rem; font-weight: 700; color: #e0e7ff; 
-        }
+        .recur-row { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%); padding: 14px 18px; border-radius: 14px; margin-bottom: 15px; border: 1px solid rgba(168, 85, 247, 0.2); font-size: 0.85rem; font-weight: 700; color: #e0e7ff; }
         #isRecurring { width: 20px; height: 20px; accent-color: #a855f7; cursor: pointer; margin: 0; }
 
-        /* QUICK SYNC CHIPS */
         .quick-sync-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
         .quick-sync-row::-webkit-scrollbar { display: none; }
         .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
@@ -137,30 +126,15 @@
         @media (min-width: 1100px) {
             body { display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; gap: 30px; overflow-y: auto; }
             #loginScreen { margin-top: 10vh; }
-            
-            /* Pin the side menu to the left */
-            .side-menu {
-                position: relative; left: 0 !important; width: 280px; height: max-content;
-                border-radius: 32px; background: var(--card); border: 1px solid var(--border);
-                backdrop-filter: blur(25px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); flex-shrink: 0;
-            }
+            .side-menu { position: relative; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(25px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); flex-shrink: 0; }
             .side-menu .menu-header { border-top-left-radius: 32px; border-top-right-radius: 32px; }
             #sideMenuOverlay { display: none !important; }
-
-            /* Center Column (Ledger / Recurring Manager) */
-            #app, #subManager { margin: 0; width: 440px; flex-shrink: 0; height: max-content; }
-
-            /* Right Column (Analytics) */
-            #analyticsModal {
-                position: relative; margin: 0; width: 440px; display: block !important; 
-                height: max-content; flex-shrink: 0; transform: none; top: 0; left: 0;
-            }
-
-            /* Hide mobile-specific buttons on desktop */
+            #app, #subManager, #notesManager { margin: 0; width: 440px; flex-shrink: 0; height: max-content; }
+            #analyticsModal { position: relative; margin: 0; width: 440px; display: block !important; height: max-content; flex-shrink: 0; transform: none; top: 0; left: 0; }
             .hamburger { display: none !important; }
             .app-title { margin: 0 auto; text-align: center; width: 100%; }
-            #analyticsModal .btn-manage { display: none; } /* Hide back button on analytics */
-            .app-top-nav .nav-analytics-btn { display: none; } /* Hide analytics open button in center app */
+            #analyticsModal .btn-manage { display: none; } 
+            .app-top-nav .nav-analytics-btn { display: none; } 
         }
     </style>
 </head>
@@ -168,7 +142,6 @@
 
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
-
     <div id="offlineBanner">DATABASE CONNECTION FAILED - OFFLINE MODE</div>
     <div id="toastContainer"></div>
 
@@ -178,6 +151,7 @@
         <div class="menu-item" onclick="toggleMenu(); showDashboard();"><i class="fa-solid fa-house" style="color:var(--need)"></i> Dashboard</div>
         <div class="menu-item" onclick="toggleMenu(); openManager();"><i class="fa-solid fa-clock-rotate-left" style="color:var(--want)"></i> Recurring Bills</div>
         <div class="menu-item" onclick="toggleMenu(); openAnalytics();"><i class="fa-solid fa-chart-line" style="color:#60a5fa"></i> Analytics</div>
+        <div class="menu-item" onclick="toggleMenu(); openNotes();"><i class="fa-solid fa-comment-dots" style="color:#10b981"></i> Family Notes</div>
         <div class="menu-item" onclick="toggleMenu(); toggleSettings();"><i class="fa-solid fa-cloud" style="color:#c084fc"></i> Cloud Config</div>
         <div class="menu-item" onclick="toggleMenu(); document.getElementById('themeModalOverlay').style.display='block'; document.getElementById('themeModal').style.display='block';"><i class="fa-solid fa-palette" style="color:#f472b6"></i> Theme Settings</div>
     </div>
@@ -223,8 +197,12 @@
             <div style="width:24px;"></div> 
         </div>
 
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;" class="app-top-nav">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;" class="app-top-nav">
             <button class="nav-analytics-btn" onclick="toggleAnalytics()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:600;"><i class="fa-solid fa-chart-line"></i> Analytics</button>
+            <div style="position:relative; cursor:pointer; margin: 0 15px;" onclick="openNotes()">
+                <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
+                <div id="notePing" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
+            </div>
             <button onclick="toggleSettings()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-weight:600; margin-left:auto;"><i class="fa-solid fa-cloud"></i> Config</button>
         </div>
 
@@ -344,6 +322,24 @@
         <button class="btn-manage" onclick="showDashboard()" style="margin-top:20px; width:100%;">Back to Ledger</button>
     </div>
 
+    <div id="notesManager">
+        <div class="top-header">
+            <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+            <div class="app-title">FAMILY NOTES</div>
+            <div style="width:24px;"></div>
+        </div>
+        <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:20px; margin-bottom:20px; margin-top:20px;">
+            <select id="noteAuthor" style="margin-bottom:10px;">
+                <option value="Brandon">Brandon</option>
+                <option value="Gina">Gina</option>
+            </select>
+            <textarea id="noteMessage" placeholder="Type a message..." style="width:100%; padding:16px; border-radius:12px; border:1px solid var(--border); background:rgba(15,23,42,0.5); color:white; font-family:'Inter', sans-serif; resize:vertical; min-height:80px; margin-bottom:10px; box-sizing:border-box;"></textarea>
+            <button class="btn-elite" onclick="addNote()">Post Note</button>
+        </div>
+        <div id="notesList"></div>
+        <button class="btn-manage" onclick="showDashboard()" style="margin-top:20px; width:100%;">Back to Ledger</button>
+    </div>
+
     <div id="analyticsModal">
         <div class="top-header">
             <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
@@ -380,7 +376,7 @@
     const MY_PIN = "1991"; 
     const CYCLE_START_DAY = 16;
     
-    let history = [], recurring = [], currentType = 'Need';
+    let history = [], recurring = [], notes = [], currentType = 'Need';
     let config = { budget: 7400, m_balance: 0, c_balance: 0 };
     let currentViewDate = new Date();
     let myChart, analyticsChart, catChart, _supabase;
@@ -408,19 +404,20 @@
         setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
     }
 
-    // UPDATED RESPONSIVE ROUTING
     function switchView(viewId) {
         const isDesktop = window.innerWidth >= 1100;
         window.scrollTo(0, 0); 
         
         if (isDesktop) {
-            if (viewId === 'analyticsModal') return; // Ignore on desktop, it's pinned to the right
+            if (viewId === 'analyticsModal') return; 
             document.getElementById('app').style.display = (viewId === 'app') ? 'block' : 'none';
             document.getElementById('subManager').style.display = (viewId === 'subManager') ? 'block' : 'none';
+            document.getElementById('notesManager').style.display = (viewId === 'notesManager') ? 'block' : 'none';
         } else {
             document.getElementById('app').style.display = 'none';
             document.getElementById('subManager').style.display = 'none';
             document.getElementById('analyticsModal').style.display = 'none';
+            document.getElementById('notesManager').style.display = 'none';
             document.getElementById(viewId).style.display = 'block';
         }
     }
@@ -428,13 +425,19 @@
     function showDashboard() { switchView('app'); fetchData(); }
     function openManager() { switchView('subManager'); renderSubList(); }
     async function openAnalytics() { 
-        if (window.innerWidth >= 1100) return; // Disable button click routing on desktop
+        if (window.innerWidth >= 1100) return; 
         switchView('analyticsModal'); 
         await renderAnalytics(); 
     }
+    function openNotes() { 
+        localStorage.setItem('montoya_notes_viewed', Date.now().toString());
+        const ping = document.getElementById('notePing');
+        if(ping) ping.style.display = 'none';
+        switchView('notesManager'); 
+    }
 
     function toggleMenu() {
-        if (window.innerWidth >= 1100) return; // Menu is permanent on desktop
+        if (window.innerWidth >= 1100) return; 
         const menu = document.getElementById('sideMenu');
         const overlay = document.getElementById('sideMenuOverlay');
         const isOpen = menu.classList.contains('open');
@@ -466,7 +469,6 @@
                 if (_supabase) {
                     const { data, error } = await _supabase.from('app_settings').select('*').eq('id', 1).single();
                     if(data) config = data;
-                    if(error && error.code !== 'PGRST116') console.error("Config load error", error);
                     initCycles(); initChart(); await fetchData();
                 } else {
                     document.getElementById('offlineBanner').style.display = 'block';
@@ -480,14 +482,17 @@
         if (!_supabase) return;
         try {
             const { start, end } = getCycleDates(currentViewDate);
-            const [transRes, recurRes] = await Promise.all([
+            const [transRes, recurRes, noteRes] = await Promise.all([
                 _supabase.from('transactions').select('*').gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
-                _supabase.from('recurring_expenses').select('*')
+                _supabase.from('recurring_expenses').select('*'),
+                _supabase.from('app_notes').select('*').order('created_at', { ascending: false }).limit(30)
             ]);
-            history = transRes.data || []; recurring = recurRes.data || [];
+            history = transRes.data || []; 
+            recurring = recurRes.data || [];
+            notes = noteRes.data || [];
             updateUI();
+            updateNotesUI();
             
-            // Auto-refresh right column on desktop
             if (window.innerWidth >= 1100) { await renderAnalytics(); }
         } catch (err) { showToast("Error loading cloud data"); }
     }
@@ -626,6 +631,77 @@
             const { data } = await _supabase.from('recurring_expenses').select('*');
             recurring = data || []; renderSubList(); showToast("Bill Removed");
         } catch(err) { showToast("Failed to remove bill"); }
+    }
+
+    // FAMILY NOTES LOGIC
+    async function addNote() {
+        const author = document.getElementById('noteAuthor').value;
+        const msg = document.getElementById('noteMessage').value;
+        if (!msg.trim()) { showToast("Message cannot be empty"); return; }
+        
+        if (_supabase) {
+            try {
+                showToast("Posting Note...");
+                await _supabase.from('app_notes').insert([{ author: author, message: msg, created_at: new Date().toISOString() }]);
+                document.getElementById('noteMessage').value = '';
+                localStorage.setItem('montoya_notes_viewed', Date.now().toString());
+                fetchData();
+            } catch (err) { showToast("Failed to post note"); }
+        }
+    }
+
+    async function deleteNote(id) {
+        if (!confirm("Delete this note?")) return;
+        if (_supabase) {
+            try {
+                await _supabase.from('app_notes').delete().eq('id', id);
+                fetchData();
+                showToast("Note deleted");
+            } catch(err) { showToast("Failed to delete note"); }
+        }
+    }
+
+    function updateNotesUI() {
+        const list = document.getElementById('notesList');
+        if (!list) return;
+        list.innerHTML = '';
+        let latestTime = 0;
+
+        notes.forEach(n => {
+            const noteTime = new Date(n.created_at).getTime();
+            if (noteTime > latestTime) latestTime = noteTime;
+            
+            const isBrandon = n.author === 'Brandon';
+            const pillClass = isBrandon ? 'pill-brandon' : 'pill-gina';
+            let dateObj = new Date(n.created_at);
+            let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+            const div = document.createElement('div'); 
+            div.className = 'history-item';
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'flex-start';
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:10px;">
+                    <div class="member-pill ${pillClass}"><i class="fa-solid fa-user"></i> ${n.author}</div>
+                    <div style="font-size:0.6rem; color:#64748b; font-weight:600;"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
+                </div>
+                <div style="font-size:0.95rem; color:#e2e8f0; line-height:1.5; padding:0 4px;">${n.message}</div>
+                <div style="width:100%; text-align:right; margin-top:8px;">
+                    <i class="fa-solid fa-trash-can trash-icon" onclick="deleteNote('${n.id}')"></i>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+
+        const lastViewed = parseInt(localStorage.getItem('montoya_notes_viewed') || '0');
+        const ping = document.getElementById('notePing');
+        if (ping) {
+            if (latestTime > lastViewed && notes.length > 0) {
+                ping.style.display = 'block';
+            } else {
+                ping.style.display = 'none';
+            }
+        }
     }
 
     function renderSubList() {
