@@ -25,11 +25,12 @@
         .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; }
         .orb-2 { width: 600px; height: 600px; background: #ec4899; bottom: -200px; right: -150px; }
 
-        #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 4000; width: 80%; pointer-events: none; }
+        #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 5000; width: 80%; pointer-events: none; }
         .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 2500; }
-        .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 3000; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
+        /* FIXED Z-INDEX FOR MODALS TO ALWAYS FLOAT ABOVE SIDEBAR */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 4000; }
+        .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 4100; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
 
         #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #configManager, #shareManager { 
             background: var(--card); backdrop-filter: blur(25px); padding: 25px; 
@@ -66,7 +67,7 @@
         .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; }
         .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 5px; }
 
-        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); }
+        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 20px; }
         .tracker-bar-bg { height: 10px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; margin-top: 8px; display: flex; }
         .tracker-bar-fill { background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
 
@@ -114,6 +115,7 @@
             body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
             body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #configManager, body.logged-in #shareManager { margin: 0; width: 550px; flex-shrink: 0; }
             body.logged-in .hamburger { display: none !important; }
+            body.logged-in .app-title { margin-left: -20px; }
         }
     </style>
 </head>
@@ -440,6 +442,10 @@
         document.getElementById(viewId).style.display = 'block';
         window.scrollTo(0,0);
         
+        if (viewId === 'notesManager') {
+            localStorage.setItem('montoya_notes_viewed', Date.now().toString());
+            document.querySelectorAll('.note-ping').forEach(p => p.style.display = 'none');
+        }
         if (viewId === 'app' || viewId === 'analyticsModal') fetchData();
         
         const menu = document.getElementById('sideMenu');
@@ -656,7 +662,11 @@
 
     function updateNotesUI() {
         const list = document.getElementById('notesList'); list.innerHTML = '';
+        let latestTime = 0;
         notes.forEach(n => {
+            const noteTime = new Date(n.created_at).getTime();
+            if (noteTime > latestTime) latestTime = noteTime;
+            
             let dateObj = new Date(n.created_at);
             let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
             
@@ -672,6 +682,10 @@
                 <i class="fa-solid fa-trash-can trash-icon" style="margin-left:15px;" onclick="deleteNote('${n.id}')"></i>`;
             list.appendChild(div);
         });
+        
+        const lastViewed = parseInt(localStorage.getItem('montoya_notes_viewed') || '0');
+        const pings = document.querySelectorAll('.note-ping');
+        pings.forEach(p => p.style.display = (latestTime > lastViewed && notes.length > 0) ? 'block' : 'none');
     }
 
     function updateNotificationsUI() {
