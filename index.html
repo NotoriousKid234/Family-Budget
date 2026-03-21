@@ -19,7 +19,6 @@
             --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
         }
 
-        /* Midnight Blue Theme */
         [data-theme="midnight"] {
             --primary: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
             --secondary: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
@@ -27,7 +26,6 @@
             --goal: #38bdf8;
         }
 
-        /* Obsidian Green Theme */
         [data-theme="obsidian"] {
             --primary: linear-gradient(135deg, #10b981 0%, #059669 100%);
             --secondary: linear-gradient(135deg, #059669 0%, #047857 100%);
@@ -51,10 +49,8 @@
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 1000; transition: opacity 0.3s; }
         
-        /* Modals */
         .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 3000; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
 
-        /* SIDE MENU STYLES */
         .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg); border-right: 1px solid var(--border); z-index: 2000; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
         .side-menu.open { left: 0; }
         .menu-header { padding: 30px 20px; font-size: 1.5rem; font-weight: 800; border-bottom: 1px solid var(--border); background: var(--card); color: #fff; }
@@ -63,7 +59,6 @@
         .theme-option { padding: 15px; text-align: center; font-weight: 700; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; cursor: pointer; background: rgba(255,255,255,0.05); transition: 0.2s; }
         .theme-option:hover { background: var(--primary); color: #fff;}
 
-        /* Top Header Area */
         .top-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 0 5px; }
         .hamburger { font-size: 1.5rem; color: #94a3b8; cursor: pointer; transition: color 0.2s; }
         .hamburger:hover { color: #fff; }
@@ -104,11 +99,24 @@
         .btn-manage { background: var(--secondary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
+        
+        /* FIX FOR DROP DOWNS */
+        select option { background: var(--bg); color: var(--text); }
+        .cycle-selector option { background: var(--bg); color: var(--text); }
+
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; }
         .type-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; background: transparent; color: #94a3b8; font-weight: 700; transition: 0.2s; }
         .type-btn.active { background: white; color: #0f172a; }
         
         .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; }
+
+        .recur-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%); 
+            padding: 14px 18px; border-radius: 14px; margin-bottom: 15px; 
+            border: 1px solid rgba(168, 85, 247, 0.2); font-size: 0.85rem; font-weight: 700; color: #e0e7ff; 
+        }
+        #isRecurring { width: 20px; height: 20px; accent-color: #a855f7; cursor: pointer; margin: 0; }
     </style>
 </head>
 <body>
@@ -119,9 +127,9 @@
     <div id="sideMenuOverlay" class="modal-overlay" onclick="toggleMenu()"></div>
     <div id="sideMenu" class="side-menu">
         <div class="menu-header">Elite Ledger</div>
-        <div class="menu-item" onclick="toggleMenu();"><i class="fa-solid fa-house" style="color:var(--need)"></i> Dashboard</div>
-        <div class="menu-item" onclick="toggleMenu(); toggleManager();"><i class="fa-solid fa-clock-rotate-left" style="color:var(--want)"></i> Recurring Bills</div>
-        <div class="menu-item" onclick="toggleMenu(); toggleAnalytics();"><i class="fa-solid fa-chart-line" style="color:#60a5fa"></i> Analytics</div>
+        <div class="menu-item" onclick="toggleMenu(); showDashboard();"><i class="fa-solid fa-house" style="color:var(--need)"></i> Dashboard</div>
+        <div class="menu-item" onclick="toggleMenu(); openManager();"><i class="fa-solid fa-clock-rotate-left" style="color:var(--want)"></i> Recurring Bills</div>
+        <div class="menu-item" onclick="toggleMenu(); openAnalytics();"><i class="fa-solid fa-chart-line" style="color:#60a5fa"></i> Analytics</div>
         <div class="menu-item" onclick="toggleMenu(); toggleSettings();"><i class="fa-solid fa-cloud" style="color:#c084fc"></i> Cloud Config</div>
         <div class="menu-item" onclick="toggleMenu(); document.getElementById('themeModalOverlay').style.display='block'; document.getElementById('themeModal').style.display='block';"><i class="fa-solid fa-palette" style="color:#f472b6"></i> Theme Settings</div>
     </div>
@@ -164,7 +172,8 @@
         <div class="top-header">
             <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
             <div class="app-title">MONTOYA LEDGER</div>
-            <div style="width:24px;"></div> </div>
+            <div style="width:24px;"></div> 
+        </div>
 
         <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
 
@@ -217,6 +226,11 @@
                 <button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button>
             </div>
             
+            <div class="recur-row" id="recurToggleRow">
+                <span>Set as Recurring Bill?</span>
+                <input type="checkbox" id="isRecurring">
+            </div>
+
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option></select>
                 <input type="number" id="amount" placeholder="0.00" inputmode="decimal">
@@ -262,6 +276,7 @@
             <button class="btn-elite" onclick="addSub()">Add New Bill</button>
         </div>
         <div id="subList"></div>
+        <button class="btn-manage" onclick="showDashboard()" style="margin-top:20px; width:100%;">Back to Ledger</button>
     </div>
 
     <div id="analyticsModal">
@@ -285,6 +300,7 @@
                 <span id="creepTotal" style="font-weight:700;">$0.00</span>
             </div>
         </div>
+        <button class="btn-manage" onclick="showDashboard()">Back to Ledger</button>
     </div>
 
 <script>
@@ -304,7 +320,6 @@
         Mortgage: "#6366f1", Car: "#3b82f6", CreditCard: "#ef4444", Subscription: "#c084fc", Goal: "#a855f7", Misc: "#94a3b8"
     };
 
-    // Load Theme on Start
     const savedTheme = localStorage.getItem('montoya_theme');
     if(savedTheme) document.body.setAttribute('data-theme', savedTheme);
 
@@ -321,6 +336,18 @@
         container.appendChild(toast);
         setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
     }
+
+    // VIEW ROUTING ENGINE
+    function switchView(viewId) {
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('subManager').style.display = 'none';
+        document.getElementById('analyticsModal').style.display = 'none';
+        document.getElementById(viewId).style.display = 'block';
+    }
+
+    function showDashboard() { switchView('app'); fetchData(); }
+    function openManager() { switchView('subManager'); renderSubList(); }
+    async function openAnalytics() { switchView('analyticsModal'); await renderAnalytics(); }
 
     function toggleMenu() {
         const menu = document.getElementById('sideMenu');
@@ -376,7 +403,10 @@
         } catch (err) { showToast("Error loading cloud data"); }
     }
 
-    async function changeCycle() { currentViewDate = new Date(document.getElementById('cycleSelect').value); await fetchData(); }
+    async function changeCycle() { 
+        currentViewDate = new Date(document.getElementById('cycleSelect').value); 
+        await fetchData(); 
+    }
 
     function editEntry(id) {
         const item = history.find(h => h.id === id);
@@ -398,6 +428,7 @@
 
     function cancelEdit() {
         editingId = null; document.getElementById('amount').value = ''; document.getElementById('noteInput').value = '';
+        document.getElementById('isRecurring').checked = false;
         const btn = document.getElementById('syncBtn');
         btn.innerText = "Sync Transaction"; btn.style.background = "var(--primary)"; btn.style.boxShadow = "0 10px 20px -5px rgba(99, 102, 241, 0.4)";
         document.getElementById('cancelEditBtn').style.display = 'none';
@@ -409,6 +440,7 @@
         const cat = document.getElementById('category').value;
         const mem = document.getElementById('memberSelect').value;
         const note = document.getElementById('noteInput').value;
+        const isRecur = document.getElementById('isRecurring').checked;
         
         if (!amtInput || isNaN(amt) || amt <= 0) { showToast("Please enter a valid amount"); return; }
 
@@ -429,7 +461,16 @@
                 if (editingId) { dbTask = _supabase.from('transactions').update(payload).eq('id', editingId); } 
                 else { payload.created_at = new Date().toISOString(); dbTask = _supabase.from('transactions').insert([payload]); }
 
-                await Promise.all([ dbTask, _supabase.from('app_settings').upsert({ id: 1, ...config }) ]);
+                // FIXED RECURRING BUG
+                let recurTask = Promise.resolve();
+                if (isRecur) {
+                    const billDay = prompt("What day of the month does this bill post? (1-31):", new Date().getDate());
+                    if (billDay !== null && !isNaN(parseInt(billDay))) {
+                        recurTask = _supabase.from('recurring_expenses').insert([{ name: note || cat, amount: amt, billing_day: parseInt(billDay) }]);
+                    }
+                }
+
+                await Promise.all([ dbTask, recurTask, _supabase.from('app_settings').upsert({ id: 1, ...config }) ]);
                 const isEdit = editingId !== null;
                 cancelEdit(); fetchData(); 
                 showToast(isEdit ? "Transaction Updated!" : "Transaction Synced!");
@@ -447,16 +488,6 @@
             fetchData(); showToast("Transaction Deleted");
         } catch (err) { showToast("Failed to delete"); }
     }
-
-    function switchView(viewId) {
-        document.getElementById('app').style.display = 'none';
-        document.getElementById('subManager').style.display = 'none';
-        document.getElementById('analyticsModal').style.display = 'none';
-        document.getElementById(viewId).style.display = 'block';
-    }
-
-    function toggleManager() { switchView('subManager'); renderSubList(); }
-    async function toggleAnalytics() { switchView('analyticsModal'); await renderAnalytics(); }
 
     async function addSub() {
         const n = document.getElementById('subName').value, a = parseFloat(document.getElementById('subAmt').value), d = parseInt(document.getElementById('subDay').value);
@@ -617,6 +648,7 @@
     }
 
     async function renderAnalytics() {
+        if (!_supabase) return;
         try {
             const { start: currStart } = getCycleDates(currentViewDate);
             let lastDate = new Date(currStart); lastDate.setMonth(lastDate.getMonth() - 1);
