@@ -560,8 +560,8 @@
         history.forEach(item => {
             totalS += item.amount;
             
-            // Exclude Mortgage and Car from individual spending cards
-            if (item.category !== 'Mortgage' && item.category !== 'Car') {
+            // Excluded Overhead from individual spending cards
+            if (item.category !== 'Mortgage' && item.category !== 'Car' && item.category !== 'Utilities') {
                 if (item.member === 'Brandon') bS += item.amount; else gS += item.amount;
             }
             
