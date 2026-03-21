@@ -288,8 +288,10 @@
             <div class="app-title">CYCLE ANALYTICS</div>
             <div style="width:24px;"></div>
         </div>
-        <div class="chart-container" style="height: 250px; margin-top:20px;"><canvas id="analyticsBarChart"></canvas></div>
-        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 16px; margin-bottom: 20px; font-size: 0.8rem; border: 1px solid var(--border);">
+        
+        <div class="chart-container" style="height: 200px; margin-top:20px;"><canvas id="analyticsBarChart"></canvas></div>
+        
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 16px; margin-bottom: 20px; margin-top: 20px; font-size: 0.8rem; border: 1px solid var(--border);">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                 <span style="color:#94a3b8;">Last Cycle Total:</span>
                 <span id="lastCycleTotal" style="font-weight:700;">$0.00</span>
@@ -303,6 +305,10 @@
                 <span id="creepTotal" style="font-weight:700;">$0.00</span>
             </div>
         </div>
+
+        <h4 style="text-align:center; color:#94a3b8; margin-top:25px; margin-bottom: 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Discretionary Breakdown</h4>
+        <div class="chart-container" style="height: 220px; margin-bottom:25px;"><canvas id="categoryDonutChart"></canvas></div>
+
         <button class="btn-manage" onclick="showDashboard()">Back to Ledger</button>
     </div>
 
@@ -315,7 +321,7 @@
     let history = [], recurring = [], currentType = 'Need';
     let config = { budget: 7400, m_balance: 0, c_balance: 0 };
     let currentViewDate = new Date();
-    let myChart, analyticsChart, _supabase;
+    let myChart, analyticsChart, catChart, _supabase;
     let editingId = null;
 
     const catColors = {
@@ -687,12 +693,16 @@
                     else if (memSafe.toLowerCase() === 'split') { lastB += (i.amount / 2); lastG += (i.amount / 2); }
                 } 
             });
+            
+            let categoryTotals = {};
             history.forEach(i => { 
                 if(!['Mortgage','Car','Utilities'].includes(i.category)) { 
                     const memSafe = i.member || 'Brandon'; 
                     if(memSafe.toLowerCase() === 'brandon') currB += i.amount; 
                     else if (memSafe.toLowerCase() === 'gina') currG += i.amount;
                     else if (memSafe.toLowerCase() === 'split') { currB += (i.amount / 2); currG += (i.amount / 2); }
+                    
+                    categoryTotals[i.category] = (categoryTotals[i.category] || 0) + i.amount;
                 } 
             });
 
@@ -704,10 +714,47 @@
             if (diff > 0) { creepEl.innerText = "+$" + diff.toFixed(2) + " (Creep)"; creepEl.style.color = "#ef4444"; } 
             else { creepEl.innerText = "-$" + Math.abs(diff).toFixed(2) + " (Savings)"; creepEl.style.color = "#10b981"; }
 
-            const ctxEl = document.getElementById('analyticsBarChart'); if (!ctxEl) return;
-            const ctx = ctxEl.getContext('2d');
-            if(analyticsChart) analyticsChart.destroy();
-            analyticsChart = new Chart(ctx, { type: 'bar', data: { labels: ['Last Cycle', 'This Cycle'], datasets: [{ label: 'Brandon', data: [lastB, currB], backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'Gina', data: [lastG, currG], backgroundColor: '#ec4899', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { labels: { color: '#f8fafc' } } } } });
+            if (typeof Chart === 'undefined') return;
+
+            // Render Bar Chart
+            const ctxEl = document.getElementById('analyticsBarChart'); 
+            if (ctxEl) {
+                const ctx = ctxEl.getContext('2d');
+                if(analyticsChart) analyticsChart.destroy();
+                analyticsChart = new Chart(ctx, { type: 'bar', data: { labels: ['Last Cycle', 'This Cycle'], datasets: [{ label: 'Brandon', data: [lastB, currB], backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'Gina', data: [lastG, currG], backgroundColor: '#ec4899', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { labels: { color: '#f8fafc' } } } } });
+            }
+
+            // Render Donut Chart
+            const ctxCatEl = document.getElementById('categoryDonutChart');
+            if (ctxCatEl) {
+                const ctxCat = ctxCatEl.getContext('2d');
+                let catLabels = Object.keys(categoryTotals);
+                let catData = Object.values(categoryTotals);
+                let catBgColors = catLabels.map(c => catColors[c] || '#94a3b8');
+
+                if(catChart) catChart.destroy();
+                catChart = new Chart(ctxCat, {
+                    type: 'doughnut',
+                    data: {
+                        labels: catLabels,
+                        datasets: [{
+                            data: catData,
+                            backgroundColor: catBgColors,
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 10, family: 'Inter' } } }
+                        }
+                    }
+                });
+            }
+
         } catch (err) { showToast("Failed to load analytics"); }
     }
 
