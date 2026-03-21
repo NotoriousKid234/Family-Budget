@@ -52,14 +52,61 @@
         .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; }
         .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 5px; }
 
-        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid var(--border); }
-        .item-info { display: flex; flex-direction: column; gap: 2px; }
-        .item-category { font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .item-note { font-size: 0.95rem; font-weight: 700; color: #fff; }
-        .name-tag { font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; width: fit-content; }
+        /* UPGRADED HISTORY LIST */
+        .history-item { 
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 14px 18px; 
+            margin-bottom: 10px;
+            transition: transform 0.2s ease;
+        }
+        .item-info { display: flex; flex-direction: column; gap: 5px; }
         
-        .trash-icon { color: #ef4444 !important; cursor: pointer; opacity: 0.7; font-size: 1rem; margin-left: 12px; transition: opacity 0.2s; }
-        .trash-icon:hover { opacity: 1; }
+        .cat-pill { 
+            font-size: 0.6rem; 
+            font-weight: 800; 
+            padding: 2px 8px; 
+            border-radius: 100px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            width: fit-content;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .item-note-text { font-size: 1rem; font-weight: 700; color: #fff; }
+        
+        .member-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+        .pill-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .pill-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .pill-auto { background: var(--primary); color: white; }
+
+        .item-amt-group { display: flex; align-items: center; gap: 12px; }
+        .amt-text { font-size: 1.1rem; font-weight: 700; color: #fff; }
+        
+        .trash-icon { 
+            color: #ef4444; 
+            cursor: pointer; 
+            opacity: 0.6; 
+            padding: 8px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .trash-icon:hover { opacity: 1; transform: scale(1.1); }
 
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); margin-bottom: 12px; }
         .btn-manage { background: var(--secondary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
@@ -91,7 +138,10 @@
             <div class="logo-glow"><svg width="40" height="40" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
             <h2>Montoya Ledger</h2>
         </div>
-        <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem;">
+        <div style="position: relative; margin: 20px 0;">
+            <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem;">
+            <i class="fa-solid fa-eye" id="togglePin" onclick="togglePinView()" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer;"></i>
+        </div>
         <button class="btn-elite" onclick="checkPin()">Authorize Access</button>
     </div>
 
@@ -130,16 +180,12 @@
                 <input type="number" id="amount" placeholder="0.00" inputmode="decimal">
             </div>
             <select id="category" onchange="autoSuggest(this.value)">
-                <option value="Mortgage">🏠 Mortgage</option>
-                <option value="Car">🚗 Car Payment</option>
-                <option value="Utilities">💡 Utilities</option>
-                <option value="CreditCard">💳 Credit Card</option>
-                <option value="Phone">📱 Phone Bill</option>
                 <option value="Groceries">🛒 Groceries</option>
                 <option value="Dining">🍔 Dining</option>
-                <option value="Beauty">✂️ Beauty</option>
-                <option value="Subscription">📺 Subscription</option>
-                <option value="Goal">🎯 Vault / Goal</option>
+                <option value="Utilities">💡 Utilities</option>
+                <option value="Mortgage">🏠 Mortgage</option>
+                <option value="Car">🚗 Car Payment</option>
+                <option value="CreditCard">💳 Credit Card</option>
                 <option value="Misc">📦 Misc</option>
             </select>
             <input type="text" id="noteInput" placeholder="Note or #tags">
@@ -176,12 +222,24 @@
     let config = { budget: 7400, m_balance: 0, c_balance: 0 };
     let currentViewDate = new Date();
 
+    const catColors = {
+        Groceries: "#10b981", Dining: "#f59e0b", Utilities: "#06b6d4",
+        Mortgage: "#6366f1", Car: "#3b82f6", CreditCard: "#ef4444", Misc: "#94a3b8"
+    };
+
     function showToast(msg) {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
         toast.className = 'toast'; toast.innerText = msg;
         container.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
+    }
+
+    function togglePinView() {
+        const pinField = document.getElementById('pinField');
+        const eye = document.getElementById('togglePin');
+        if (pinField.type === 'password') { pinField.type = 'text'; eye.classList.replace('fa-eye', 'fa-eye-slash'); } 
+        else { pinField.type = 'password'; eye.classList.replace('fa-eye-slash', 'fa-eye'); }
     }
 
     async function checkPin() { 
@@ -209,10 +267,8 @@
         const mem = document.getElementById('memberSelect').value;
         const note = document.getElementById('noteInput').value;
         if (isNaN(amt) || amt <= 0) return;
-
         if (cat === 'Mortgage') config.m_balance -= amt;
         if (cat === 'Car') config.c_balance -= amt;
-        
         await Promise.all([
             _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note, intent: currentType, created_at: new Date().toISOString() }]),
             _supabase.from('app_settings').upsert({ id: 1, ...config })
@@ -226,10 +282,7 @@
         const item = history.find(h => h.id === id);
         if (item && item.category === 'Mortgage') config.m_balance += item.amount;
         if (item && item.category === 'Car') config.c_balance += item.amount;
-        await Promise.all([
-            _supabase.from('transactions').delete().eq('id', id),
-            _supabase.from('app_settings').upsert({ id: 1, ...config })
-        ]);
+        await Promise.all([ _supabase.from('transactions').delete().eq('id', id), _supabase.from('app_settings').upsert({ id: 1, ...config }) ]);
         fetchData();
     }
 
@@ -259,8 +312,12 @@
         const list = document.getElementById('subList'); list.innerHTML = '';
         recurring.forEach(s => {
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><b>${s.name}</b><br><small>Day ${s.billing_day}</small></div>
-                             <div style="font-weight:700;">$${s.amount.toFixed(2)} <i class="fa-solid fa-trash-can trash-icon" onclick="deleteSub('${s.id}')"></i></div>`;
+            div.innerHTML = `<div class="item-info">
+                                <span class="cat-pill" style="background:${catColors.Misc}22; color:${catColors.Misc}">RECURRING</span>
+                                <b class="item-note-text">${s.name}</b>
+                                <small style="color:#94a3b8">Billed Day ${s.billing_day}</small>
+                             </div>
+                             <div class="item-amt-group"><span class="amt-text">$${s.amount.toFixed(2)}</span> <i class="fa-solid fa-trash-can trash-icon" onclick="deleteSub('${s.id}')"></i></div>`;
             list.appendChild(div);
         });
     }
@@ -276,14 +333,19 @@
         history.forEach(item => {
             totalS += item.amount;
             let displayNote = (item.note || "").replace(/(#[a-zA-Z0-9_]+)/g, `<span class="clickable-tag" onclick="quickSearch('$1')">$1</span>`);
+            const color = catColors[item.category] || "#94a3b8";
+            
             const div = document.createElement('div'); div.className = 'history-item';
             div.innerHTML = `
                 <div class="item-info">
-                    <span class="item-category">${item.category}</span>
-                    <span class="item-note">${displayNote || item.category}</span>
-                    <span class="name-tag tag-${item.member.toLowerCase()}">${item.member}</span>
+                    <span class="cat-pill" style="background:${color}22; color:${color}">${item.category}</span>
+                    <span class="item-note-text">${displayNote || item.category}</span>
+                    <div class="member-pill pill-${item.member.toLowerCase()}"><i class="fa-solid fa-user"></i> ${item.member}</div>
                 </div>
-                <div class="item-amt">-$${item.amount.toFixed(2)} <i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
+                <div class="item-amt-group">
+                    <span class="amt-text">-$${item.amount.toFixed(2)}</span>
+                    <i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i>
+                </div>`;
             list.appendChild(div);
         });
 
@@ -294,8 +356,13 @@
             if (!logged) {
                 if (billDate <= new Date()) { 
                     totalS += sub.amount;
-                    const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = '0.6';
-                    div.innerHTML = `<div class="item-info"><span class="item-category">Recurring</span><span class="item-note">${sub.name}</span><span class="name-tag tag-auto">AUTO-SYNC</span></div><div class="item-amt">-$${sub.amount.toFixed(2)}</div>`;
+                    const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = '0.7';
+                    div.innerHTML = `<div class="item-info">
+                                        <span class="cat-pill" style="background:#8b5cf622; color:#a78bfa">PENDING BILL</span>
+                                        <span class="item-note-text">${sub.name}</span>
+                                        <div class="member-pill pill-auto"><i class="fa-solid fa-robot"></i> AUTO-SYNC</div>
+                                     </div>
+                                     <div class="item-amt-group"><span class="amt-text">-$${sub.amount.toFixed(2)}</span></div>`;
                     list.prepend(div);
                 } else { pendingBills += sub.amount; }
             }
@@ -304,7 +371,6 @@
         const INCOME = config.budget;
         document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString();
         document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS - pendingBills).toLocaleString();
-        
         const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
         document.getElementById('paceDisplay').innerText = `Pace: $${((INCOME - totalS) / daysLeft).toFixed(2)} / day`;
     }
@@ -335,8 +401,7 @@
     }
 
     function quickSearch(tag) { document.getElementById('searchBar').value = tag; filterHistory(); }
-    function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t==='Need'); document.getElementById('wantBtn').classList.toggle('active', t==='Want'); }
-    function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard','Phone','Groceries','Subscription'].includes(c)) setType('Need'); else setType('Want'); }
+    function toggleAnalytics() { const m = document.getElementById('analyticsModal'); m.style.display = m.style.display==='block'?'none':'block'; }
     function toggleSettings() { const m = document.getElementById('settingsModal'), o = document.getElementById('settingsOverlay'); const v = m.style.display==='block'; m.style.display=v?'none':'block'; o.style.display=v?'none':'block'; }
     function saveConfig() { config.budget=parseFloat(document.getElementById('conf_income').value); config.m_balance=parseFloat(document.getElementById('conf_mbal').value); config.c_balance=parseFloat(document.getElementById('conf_cbal').value); _supabase.from('app_settings').upsert({id:1,...config}).then(()=>fetchData()); toggleSettings(); }
 </script>
