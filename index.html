@@ -51,26 +51,12 @@
         .logo-glow { width: 80px; height: 80px; background: rgba(99, 102, 241, 0.15); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; border: 1px solid rgba(129, 140, 248, 0.4); box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); color: #818cf8; }
         .logo-glow svg { fill: #818cf8; }
 
-        /* UI UPDATE: Cycle Selector */
         .cycle-selector { 
-            background: var(--primary); 
-            border: none; 
-            color: #fff; 
-            padding: 10px 20px; 
-            border-radius: 100px; 
-            font-size: 0.8rem; 
-            font-weight: 700; 
-            cursor: pointer; 
-            text-align: center; 
-            appearance: none; 
-            margin-bottom: 15px; 
-            outline: none; 
-            width: fit-content; 
-            margin-left: auto; 
-            margin-right: auto; 
-            display: block; 
-            box-shadow: 0 6px 15px -3px rgba(99, 102, 241, 0.4);
-            transition: 0.2s;
+            background: var(--primary); border: none; color: #fff; padding: 10px 20px; 
+            border-radius: 100px; font-size: 0.8rem; font-weight: 700; cursor: pointer; 
+            text-align: center; appearance: none; margin-bottom: 15px; outline: none; 
+            width: fit-content; margin-left: auto; margin-right: auto; display: block; 
+            box-shadow: 0 6px 15px -3px rgba(99, 102, 241, 0.4); transition: 0.2s;
         }
         .cycle-selector:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .cycle-selector option { background: #0f172a; color: #f8fafc; font-weight: 500; }
@@ -108,7 +94,6 @@
         .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); margin-bottom: 12px; transition: 0.2s; }
         .btn-elite:hover { filter: brightness(1.1); transform: translateY(-1px); }
         
-        /* UI UPDATE: Manage Bills Button */
         .btn-manage { background: var(--secondary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; transition: 0.2s; box-shadow: 0 8px 15px -5px rgba(79, 70, 229, 0.4); }
         .btn-manage:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
@@ -131,17 +116,11 @@
         .type-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; background: none; color: #94a3b8; cursor: pointer; font-weight: 600; }
         .type-btn.active { background: #fff; color: #0f172a; }
         
-        /* UI UPDATE: Recurring Row */
         .recur-row { 
             display: flex; justify-content: space-between; align-items: center; 
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%); 
-            padding: 14px 18px; 
-            border-radius: 14px; 
-            margin-bottom: 15px; 
-            border: 1px solid rgba(168, 85, 247, 0.3); 
-            font-size: 0.9rem; 
-            font-weight: 700; 
-            color: #e0e7ff; 
+            padding: 14px 18px; border-radius: 14px; margin-bottom: 15px; 
+            border: 1px solid rgba(168, 85, 247, 0.3); font-size: 0.9rem; font-weight: 700; color: #e0e7ff; 
         }
         #isRecurring { width: 18px; height: 18px; accent-color: #a855f7; cursor: pointer; margin: 0; }
     </style>
@@ -173,7 +152,12 @@
             <div class="logo-glow"><svg width="40" height="40" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
             <h2 style="margin:0;">Montoya Ledger</h2>
         </div>
-        <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem; margin: 20px 0;">
+        
+        <div style="position: relative; margin: 20px 0;">
+            <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem; margin: 0; padding-right: 40px;">
+            <i class="fa-solid fa-eye" id="togglePin" onclick="togglePinVisibility()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; font-size: 1.2rem;"></i>
+        </div>
+
         <button class="btn-elite" onclick="checkPin()">Authorize Access</button>
     </div>
 
@@ -287,6 +271,21 @@
     
     let config = { budget: 7400, m_balance: 0, m_rate: 0, c_balance: 0, c_rate: 0 };
     let INCOME = config.budget;
+
+    // Toggle Pin Visibility Function
+    function togglePinVisibility() {
+        const pinField = document.getElementById('pinField');
+        const toggleIcon = document.getElementById('togglePin');
+        if (pinField.type === 'password') {
+            pinField.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            pinField.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
 
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t === 'Need'); document.getElementById('wantBtn').classList.toggle('active', t === 'Want'); }
     function autoSuggest(c) { setType(['Mortgage','Car','CreditCard','Utilities','Phone','Groceries','Subscription'].includes(c) ? 'Need' : 'Want'); }
