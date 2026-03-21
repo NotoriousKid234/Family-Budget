@@ -28,9 +28,7 @@
         #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 5000; width: 80%; pointer-events: none; }
         .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        /* FIXED Z-INDEX HIERARCHY */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 4000; }
-        #sideMenuOverlay { z-index: 2900; } /* Keeps the mobile menu overlay strictly behind the sidebar */
         .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 4100; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
 
         #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #configManager, #shareManager { 
@@ -115,8 +113,9 @@
             body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 40px; padding: 40px; }
             body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
             body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #configManager, body.logged-in #shareManager { margin: 0; width: 550px; flex-shrink: 0; }
-            body.logged-in .hamburger { display: none !important; }
-            body.logged-in .app-title { margin-left: -20px; }
+            
+            /* Counterweight trick to perfectly center app-title */
+            body.logged-in .hamburger { visibility: hidden !important; pointer-events: none !important; }
         }
     </style>
 </head>
@@ -808,7 +807,7 @@
     function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard','Groceries'].includes(c)) setType('Need'); else setType('Want'); }
 
     function toggleMenu() { 
-        if (window.innerWidth >= 1100) return; 
+        if (window.innerWidth >= 1100) return; // Prevent mobile menu logic on desktop
         const menu = document.getElementById('sideMenu');
         const overlay = document.getElementById('sideMenuOverlay');
         menu.classList.toggle('open'); 
