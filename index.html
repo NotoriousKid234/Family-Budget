@@ -35,6 +35,7 @@
 
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; transition: background 0.3s ease; }
         
+        /* AMBIENT BACKGROUND ORBS */
         .bg-orb { position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; opacity: 0.35; animation: float 20s infinite ease-in-out alternate; pointer-events: none; }
         .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; }
         .orb-2 { width: 600px; height: 600px; background: #ec4899; bottom: -200px; right: -150px; animation-delay: -10s; }
@@ -120,6 +121,7 @@
         .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
         .quick-chip:hover { background: rgba(255, 255, 255, 0.15); }
 
+        /* DESKTOP COMMAND CENTER LAYOUT */
         @media (min-width: 1100px) {
             body:not(.logged-in) #loginScreen { margin-top: 15vh; }
             body.logged-in { display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; gap: 30px; overflow-y: auto; }
@@ -185,8 +187,11 @@
             <h2>Montoya Ledger</h2>
         </div>
         <div style="margin: 20px 0;">
-            <input type="email" id="emailField" placeholder="Email Address">
-            <input type="password" id="passwordField" placeholder="Password">
+            <input type="email" id="emailField" placeholder="Email Address" autocomplete="username">
+            <div style="position: relative;">
+                <input type="password" id="passwordField" placeholder="Password" autocomplete="current-password">
+                <i class="fa-solid fa-eye" id="togglePassword" onclick="togglePasswordView()" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer;"></i>
+            </div>
         </div>
         <button id="authBtn" class="btn-elite" onclick="authenticateUser()">Secure Login</button>
     </div>
@@ -416,6 +421,27 @@
         setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
     }
 
+    // AUTO-LOCK INACTIVITY ENGINE (5 MINUTES)
+    let inactivityTimer;
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        if(document.body.classList.contains('logged-in')) {
+            inactivityTimer = setTimeout(() => {
+                document.body.classList.remove('logged-in');
+                document.getElementById('app').style.display = 'none';
+                document.getElementById('subManager').style.display = 'none';
+                document.getElementById('notesManager').style.display = 'none';
+                document.getElementById('analyticsModal').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'block';
+                document.getElementById('passwordField').value = ''; 
+                showToast("Vault locked due to 5 minutes of inactivity.");
+            }, 300000); 
+        }
+    }
+    ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'].forEach(evt => 
+        document.addEventListener(evt, resetInactivityTimer, true)
+    );
+
     function switchView(viewId) {
         const isDesktop = window.innerWidth >= 1100;
         window.scrollTo(0, 0); 
@@ -464,7 +490,13 @@
         document.getElementById('themeModal').style.display = 'none';
     }
 
-    // REAL SECURE LOGIN FUNCTION
+    function togglePasswordView() {
+        const passField = document.getElementById('passwordField');
+        const eye = document.getElementById('togglePassword');
+        if (passField.type === 'password') { passField.type = 'text'; eye.classList.replace('fa-eye', 'fa-eye-slash'); } 
+        else { passField.type = 'password'; eye.classList.replace('fa-eye-slash', 'fa-eye'); }
+    }
+
     async function authenticateUser() { 
         const authBtn = document.getElementById('authBtn');
         const email = document.getElementById('emailField').value;
@@ -482,6 +514,7 @@
                 document.body.classList.add('logged-in'); 
                 document.getElementById('loginScreen').style.display = 'none'; 
                 document.getElementById('app').style.display = 'block'; 
+                resetInactivityTimer();
                 loadAppEngine();
             }
         } catch (err) { 
@@ -492,7 +525,7 @@
 
     async function logoutApp() {
         await _supabase.auth.signOut();
-        location.reload(); // Hard reset to force login screen
+        location.reload(); 
     }
 
     async function loadAppEngine() {
