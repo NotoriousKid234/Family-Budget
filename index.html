@@ -64,10 +64,15 @@
 
         .item-amt-group { display: flex; align-items: center; gap: 12px; }
         .amt-text { font-size: 1.1rem; font-weight: 700; color: #fff; }
+        
+        /* NEW EDIT ICON STYLES */
+        .edit-icon { color: #60a5fa; cursor: pointer; opacity: 0.6; padding: 8px; background: rgba(96, 165, 250, 0.1); border-radius: 10px; transition: all 0.2s; }
+        .edit-icon:hover { opacity: 1; transform: scale(1.1); }
+
         .trash-icon { color: #ef4444; cursor: pointer; opacity: 0.6; padding: 8px; background: rgba(239, 68, 68, 0.1); border-radius: 10px; transition: all 0.2s; }
         .trash-icon:hover { opacity: 1; transform: scale(1.1); }
 
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); margin-bottom: 12px; }
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); margin-bottom: 12px; transition: all 0.3s ease; }
         .btn-manage { background: var(--secondary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
@@ -100,10 +105,12 @@
             <div class="logo-glow"><svg width="40" height="40" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
             <h2>Montoya Ledger</h2>
         </div>
+        
         <div style="position: relative; margin: 20px 0;">
             <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem;">
             <i class="fa-solid fa-eye" id="togglePin" onclick="togglePinView()" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer;"></i>
         </div>
+        
         <button id="authBtn" class="btn-elite" onclick="checkPin()">Authorize Access</button>
     </div>
 
@@ -158,7 +165,7 @@
             </div>
         </div>
 
-        <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:25px;">
+        <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:15px;">
             <div class="type-toggle">
                 <button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button>
                 <button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button>
@@ -168,21 +175,27 @@
                 <input type="number" id="amount" placeholder="0.00" inputmode="decimal">
             </div>
             <select id="category" onchange="autoSuggest(this.value)">
+                <option value="Groceries">🛒 Groceries</option>
+                <option value="Dining">🍔 Dining</option>
+                <option value="Utilities">💡 Utilities</option>
                 <option value="Mortgage">🏠 Mortgage</option>
                 <option value="Car">🚗 Car Payment</option>
-                <option value="CreditCard">💳 Credit Card Payment</option>
-                <option value="Utilities">💡 Utilities</option>
-                <option value="Phone">📱 Phone Bill</option>
-                <option value="Groceries">🛒 Groceries</option>
-                <option value="Dining">🍔 Dining / Takeout</option>
-                <option value="Beauty">✂️ Beauty</option>
+                <option value="CreditCard">💳 Credit Card</option>
                 <option value="Subscription">📺 Subscription</option>
+                <option value="Beauty">✂️ Beauty</option>
                 <option value="Goal">🎯 Vault / Goal</option>
-                <option value="Misc">📦 Miscellaneous</option>
+                <option value="Misc">📦 Misc</option>
             </select>
             <input type="text" id="noteInput" placeholder="Note or #tags">
-            <button class="btn-elite" onclick="addEntry()">Sync Transaction</button>
+            <button id="syncBtn" class="btn-elite" onclick="addEntry()">Sync Transaction</button>
+            
+            <button id="cancelEditBtn" onclick="cancelEdit()" style="display:none; background:none; border:none; color:#ef4444; cursor:pointer; width:100%; padding:5px 10px 15px 10px; font-weight:bold;">Cancel Edit</button>
+            
             <button class="btn-manage" onclick="toggleManager()">Manage Recurring Bills</button>
+        </div>
+
+        <div style="margin-top: 35px; margin-bottom: 15px; display: flex; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: #f8fafc;"><i class="fa-solid fa-list-ul" style="color: #8b5cf6; margin-right: 8px;"></i>Transaction History</h3>
         </div>
 
         <input type="text" id="searchBar" placeholder="🔍 Search tags or category..." onkeyup="filterHistory()">
@@ -227,9 +240,6 @@
     </div>
 
 <script>
-    // ---------------------------------------------
-    // BULLETPROOF INITIALIZATION
-    // ---------------------------------------------
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
     const MY_PIN = "1991"; 
@@ -239,11 +249,11 @@
     let config = { budget: 7400, m_balance: 0, c_balance: 0 };
     let currentViewDate = new Date();
     let myChart, analyticsChart, _supabase;
+    let editingId = null; // NEW: Edit State tracking
 
     const catColors = {
         Groceries: "#10b981", Dining: "#f59e0b", Utilities: "#06b6d4",
-        Mortgage: "#6366f1", Car: "#3b82f6", CreditCard: "#ef4444", 
-        Phone: "#8b5cf6", Beauty: "#ec4899", Subscription: "#c084fc", Goal: "#a855f7", Misc: "#94a3b8"
+        Mortgage: "#6366f1", Car: "#3b82f6", CreditCard: "#ef4444", Subscription: "#c084fc", Goal: "#a855f7", Misc: "#94a3b8"
     };
 
     try {
@@ -256,16 +266,11 @@
         console.error("Database connection failure:", e);
     }
 
-    // ---------------------------------------------
-    // CORE LOGIC
-    // ---------------------------------------------
-
     function showToast(msg) {
         const container = document.getElementById('toastContainer');
         if (!container) return;
         const toast = document.createElement('div');
-        toast.className = 'toast'; 
-        toast.innerText = msg;
+        toast.className = 'toast'; toast.innerText = msg;
         container.appendChild(toast);
         setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
     }
@@ -303,9 +308,7 @@
                     await fetchData();
                 } else {
                     document.getElementById('offlineBanner').style.display = 'block';
-                    initCycles();
-                    initChart();
-                    updateUI();
+                    initCycles(); initChart(); updateUI();
                 }
             } else { 
                 alert("Incorrect PIN entered."); 
@@ -330,10 +333,43 @@
             history = transRes.data || []; 
             recurring = recurRes.data || [];
             updateUI();
-        } catch (err) {
-            console.error("Error fetching data", err);
-            showToast("Error loading cloud data");
-        }
+        } catch (err) { showToast("Error loading cloud data"); }
+    }
+
+    // NEW EDIT FUNCTIONS
+    function editEntry(id) {
+        const item = history.find(h => h.id === id);
+        if (!item) return;
+        
+        editingId = id;
+        document.getElementById('amount').value = item.amount;
+        document.getElementById('category').value = item.category;
+        document.getElementById('memberSelect').value = item.member || 'Brandon';
+        document.getElementById('noteInput').value = item.note || '';
+        setType(item.intent || 'Need');
+        
+        const btn = document.getElementById('syncBtn');
+        btn.innerText = "Update Transaction";
+        btn.style.background = "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)";
+        btn.style.boxShadow = "0 10px 20px -5px rgba(245, 158, 11, 0.4)";
+        
+        document.getElementById('cancelEditBtn').style.display = 'block';
+        
+        // Scroll to the input area
+        window.scrollTo({ top: document.querySelector('.type-toggle').offsetTop - 20, behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+        editingId = null;
+        document.getElementById('amount').value = '';
+        document.getElementById('noteInput').value = '';
+        
+        const btn = document.getElementById('syncBtn');
+        btn.innerText = "Sync Transaction";
+        btn.style.background = "var(--primary)";
+        btn.style.boxShadow = "0 10px 20px -5px rgba(99, 102, 241, 0.4)";
+        
+        document.getElementById('cancelEditBtn').style.display = 'none';
     }
 
     async function addEntry() {
@@ -348,22 +384,43 @@
             return;
         }
 
+        if (editingId) {
+            // Reverse old balances for local logic
+            const oldItem = history.find(h => h.id === editingId);
+            if (oldItem && oldItem.category === 'Mortgage') config.m_balance += oldItem.amount;
+            if (oldItem && oldItem.category === 'Car') config.c_balance += oldItem.amount;
+        }
+
+        // Apply new balances
         if (cat === 'Mortgage') config.m_balance -= amt;
         if (cat === 'Car') config.c_balance -= amt;
         
-        try {
-            showToast("Syncing...");
-            await Promise.all([
-                _supabase.from('transactions').insert([{ amount: amt, member: mem, category: cat, note: note, intent: currentType, created_at: new Date().toISOString() }]),
-                _supabase.from('app_settings').upsert({ id: 1, ...config })
-            ]);
-            
-            document.getElementById('amount').value = ''; 
-            document.getElementById('noteInput').value = '';
-            fetchData(); 
-            showToast("Transaction Synced!");
-        } catch (err) {
-            showToast("Failed to sync transaction");
+        if (_supabase) {
+            try {
+                showToast(editingId ? "Updating..." : "Syncing...");
+                
+                const payload = { amount: amt, member: mem, category: cat, note: note, intent: currentType };
+                
+                let dbTask;
+                if (editingId) {
+                    dbTask = _supabase.from('transactions').update(payload).eq('id', editingId);
+                } else {
+                    payload.created_at = new Date().toISOString();
+                    dbTask = _supabase.from('transactions').insert([payload]);
+                }
+
+                await Promise.all([
+                    dbTask,
+                    _supabase.from('app_settings').upsert({ id: 1, ...config })
+                ]);
+                
+                const isEdit = editingId !== null;
+                cancelEdit(); // Reset form and ID
+                fetchData(); 
+                showToast(isEdit ? "Transaction Updated!" : "Transaction Synced!");
+            } catch (err) {
+                showToast("Failed to sync transaction");
+            }
         }
     }
 
@@ -382,49 +439,28 @@
             
             fetchData(); 
             showToast("Transaction Deleted");
-        } catch (err) {
-            showToast("Failed to delete");
-        }
+        } catch (err) { showToast("Failed to delete"); }
     }
 
     function toggleManager() {
-        const app = document.getElementById('app');
-        const mgr = document.getElementById('subManager');
+        const app = document.getElementById('app'), mgr = document.getElementById('subManager');
         const isMgrOpen = app.style.display === 'none';
-        
-        if (isMgrOpen) {
-            app.style.display = 'block';
-            mgr.style.display = 'none';
-            fetchData();
-        } else {
-            app.style.display = 'none';
-            mgr.style.display = 'block';
-            renderSubList();
-        }
+        if (isMgrOpen) { app.style.display = 'block'; mgr.style.display = 'none'; fetchData(); } 
+        else { app.style.display = 'none'; mgr.style.display = 'block'; renderSubList(); }
     }
 
     async function addSub() {
-        const n = document.getElementById('subName').value;
-        const a = parseFloat(document.getElementById('subAmt').value);
-        const d = parseInt(document.getElementById('subDay').value);
+        const n = document.getElementById('subName').value, a = parseFloat(document.getElementById('subAmt').value), d = parseInt(document.getElementById('subDay').value);
+        if(!n || isNaN(a) || isNaN(d)) { showToast("Please fill all recurring fields"); return; }
         
-        if(!n || isNaN(a) || isNaN(d)) {
-            showToast("Please fill all recurring fields");
-            return;
-        }
-        
-        try {
-            await _supabase.from('recurring_expenses').insert([{ name: n, amount: a, billing_day: d }]);
-            const { data } = await _supabase.from('recurring_expenses').select('*');
-            recurring = data || []; 
-            renderSubList(); 
-            
-            document.getElementById('subName').value = ''; 
-            document.getElementById('subAmt').value = ''; 
-            document.getElementById('subDay').value = '';
-            showToast("Recurring Bill Added!");
-        } catch (err) {
-            showToast("Failed to add recurring bill");
+        if (_supabase) {
+            try {
+                await _supabase.from('recurring_expenses').insert([{ name: n, amount: a, billing_day: d }]);
+                const { data } = await _supabase.from('recurring_expenses').select('*');
+                recurring = data || []; renderSubList(); 
+                document.getElementById('subName').value = ''; document.getElementById('subAmt').value = ''; document.getElementById('subDay').value = '';
+                showToast("Recurring Bill Added!");
+            } catch (err) { showToast("Failed to add recurring bill"); }
         }
     }
 
@@ -433,25 +469,18 @@
         try {
             await _supabase.from('recurring_expenses').delete().eq('id', id);
             const { data } = await _supabase.from('recurring_expenses').select('*');
-            recurring = data || []; 
-            renderSubList();
-            showToast("Bill Removed");
-        } catch(err) {
-            showToast("Failed to remove bill");
-        }
+            recurring = data || []; renderSubList(); showToast("Bill Removed");
+        } catch(err) { showToast("Failed to remove bill"); }
     }
 
     function renderSubList() {
-        const list = document.getElementById('subList'); 
-        list.innerHTML = '';
+        const list = document.getElementById('subList'); list.innerHTML = '';
         recurring.forEach(s => {
-            const div = document.createElement('div'); 
-            div.className = 'history-item';
+            const div = document.createElement('div'); div.className = 'history-item';
             div.innerHTML = `
                 <div class="item-info">
                     <span class="cat-pill" style="background:${catColors.Misc}22; color:${catColors.Misc}">RECURRING</span>
-                    <b class="item-note-text">${s.name}</b>
-                    <small style="color:#94a3b8">Billed Day ${s.billing_day}</small>
+                    <b class="item-note-text">${s.name}</b><small style="color:#94a3b8">Billed Day ${s.billing_day}</small>
                 </div>
                 <div class="item-amt-group">
                     <span class="amt-text">$${s.amount.toFixed(2)}</span> 
@@ -464,8 +493,7 @@
     function updateUI() {
         const { start, end } = getCycleDates(currentViewDate);
         let totalS = 0, needS = 0, wantS = 0, goalS = 0, bS = 0, gS = 0, pendingBills = 0;
-        const list = document.getElementById('historyList'); 
-        list.innerHTML = '';
+        const list = document.getElementById('historyList'); list.innerHTML = '';
 
         document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
@@ -473,11 +501,9 @@
         history.forEach(item => {
             totalS += item.amount;
             
-            // Only count non-overhead toward Brandon/Gina metrics
             if (!['Mortgage','Car','Utilities'].includes(item.category)) {
                 const memSafe = item.member || 'Brandon';
-                if (memSafe.toLowerCase() === 'brandon') bS += item.amount; 
-                else gS += item.amount;
+                if (memSafe.toLowerCase() === 'brandon') bS += item.amount; else gS += item.amount;
             }
             
             if (item.category === 'Goal') goalS += item.amount;
@@ -489,8 +515,7 @@
             const safeMember = item.member || 'Unknown';
             const pillClass = safeMember.toLowerCase() === 'gina' ? 'pill-gina' : 'pill-brandon';
             
-            const div = document.createElement('div'); 
-            div.className = 'history-item';
+            const div = document.createElement('div'); div.className = 'history-item';
             div.innerHTML = `
                 <div class="item-info">
                     <span class="cat-pill" style="background:${color}22; color:${color}">${item.category}</span>
@@ -499,38 +524,30 @@
                 </div>
                 <div class="item-amt-group">
                     <span class="amt-text">-$${item.amount.toFixed(2)}</span>
+                    <i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i>
                     <i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i>
                 </div>`;
             list.appendChild(div);
         });
 
         recurring.forEach(sub => {
-            let billDate = new Date(start); 
-            if (sub.billing_day < CYCLE_START_DAY) billDate.setMonth(billDate.getMonth() + 1);
+            let billDate = new Date(start); if (sub.billing_day < CYCLE_START_DAY) billDate.setMonth(billDate.getMonth() + 1);
             billDate.setDate(sub.billing_day);
             
             const logged = history.some(h => h.note === sub.name || h.category === sub.name);
             if (!logged) {
                 if (billDate <= new Date()) { 
-                    totalS += sub.amount; 
-                    needS += sub.amount;
-                    
-                    const div = document.createElement('div'); 
-                    div.className = 'history-item'; 
-                    div.style.opacity = '0.7';
+                    totalS += sub.amount; needS += sub.amount;
+                    const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = '0.7';
                     div.innerHTML = `
                         <div class="item-info">
                             <span class="cat-pill" style="background:#8b5cf622; color:#a78bfa">PENDING BILL</span>
                             <span class="item-note-text">${sub.name}</span>
                             <div class="member-pill pill-auto"><i class="fa-solid fa-robot"></i> AUTO-SYNC</div>
                         </div>
-                        <div class="item-amt-group">
-                            <span class="amt-text">-$${sub.amount.toFixed(2)}</span>
-                        </div>`;
+                        <div class="item-amt-group"><span class="amt-text">-$${sub.amount.toFixed(2)}</span></div>`;
                     list.prepend(div);
-                } else { 
-                    pendingBills += sub.amount; 
-                }
+                } else { pendingBills += sub.amount; }
             }
         });
 
@@ -557,186 +574,89 @@
         const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
         document.getElementById('paceDisplay').innerText = `Pace: $${((INCOME - totalS) / daysLeft).toFixed(2)} / day`;
 
-        if(myChart) { 
-            myChart.data.datasets[0].data = [Math.max(0, INCOME-totalS), totalS]; 
-            myChart.update(); 
-        }
+        if(myChart) { myChart.data.datasets[0].data = [Math.max(0, INCOME-totalS), totalS]; myChart.update(); }
     }
 
     function getCycleDates(baseDate) {
-        let d = new Date(baseDate); 
-        let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY);
+        let d = new Date(baseDate); let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY);
         if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1);
-        let end = new Date(start); 
-        end.setMonth(end.getMonth() + 1);
-        return { start, end };
+        let end = new Date(start); end.setMonth(end.getMonth() + 1); return { start, end };
     }
 
     function initChart() {
         const ctxEl = document.getElementById('budgetChart');
         if (!ctxEl) return;
         const ctx = ctxEl.getContext('2d');
-        myChart = new Chart(ctx, { 
-            type: 'doughnut', 
-            data: { datasets: [{ data: [100, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, 
-            options: { cutout: '80%' } 
-        });
+        myChart = new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [100, 0], backgroundColor: ['rgba(255,255,255,0.05)', '#6366f1'], borderWidth: 0 }] }, options: { cutout: '80%' } });
     }
 
     function initCycles() {
-        const select = document.getElementById('cycleSelect'); 
-        select.innerHTML = '';
+        const select = document.getElementById('cycleSelect'); select.innerHTML = '';
         let now = new Date();
         for(let i=0; i<6; i++) {
             let d = new Date(now.getFullYear(), now.getMonth() - i, 16);
-            let opt = document.createElement('option'); 
-            opt.value = d.toISOString();
-            opt.text = d.toLocaleString('default', { month: 'short' }) + " Cycle";
+            let opt = document.createElement('option'); opt.value = d.toISOString(); opt.text = d.toLocaleString('default', { month: 'short' }) + " Cycle";
             select.appendChild(opt);
         }
     }
 
     async function toggleAnalytics() { 
-        const m = document.getElementById('analyticsModal');
-        const app = document.getElementById('app'); 
-        
-        if(m.style.display === 'block') { 
-            m.style.display = 'none'; 
-            app.style.display = 'block'; 
-        } else { 
-            m.style.display = 'block'; 
-            app.style.display = 'none'; 
-            await renderAnalytics(); 
-        }
+        const m = document.getElementById('analyticsModal'), app = document.getElementById('app'); 
+        if(m.style.display === 'block') { m.style.display = 'none'; app.style.display = 'block'; } 
+        else { m.style.display = 'block'; app.style.display = 'none'; await renderAnalytics(); }
     }
 
     async function renderAnalytics() {
         try {
             const { start: currStart } = getCycleDates(currentViewDate);
-            let lastDate = new Date(currStart); 
-            lastDate.setMonth(lastDate.getMonth() - 1);
+            let lastDate = new Date(currStart); lastDate.setMonth(lastDate.getMonth() - 1);
             const { start: lastStart, end: lastEnd } = getCycleDates(lastDate);
 
             const { data } = await _supabase.from('transactions').select('*').gte('created_at', lastStart.toISOString()).lt('created_at', lastEnd.toISOString());
             const lastHistory = data || [];
 
             let lastB = 0, lastG = 0, currB = 0, currG = 0;
-            lastHistory.forEach(i => { 
-                if(!['Mortgage','Car','Utilities'].includes(i.category)) { 
-                    const memSafe = i.member || 'Brandon';
-                    if(memSafe.toLowerCase() === 'brandon') lastB += i.amount; else lastG += i.amount; 
-                } 
-            });
-            history.forEach(i => { 
-                if(!['Mortgage','Car','Utilities'].includes(i.category)) { 
-                    const memSafe = i.member || 'Brandon';
-                    if(memSafe.toLowerCase() === 'brandon') currB += i.amount; else currG += i.amount; 
-                } 
-            });
+            lastHistory.forEach(i => { if(!['Mortgage','Car','Utilities'].includes(i.category)) { const memSafe = i.member || 'Brandon'; if(memSafe.toLowerCase() === 'brandon') lastB += i.amount; else lastG += i.amount; } });
+            history.forEach(i => { if(!['Mortgage','Car','Utilities'].includes(i.category)) { const memSafe = i.member || 'Brandon'; if(memSafe.toLowerCase() === 'brandon') currB += i.amount; else currG += i.amount; } });
 
-            const lastTotal = lastB + lastG; 
-            const currTotal = currB + currG;
+            const lastTotal = lastB + lastG; const currTotal = currB + currG;
             document.getElementById('lastCycleTotal').innerText = "$" + lastTotal.toFixed(2);
             document.getElementById('thisCycleTotal').innerText = "$" + currTotal.toFixed(2);
             
-            const diff = currTotal - lastTotal; 
-            const creepEl = document.getElementById('creepTotal');
-            if (diff > 0) { 
-                creepEl.innerText = "+$" + diff.toFixed(2) + " (Creep)"; 
-                creepEl.style.color = "#ef4444"; 
-            } else { 
-                creepEl.innerText = "-$" + Math.abs(diff).toFixed(2) + " (Savings)"; 
-                creepEl.style.color = "#10b981"; 
-            }
+            const diff = currTotal - lastTotal; const creepEl = document.getElementById('creepTotal');
+            if (diff > 0) { creepEl.innerText = "+$" + diff.toFixed(2) + " (Creep)"; creepEl.style.color = "#ef4444"; } 
+            else { creepEl.innerText = "-$" + Math.abs(diff).toFixed(2) + " (Savings)"; creepEl.style.color = "#10b981"; }
 
             const ctxEl = document.getElementById('analyticsBarChart');
             if (!ctxEl) return;
             const ctx = ctxEl.getContext('2d');
             
             if(analyticsChart) analyticsChart.destroy();
-            analyticsChart = new Chart(ctx, {
-                type: 'bar', 
-                data: { 
-                    labels: ['Last Cycle', 'This Cycle'], 
-                    datasets: [
-                        { label: 'Brandon', data: [lastB, currB], backgroundColor: '#3b82f6', borderRadius: 4 }, 
-                        { label: 'Gina', data: [lastG, currG], backgroundColor: '#ec4899', borderRadius: 4 }
-                    ] 
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    scales: { 
-                        x: { stacked: true, grid: { display: false } }, 
-                        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' } } 
-                    }, 
-                    plugins: { legend: { labels: { color: '#f8fafc' } } } 
-                }
-            });
-        } catch (err) {
-            showToast("Failed to load analytics");
-        }
+            analyticsChart = new Chart(ctx, { type: 'bar', data: { labels: ['Last Cycle', 'This Cycle'], datasets: [{ label: 'Brandon', data: [lastB, currB], backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'Gina', data: [lastG, currG], backgroundColor: '#ec4899', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { labels: { color: '#f8fafc' } } } } });
+        } catch (err) { showToast("Failed to load analytics"); }
     }
 
-    function filterHistory() { 
-        const q = document.getElementById('searchBar').value.toLowerCase(); 
-        document.querySelectorAll('.history-item').forEach(item => { 
-            item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none'; 
-        }); 
-    }
-    
-    function quickSearch(tag) { 
-        document.getElementById('searchBar').value = tag; 
-        filterHistory(); 
-    }
+    function filterHistory() { const q = document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('.history-item').forEach(item => { item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none'; }); }
+    function quickSearch(tag) { document.getElementById('searchBar').value = tag; filterHistory(); }
     
     function setType(t) { 
-        currentType = t; 
-        const nb = document.getElementById('needBtn');
-        const wb = document.getElementById('wantBtn');
-        if (t === 'Need') {
-            nb.classList.add('active'); 
-            wb.classList.remove('active');
-        } else {
-            wb.classList.add('active'); 
-            nb.classList.remove('active');
-        }
+        currentType = t; const nb = document.getElementById('needBtn'); const wb = document.getElementById('wantBtn');
+        if (t === 'Need') { nb.classList.add('active'); wb.classList.remove('active'); } else { wb.classList.add('active'); nb.classList.remove('active'); }
     }
     
-    function autoSuggest(c) { 
-        if(['Mortgage','Car','Utilities','CreditCard','Phone','Groceries','Subscription'].includes(c)) {
-            setType('Need'); 
-        } else {
-            setType('Want');
-        }
-    }
+    function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard','Groceries'].includes(c)) { setType('Need'); } else { setType('Want'); } }
 
     function toggleSettings() { 
-        const m = document.getElementById('settingsModal');
-        const o = document.getElementById('settingsOverlay'); 
-        const v = m.style.display === 'block'; 
-        m.style.display = v ? 'none' : 'block'; 
-        o.style.display = v ? 'none' : 'block'; 
-        if(!v) { 
-            document.getElementById('conf_income').value = config.budget || 7400; 
-            document.getElementById('conf_mbal').value = config.m_balance || 0; 
-            document.getElementById('conf_cbal').value = config.c_balance || 0; 
-        } 
+        const m = document.getElementById('settingsModal'); const o = document.getElementById('settingsOverlay'); const v = m.style.display === 'block'; m.style.display = v ? 'none' : 'block'; o.style.display = v ? 'none' : 'block'; 
+        if(!v) { document.getElementById('conf_income').value = config.budget || 7400; document.getElementById('conf_mbal').value = config.m_balance || 0; document.getElementById('conf_cbal').value = config.c_balance || 0; } 
     }
 
     async function saveConfig() { 
         try {
-            config.budget = parseFloat(document.getElementById('conf_income').value) || 0; 
-            config.m_balance = parseFloat(document.getElementById('conf_mbal').value) || 0; 
-            config.c_balance = parseFloat(document.getElementById('conf_cbal').value) || 0; 
-            
+            config.budget = parseFloat(document.getElementById('conf_income').value) || 0; config.m_balance = parseFloat(document.getElementById('conf_mbal').value) || 0; config.c_balance = parseFloat(document.getElementById('conf_cbal').value) || 0; 
             await _supabase.from('app_settings').upsert({ id: 1, ...config });
-            fetchData(); 
-            toggleSettings(); 
-            showToast("Config Saved");
-        } catch (err) {
-            showToast("Failed to save config");
-        }
+            fetchData(); toggleSettings(); showToast("Config Saved");
+        } catch (err) { showToast("Failed to save config"); }
     }
 </script>
 </body>
