@@ -28,7 +28,6 @@
         #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 80%; pointer-events: none; }
         .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        /* THE GOD-TIER Z-INDEX FIX FOR MOBILE MENU */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 4000; }
         #sideMenuOverlay { z-index: 9998 !important; } 
         .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg); border-right: 1px solid var(--border); z-index: 9999 !important; transition: left 0.3s ease; display: flex; flex-direction: column; }
@@ -36,7 +35,7 @@
         
         .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 4100; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
 
-        #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #configManager, #shareManager { 
+        #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #configManager, #shareManager, #profileManager { 
             background: var(--card); backdrop-filter: blur(25px); padding: 25px; 
             border-radius: 32px; width: 92%; max-width: 440px; 
             border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
@@ -48,7 +47,7 @@
         body.logged-in #loginScreen { display: none !important; }
         
         #app { display: block; }
-        #subManager, #notesManager, #analyticsModal, #configManager, #shareManager { display: none; }
+        #subManager, #notesManager, #analyticsModal, #configManager, #shareManager, #profileManager { display: none; }
 
         .menu-header { padding: 30px 20px; font-size: 1.5rem; font-weight: 800; border-bottom: 1px solid var(--border); background: var(--card); color: #fff; }
         .menu-item { padding: 20px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; color: var(--text); transition: background 0.2s; }
@@ -69,7 +68,7 @@
         .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; }
         .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 5px; }
 
-        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); }
+        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 20px; }
         .tracker-bar-bg { height: 10px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; margin-top: 8px; display: flex; }
         .tracker-bar-fill { background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
 
@@ -111,11 +110,16 @@
         select option { background-color: #0f172a !important; color: #ffffff !important; }
         .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; }
 
+        /* Profile Icons */
+        .icon-grid { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+        .prof-icon-opt { width: 50px; height: 50px; background: rgba(0,0,0,0.3); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; border: 2px solid transparent; transition: 0.2s; color: #94a3b8; }
+        .prof-icon-opt:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
         /* DESKTOP SAAS LAYOUT */
         @media (min-width: 1100px) {
             body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 40px; padding: 40px; }
             body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #configManager, body.logged-in #shareManager { margin: 0; width: 550px; flex-shrink: 0; }
+            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #configManager, body.logged-in #shareManager, body.logged-in #profileManager { margin: 0; width: 550px; flex-shrink: 0; }
             
             /* Counterweight trick to perfectly center app-title on Desktop */
             body.logged-in .hamburger { visibility: hidden !important; pointer-events: none !important; }
@@ -162,6 +166,7 @@
             <div class="menu-item" onclick="switchView('analyticsModal');"><i class="fa-solid fa-chart-line"></i> Cycle Analytics</div>
             <div class="menu-item" onclick="switchView('configManager');"><i class="fa-solid fa-gear"></i> Ledger Config</div>
             <div class="menu-item" onclick="switchView('shareManager');"><i class="fa-solid fa-cloud"></i> Ledger Share</div>
+            <div class="menu-item" onclick="switchView('profileManager');"><i class="fa-solid fa-user-astronaut"></i> Profile Settings</div>
             <div style="flex-grow: 1;"></div>
             <div class="menu-item" onclick="logoutApp();" style="color: #ef4444; border-top: 1px solid var(--border);"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
         </div>
@@ -292,6 +297,34 @@
 
             <input type="text" id="searchBar" placeholder="🔍 Search tags or category..." onkeyup="filterHistory()">
             <div id="historyList" style="margin-top: 15px;"></div>
+        </div>
+
+        <div id="profileManager">
+            <div class="top-header">
+                <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+                <div class="app-title">PROFILE SETTINGS</div>
+                <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
+                    <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
+                    <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
+                </div>
+            </div>
+
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
+                <label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">CHOOSE YOUR AVATAR</label>
+                <div class="icon-grid">
+                    <div class="prof-icon-opt" id="icon_fa-user" onclick="setProfileIcon('fa-user')"><i class="fa-solid fa-user"></i></div>
+                    <div class="prof-icon-opt" id="icon_fa-gamepad" onclick="setProfileIcon('fa-gamepad')"><i class="fa-solid fa-gamepad"></i></div>
+                    <div class="prof-icon-opt" id="icon_fa-futbol" onclick="setProfileIcon('fa-futbol')"><i class="fa-solid fa-futbol"></i></div>
+                    <div class="prof-icon-opt" id="icon_fa-dog" onclick="setProfileIcon('fa-dog')"><i class="fa-solid fa-dog"></i></div>
+                    <div class="prof-icon-opt" id="icon_fa-cat" onclick="setProfileIcon('fa-cat')"><i class="fa-solid fa-cat"></i></div>
+                </div>
+
+                <div style="height:1px; background:rgba(255,255,255,0.1); margin: 25px 0;"></div>
+
+                <label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">UPDATE PASSWORD</label>
+                <input type="password" id="newPasswordInput" placeholder="Enter new secure password...">
+                <button class="btn-elite" onclick="updatePassword()" style="margin-bottom:0;">Update Password</button>
+            </div>
         </div>
 
         <div id="configManager">
@@ -431,6 +464,7 @@
                 currentUser = session.user.id;
                 document.body.classList.add('logged-in');
                 loadAppEngine();
+                loadProfileIcon();
             }
         });
     } catch (e) { console.error(e); }
@@ -442,6 +476,7 @@
         document.getElementById('analyticsModal').style.display = 'none';
         document.getElementById('configManager').style.display = 'none';
         document.getElementById('shareManager').style.display = 'none';
+        document.getElementById('profileManager').style.display = 'none';
         
         document.getElementById(viewId).style.display = 'block';
         window.scrollTo(0,0);
@@ -488,6 +523,30 @@
             if (data.session) location.reload();
             else if (isSignUpMode) { showToast("Sign up success! Login now."); toggleAuthMode(); }
         } catch (err) { alert(err.message); btn.innerText = isSignUpMode ? "Sign Up" : "Secure Login"; }
+    }
+
+    async function updatePassword() {
+        const newPass = document.getElementById('newPasswordInput').value;
+        if(newPass.length < 6) { showToast("Password must be at least 6 characters."); return; }
+        try {
+            const { error } = await _supabase.auth.updateUser({ password: newPass });
+            if (error) throw error;
+            showToast("Password Updated Successfully!");
+            document.getElementById('newPasswordInput').value = '';
+        } catch (err) { alert(err.message); }
+    }
+
+    function setProfileIcon(iconClass) {
+        localStorage.setItem('montoya_profile_icon', iconClass);
+        document.querySelectorAll('.prof-icon-opt').forEach(el => el.style.border = '2px solid transparent');
+        document.getElementById('icon_' + iconClass).style.border = '2px solid var(--primary)';
+        showToast("Avatar Updated!");
+    }
+
+    function loadProfileIcon() {
+        const savedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
+        const iconEl = document.getElementById('icon_' + savedIcon);
+        if(iconEl) iconEl.style.border = '2px solid var(--primary)';
     }
 
     async function loadAppEngine() {
@@ -811,7 +870,7 @@
     function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard','Groceries'].includes(c)) setType('Need'); else setType('Want'); }
 
     function toggleMenu() { 
-        if (window.innerWidth >= 1100) return; // Prevent mobile menu logic on desktop
+        if (window.innerWidth >= 1100) return; 
         const menu = document.getElementById('sideMenu');
         const overlay = document.getElementById('sideMenuOverlay');
         menu.classList.toggle('open'); 
