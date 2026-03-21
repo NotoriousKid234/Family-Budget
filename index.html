@@ -47,10 +47,11 @@
         .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg); border-right: 1px solid var(--border); z-index: 3000; transition: left 0.3s ease; display: flex; flex-direction: column; }
         .side-menu.open { left: 0; }
         .menu-header { padding: 30px 20px; font-size: 1.5rem; font-weight: 800; border-bottom: 1px solid var(--border); background: var(--card); color: #fff; }
-        .menu-item { padding: 20px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; color: var(--text); }
+        .menu-item { padding: 20px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; color: var(--text); transition: background 0.2s; }
+        .menu-item:hover { background: rgba(255,255,255,0.05); }
 
-        .top-header { display: flex; align-items: center; justify-content: center; margin-bottom: 25px; gap: 15px; }
-        .hamburger { font-size: 1.5rem; color: #94a3b8; cursor: pointer; margin-left: -40px; }
+        .top-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+        .hamburger { font-size: 1.5rem; color: #94a3b8; cursor: pointer; }
         .app-title { font-weight: 800; font-size: 1rem; letter-spacing: 1px; color: #fff; text-transform: uppercase; }
 
         .cycle-selector { background: var(--primary); border: none; color: #fff; padding: 10px 20px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; width: fit-content; margin: 0 auto 15px auto; display: block; cursor: pointer; }
@@ -86,18 +87,20 @@
         .pill-split { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
         .pill-auto { background: var(--primary); color: white; }
 
-        .edit-icon { color: #60a5fa; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
-        .trash-icon { color: #ef4444; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
+        .edit-icon { color: #60a5fa; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; transition: 0.2s; }
+        .trash-icon { color: #ef4444; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; transition: 0.2s; }
         .edit-icon:hover, .trash-icon:hover { opacity: 1; transform: scale(1.1); }
 
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; }
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.9; }
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; }
         .type-btn { flex: 1; border: none; padding: 8px; border-radius: 8px; cursor: pointer; background: transparent; color: #94a3b8; font-weight: 700; }
         .type-btn.active { background: white; color: #0f172a; }
 
         .quick-sync-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
         .quick-sync-row::-webkit-scrollbar { display: none; }
-        .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 6px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 6px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.2s; }
+        .quick-chip:hover { background: rgba(255,255,255,0.15); }
         .recur-row { display: flex; justify-content: space-between; align-items: center; background: rgba(168, 85, 247, 0.05); padding: 12px 16px; border-radius: 14px; margin-bottom: 15px; border: 1px solid rgba(168, 85, 247, 0.2); font-size: 0.8rem; font-weight: 700; color: #e0e7ff; }
         
         input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
@@ -110,7 +113,6 @@
             body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
             body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal { margin: 0; width: 550px; flex-shrink: 0; }
             body.logged-in .hamburger { display: none !important; }
-            body.logged-in .app-title { margin-left: -20px; }
         }
     </style>
 </head>
@@ -164,11 +166,11 @@
         <div id="sideMenuOverlay" class="modal-overlay" onclick="toggleMenu()"></div>
         <div id="sideMenu" class="side-menu">
             <div class="menu-header">Elite Ledger</div>
-            <div class="menu-item" onclick="toggleMenu(); switchView('app');"><i class="fa-solid fa-house"></i> Dashboard</div>
-            <div class="menu-item" onclick="toggleMenu(); switchView('subManager');"><i class="fa-solid fa-clock-rotate-left"></i> Bills & Subs</div>
-            <div class="menu-item" onclick="toggleMenu(); switchView('notesManager');"><i class="fa-solid fa-comment-dots"></i> Family Notes</div>
-            <div class="menu-item" onclick="toggleMenu(); switchView('analyticsModal');"><i class="fa-solid fa-chart-line"></i> Cycle Analytics</div>
-            <div class="menu-item" onclick="toggleMenu(); toggleSettings();"><i class="fa-solid fa-cloud"></i> Ledger Share</div>
+            <div class="menu-item" onclick="switchView('app');"><i class="fa-solid fa-house"></i> Dashboard</div>
+            <div class="menu-item" onclick="switchView('subManager');"><i class="fa-solid fa-clock-rotate-left"></i> Bills & Subs</div>
+            <div class="menu-item" onclick="switchView('notesManager');"><i class="fa-solid fa-comment-dots"></i> Family Notes</div>
+            <div class="menu-item" onclick="switchView('analyticsModal');"><i class="fa-solid fa-chart-line"></i> Cycle Analytics</div>
+            <div class="menu-item" onclick="toggleSettings();"><i class="fa-solid fa-cloud"></i> Ledger Share</div>
             <div style="flex-grow: 1;"></div>
             <div class="menu-item" onclick="logoutApp();" style="color: #ef4444; border-top: 1px solid var(--border);"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
         </div>
@@ -177,7 +179,10 @@
             <div class="top-header">
                 <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
                 <div class="app-title">MONTOYA LEDGER</div>
-                <div style="width:24px;"></div> 
+                <div style="position:relative; cursor:pointer;" onclick="switchView('notesManager')">
+                    <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
+                    <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
+                </div>
             </div>
 
             <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
@@ -247,6 +252,10 @@
                     <div class="quick-chip" onclick="quickFill(15.00, 'Dining', 'McDonalds', 'Want')"><i class="fa-solid fa-burger" style="color:#f59e0b"></i> McDonalds</div>
                     <div class="quick-chip" onclick="quickFill(40.00, 'Car', 'Gas', 'Need')"><i class="fa-solid fa-gas-pump" style="color:#3b82f6"></i> Gas</div>
                     <div class="quick-chip" onclick="quickFill(100.00, 'Groceries', 'Publix', 'Need')"><i class="fa-solid fa-basket-shopping" style="color:#10b981"></i> Publix</div>
+                    <div class="quick-chip" onclick="quickFill(450.00, 'Car', 'Car Loan', 'Need')"><i class="fa-solid fa-car" style="color:#3b82f6"></i> Car Loan</div>
+                    <div class="quick-chip" onclick="quickFill(2100.00, 'Mortgage', 'Mortgage', 'Need')"><i class="fa-solid fa-house" style="color:#6366f1"></i> Mortgage</div>
+                    <div class="quick-chip" onclick="quickFill(80.00, 'Utilities', 'Phone Bill', 'Need')"><i class="fa-solid fa-mobile-screen" style="color:#06b6d4"></i> Phone Bill</div>
+                    <div class="quick-chip" onclick="quickFill(150.00, 'Utilities', 'Utilities', 'Need')"><i class="fa-solid fa-lightbulb" style="color:#06b6d4"></i> Utilities</div>
                 </div>
 
                 <div class="recur-row" id="recurToggleRow">
@@ -262,7 +271,7 @@
                     <option value="Groceries">🛒 Groceries</option>
                     <option value="Dining">🍔 Dining</option>
                     <option value="Utilities">💡 Utilities</option>
-                    <option value="Mortgage">🏠 Mortgage Payment</option>
+                    <option value="Mortgage">🏠 Mortgage</option>
                     <option value="Car">🚗 Car Payment</option>
                     <option value="CreditCard">💳 Credit Card</option>
                     <option value="Subscription">📺 Subscription</option>
@@ -279,23 +288,68 @@
         </div>
 
         <div id="subManager">
-            <div class="top-header"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i><div class="app-title">BILLS</div><div style="width:24px;"></div></div>
+            <div class="top-header">
+                <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+                <div class="app-title">BILLS & SUBSCRIPTIONS</div>
+                <div style="position:relative; cursor:pointer;" onclick="switchView('notesManager')">
+                    <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
+                    <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
+                </div>
+            </div>
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
+                <input type="text" id="subName" placeholder="Bill Name">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <input type="number" id="subAmt" placeholder="Amount">
+                    <input type="number" id="subDay" placeholder="Day (1-31)">
+                </div>
+                <button class="btn-elite" onclick="addSub()" style="margin-bottom:0;">Add New Bill</button>
+            </div>
             <div id="subList"></div>
-            <button class="btn-elite btn-back" onclick="switchView('app')">Back to Dashboard</button>
         </div>
         
         <div id="notesManager">
-            <div class="top-header"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i><div class="app-title">NOTES</div><div style="width:24px;"></div></div>
-            <textarea id="noteMessage" placeholder="Type a message..." style="height:100px;"></textarea>
-            <button class="btn-elite" onclick="addNote()">Post Note</button>
-            <div id="notesList" style="margin-top:15px;"></div>
-            <button class="btn-elite btn-back" onclick="switchView('app')">Back to Dashboard</button>
+            <div class="top-header">
+                <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+                <div class="app-title">FAMILY NOTES</div>
+                <div style="position:relative; cursor:pointer;" onclick="switchView('notesManager')">
+                    <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
+                    <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
+                </div>
+            </div>
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
+                <textarea id="noteMessage" placeholder="Type a message..." style="height:100px;"></textarea>
+                <button class="btn-elite" onclick="addNote()" style="margin-bottom:0;">Post Note</button>
+            </div>
+            <div id="notesList"></div>
         </div>
         
         <div id="analyticsModal">
-            <div class="top-header"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i><div class="app-title">ANALYTICS</div><div style="width:24px;"></div></div>
+            <div class="top-header">
+                <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+                <div class="app-title">CYCLE ANALYTICS</div>
+                <div style="position:relative; cursor:pointer;" onclick="switchView('notesManager')">
+                    <i class="fa-solid fa-bell" style="font-size: 1.2rem; color: #94a3b8; transition:0.2s;"></i>
+                    <div class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div>
+                </div>
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 24px; margin-bottom: 20px; font-size: 0.85rem; border: 1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                    <span style="color:#94a3b8;">Last Cycle Total:</span>
+                    <span id="lastCycleTotal" style="font-weight:700; font-size: 1rem;">$0.00</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                    <span style="color:#94a3b8;">This Cycle Total:</span>
+                    <span id="thisCycleTotal" style="font-weight:700; font-size: 1rem;">$0.00</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;">
+                    <span style="color:#c4b5fd; font-weight:700;">Creep/Savings:</span>
+                    <span id="creepTotal" style="font-weight:700; font-size: 1rem;">$0.00</span>
+                </div>
+            </div>
+
+            <h4 style="text-align:center; color:#94a3b8; margin-top:20px; margin-bottom: 15px; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Discretionary Breakdown</h4>
             <div style="height:250px; position:relative;"><canvas id="categoryDonutChart"></canvas></div>
-            <button class="btn-elite btn-back" onclick="switchView('app')">Back to Dashboard</button>
         </div>
 
     </div> <script>
@@ -331,7 +385,15 @@
         document.getElementById('analyticsModal').style.display = 'none';
         document.getElementById(viewId).style.display = 'block';
         window.scrollTo(0,0);
-        if(viewId === 'analyticsModal') renderAnalytics();
+        
+        if (viewId === 'notesManager') {
+            localStorage.setItem('montoya_notes_viewed', Date.now().toString());
+            document.querySelectorAll('.note-ping').forEach(p => p.style.display = 'none');
+        }
+        if (viewId === 'app' || viewId === 'analyticsModal') fetchData();
+        
+        const menu = document.getElementById('sideMenu');
+        if (menu.classList.contains('open')) toggleMenu();
     }
 
     function toggleAuthMode() {
@@ -385,7 +447,10 @@
         }
     }
 
-    async function changeCycle() { currentViewDate = new Date(document.getElementById('cycleSelect').value); await fetchData(); }
+    async function changeCycle() { 
+        currentViewDate = new Date(document.getElementById('cycleSelect').value); 
+        await fetchData(); 
+    }
 
     async function fetchData() {
         if (!currentGroup) return;
@@ -396,7 +461,7 @@
             _supabase.from('app_notes').select('*').eq('group_id', currentGroup).order('created_at', { ascending: false })
         ]);
         history = transRes.data || []; recurring = recurRes.data || []; notes = noteRes.data || [];
-        updateUI(); updateNotesUI(); renderSubList();
+        updateUI(); updateNotesUI(); renderSubList(); renderAnalytics();
     }
 
     function updateUI() {
@@ -404,10 +469,9 @@
         let totalS = 0, needS = 0, wantS = 0, goalS = 0, bS = 0, gS = 0, pendingBills = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
         
-        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-        // CALCULATE PAYOFF PROGRESS
         const origAmt = config.c_orig || 45000;
         const currBal = config.c_balance || 0;
         const amtPaid = Math.max(0, origAmt - currBal);
@@ -415,8 +479,8 @@
 
         document.getElementById('carPayoffBar').style.width = payoffPerc + "%";
         document.getElementById('carPayoffPerc').innerText = Math.round(payoffPerc) + "%";
-        document.getElementById('carPaidAmount').innerText = "Paid: $" + amtPaid.toFixed(2);
-        document.getElementById('carRemainingAmount').innerText = "Remaining: $" + currBal.toFixed(2);
+        document.getElementById('carPaidAmount').innerText = "Paid: $" + amtPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('carRemainingAmount').innerText = "Remaining: $" + currBal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
         history.forEach(item => {
             totalS += item.amount;
@@ -433,88 +497,215 @@
             let displayNote = (item.note || "").replace(/(#[a-zA-Z0-9_]+)/g, `<span class="clickable-tag" onclick="quickSearch('$1')">$1</span>`);
             const color = catColors[item.category] || "#94a3b8";
 
+            let dateObj = new Date(item.created_at);
+            let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
             const div = document.createElement('div'); div.className = 'history-item';
             div.innerHTML = `
                 <div>
                     <span class="cat-pill" style="background:${color}22; color:${color}">${item.category}</span>
                     <span class="item-note-text">${displayNote || item.category}</span>
-                    <div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                        <div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}" style="margin:0;">${item.member}</div>
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:600;"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
+                    </div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="font-weight:700; margin-bottom:5px;">-$${item.amount.toFixed(2)}</div>
+                    <div style="font-weight:700; margin-bottom:5px; font-size:1.1rem;">-$${item.amount.toFixed(2)}</div>
                     <i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i>
                     <i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i>
                 </div>`;
             list.appendChild(div);
         });
 
-        const INCOME = config.budget || 7400;
-        document.getElementById('balance').innerText = "$" + (INCOME - totalS).toFixed(2);
-        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS).toFixed(2);
-        document.getElementById('brandonSpend').innerText = "$" + bS.toFixed(2);
-        document.getElementById('ginaSpend').innerText = "$" + gS.toFixed(2);
+        recurring.forEach(sub => {
+            let billDate = new Date(start); if (sub.billing_day < CYCLE_START_DAY) billDate.setMonth(billDate.getMonth() + 1);
+            billDate.setDate(sub.billing_day);
+            const logged = history.some(h => h.note === sub.name || h.category === sub.name);
+            if (!logged) {
+                if (billDate <= new Date()) { 
+                    totalS += sub.amount; needS += sub.amount;
+                    const div = document.createElement('div'); div.className = 'history-item'; div.style.opacity = '0.6';
+                    div.innerHTML = `
+                        <div>
+                            <span class="cat-pill" style="background:#8b5cf622; color:#a78bfa">PENDING BILL</span>
+                            <span class="item-note-text">${sub.name}</span>
+                            <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                                <div class="member-pill pill-auto" style="margin:0;"><i class="fa-solid fa-robot"></i> Auto-sync</div>
+                                <div style="font-size:0.65rem; color:#64748b; font-weight:600;">Day ${sub.billing_day}</div>
+                            </div>
+                        </div>
+                        <div style="text-align:right; font-weight:700; font-size:1.1rem; padding-right:10px;">-$${sub.amount.toFixed(2)}</div>`;
+                    list.prepend(div);
+                } else { pendingBills += sub.amount; }
+            }
+        });
 
-        const safeNeed = INCOME > 0 ? Math.min(100, (needS / INCOME) * 100) : 0;
-        const safeWant = INCOME > 0 ? Math.min(100, (wantS / INCOME) * 100) : 0;
-        const safeGoal = INCOME > 0 ? Math.min(100, (goalS / INCOME) * 100) : 0;
+        const INCOME = config.budget || 7400;
+        document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS - pendingBills).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        const safeNeed = (INCOME > 0) ? Math.min(100, Math.round((needS/INCOME)*100)) : 0;
+        const safeWant = (INCOME > 0) ? Math.min(100, Math.round((wantS/INCOME)*100)) : 0;
+        const safeGoal = (INCOME > 0) ? Math.min(100, Math.round((goalS/INCOME)*100)) : 0;
         document.getElementById('barNeed').style.width = safeNeed + '%';
         document.getElementById('barWant').style.width = safeWant + '%';
         document.getElementById('barGoal').style.width = safeGoal + '%';
-        document.getElementById('percNeed').innerText = Math.round(safeNeed);
-        document.getElementById('percWant').innerText = Math.round(safeWant);
-        document.getElementById('percGoal').innerText = Math.round(safeGoal);
+        document.getElementById('percNeed').innerText = safeNeed;
+        document.getElementById('percWant').innerText = safeWant;
+        document.getElementById('percGoal').innerText = safeGoal;
 
         const daysLeft = Math.max(1, Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24)));
         document.getElementById('paceDisplay').innerText = `Pace: $${((INCOME - totalS) / daysLeft).toFixed(2)} / day`;
     }
 
+    function renderSubList() {
+        const list = document.getElementById('subList'); list.innerHTML = '';
+        recurring.forEach(s => {
+            const div = document.createElement('div'); div.className = 'history-item';
+            div.innerHTML = `
+                <div><span class="cat-pill">RECURRING</span><br><b class="item-note-text">${s.name}</b><small style="color:#94a3b8; display:block; margin-top:4px;">Billed Day ${s.billing_day}</small></div>
+                <div style="text-align:right;"><div style="font-weight:700; font-size:1.1rem; margin-bottom:5px;">$${s.amount.toFixed(2)}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteSub('${s.id}')"></i></div>`;
+            list.appendChild(div);
+        });
+    }
+
+    function updateNotesUI() {
+        const list = document.getElementById('notesList'); list.innerHTML = '';
+        let latestTime = 0;
+        notes.forEach(n => {
+            const noteTime = new Date(n.created_at).getTime();
+            if (noteTime > latestTime) latestTime = noteTime;
+            
+            let dateObj = new Date(n.created_at);
+            let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            
+            const div = document.createElement('div'); div.className = 'history-item';
+            div.innerHTML = `
+                <div style="width:100%;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <b style="color:${n.author === 'Gina' ? 'var(--gina)' : 'var(--brandon)'}">${n.author}</b>
+                        <small style="color:#64748b;">${dateStr}</small>
+                    </div>
+                    <div style="color:#e2e8f0; line-height:1.4;">${n.message}</div>
+                </div>
+                <i class="fa-solid fa-trash-can trash-icon" style="margin-left:15px;" onclick="deleteNote('${n.id}')"></i>`;
+            list.appendChild(div);
+        });
+        
+        const lastViewed = parseInt(localStorage.getItem('montoya_notes_viewed') || '0');
+        const pings = document.querySelectorAll('.note-ping');
+        pings.forEach(p => p.style.display = (latestTime > lastViewed && notes.length > 0) ? 'block' : 'none');
+    }
+
+    async function renderAnalytics() {
+        if (!_supabase || !currentGroup) return;
+        const { start: currStart } = getCycleDates(currentViewDate);
+        let lastDate = new Date(currStart); lastDate.setMonth(lastDate.getMonth() - 1);
+        const { start: lastStart, end: lastEnd } = getCycleDates(lastDate);
+
+        const { data } = await _supabase.from('transactions').select('*').eq('group_id', currentGroup).gte('created_at', lastStart.toISOString()).lt('created_at', lastEnd.toISOString());
+        const lastHistory = data || [];
+
+        let lastT = 0, currT = 0; let categoryTotals = {};
+        lastHistory.forEach(i => { if(!['Mortgage','Car','Utilities'].includes(i.category)) lastT += i.amount; });
+        history.forEach(i => { 
+            if(!['Mortgage','Car','Utilities'].includes(i.category)) {
+                currT += i.amount;
+                categoryTotals[i.category] = (categoryTotals[i.category] || 0) + i.amount;
+            }
+        });
+
+        document.getElementById('lastCycleTotal').innerText = "$" + lastT.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('thisCycleTotal').innerText = "$" + currT.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        const diff = currT - lastT; const creepEl = document.getElementById('creepTotal');
+        if (diff > 0) { creepEl.innerText = "+$" + diff.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " (Creep)"; creepEl.style.color = "#ef4444"; } 
+        else { creepEl.innerText = "-$" + Math.abs(diff).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " (Savings)"; creepEl.style.color = "#10b981"; }
+
+        const ctxCat = document.getElementById('categoryDonutChart').getContext('2d');
+        let catLabels = Object.keys(categoryTotals);
+        let catData = Object.values(categoryTotals);
+        let catBgColors = catLabels.map(c => catColors[c] || '#94a3b8');
+
+        if(catChart) catChart.destroy();
+        catChart = new Chart(ctxCat, { type: 'doughnut', data: { labels: catLabels, datasets: [{ data: catData, backgroundColor: catBgColors, borderWidth: 0, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { color: '#f8fafc', font: { size: 10, family: 'Inter' } } } } } });
+    }
+
     async function addEntry() {
         const amtInput = document.getElementById('amount').value; const amt = parseFloat(amtInput); if (!amt) return;
-        const cat = document.getElementById('category').value;
+        const cat = document.getElementById('category').value; const isRecur = document.getElementById('isRecurring').checked;
+        if (cat === 'Mortgage') config.m_balance -= amt; if (cat === 'Car') config.c_balance -= amt;
+
         const payload = { amount: amt, member: document.getElementById('memberSelect').value, category: cat, note: document.getElementById('noteInput').value, intent: currentType, user_id: currentUser, group_id: currentGroup };
         
-        // DECREASING LOAN LOGIC
-        if (cat === 'Mortgage') config.m_balance -= amt;
-        if (cat === 'Car') config.c_balance -= amt;
-
-        if (editingId) { await _supabase.from('transactions').update(payload).eq('id', editingId); editingId = null; document.getElementById('syncBtn').innerText = "Sync Transaction"; } 
-        else { await _supabase.from('transactions').insert([payload]); }
+        if (editingId) { await _supabase.from('transactions').update(payload).eq('id', editingId); editingId = null; document.getElementById('syncBtn').innerText = "Sync Transaction"; document.getElementById('recurToggleRow').style.display = 'flex'; } 
+        else { 
+            await _supabase.from('transactions').insert([payload]); 
+            if (isRecur) await _supabase.from('recurring_expenses').insert([{ name: payload.note || cat, amount: amt, group_id: currentGroup, user_id: currentUser, billing_day: new Date().getDate() }]); 
+        }
         await _supabase.from('app_settings').update({ m_balance: config.m_balance, c_balance: config.c_balance }).eq('group_id', currentGroup);
-        document.getElementById('amount').value = ''; document.getElementById('noteInput').value = ''; fetchData();
+        document.getElementById('amount').value = ''; document.getElementById('noteInput').value = ''; document.getElementById('isRecurring').checked = false; fetchData();
+    }
+
+    function editEntry(id) {
+        const item = history.find(h => h.id === id); if (!item) return; editingId = id;
+        document.getElementById('amount').value = item.amount; document.getElementById('noteInput').value = item.note; document.getElementById('memberSelect').value = item.member; document.getElementById('category').value = item.category;
+        setType(item.intent); document.getElementById('syncBtn').innerText = "Update Transaction"; document.getElementById('recurToggleRow').style.display = 'none'; window.scrollTo(0,0);
+    }
+
+    async function deleteEntry(id) { if (confirm("Delete?")) { await _supabase.from('transactions').delete().eq('id', id); fetchData(); } }
+    async function deleteSub(id) { if (confirm("Delete this recurring bill?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); fetchData(); } }
+    async function deleteNote(id) { if (confirm("Delete note?")) { await _supabase.from('app_notes').delete().eq('id', id); fetchData(); } }
+    
+    async function addSub() {
+        const n = document.getElementById('subName').value, a = parseFloat(document.getElementById('subAmt').value), d = parseInt(document.getElementById('subDay').value);
+        if(!n || !a || !d) return;
+        await _supabase.from('recurring_expenses').insert([{ name: n, amount: a, billing_day: d, group_id: currentGroup, user_id: currentUser }]);
+        document.getElementById('subName').value = ''; document.getElementById('subAmt').value = ''; document.getElementById('subDay').value = ''; fetchData();
     }
 
     async function saveConfig() { 
         config.budget = parseFloat(document.getElementById('conf_income').value); 
         config.m_balance = parseFloat(document.getElementById('conf_mbal').value); 
         config.c_balance = parseFloat(document.getElementById('conf_cbal').value); 
-        config.c_orig = parseFloat(document.getElementById('conf_corig').value); // Tie payoff tracker start amt
+        config.c_orig = parseFloat(document.getElementById('conf_corig').value); 
         await _supabase.from('app_settings').update(config).eq('group_id', currentGroup); 
         fetchData(); toggleSettings(); showToast("Settings Saved!"); 
     }
 
-    function toggleMenu() { document.getElementById('sideMenu').classList.toggle('open'); document.getElementById('sideMenuOverlay').style.display = document.getElementById('sideMenuOverlay').style.display === 'block' ? 'none' : 'block'; }
-    function toggleSettings() { const m = document.getElementById('settingsModal'); const o = document.getElementById('settingsOverlay'); const isV = m.style.display === 'block'; m.style.display = isV ? 'none' : 'block'; o.style.display = isV ? 'none' : 'block'; }
-    function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t==='Need'); document.getElementById('wantBtn').classList.toggle('active', t==='Want'); }
-    function quickFill(a, c, n, t) { document.getElementById('amount').value = a; document.getElementById('category').value = c; document.getElementById('noteInput').value = n; setType(t); window.scrollTo(0, document.querySelector('.type-toggle').offsetTop - 20); }
-    async function logoutApp() { await _supabase.auth.signOut(); location.reload(); }
     function filterHistory() { const q = document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('.history-item').forEach(item => { item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none'; }); }
     function quickSearch(tag) { document.getElementById('searchBar').value = tag; filterHistory(); }
-    function editEntry(id) { editingId = id; const item = history.find(h => h.id === id); if(!item) return; document.getElementById('amount').value = item.amount; document.getElementById('noteInput').value = item.note; document.getElementById('memberSelect').value = item.member; document.getElementById('category').value = item.category; setType(item.intent); document.getElementById('syncBtn').innerText = "Update Transaction"; window.scrollTo(0,0); }
-    async function deleteEntry(id) { if(confirm("Delete?")) { await _supabase.from('transactions').delete().eq('id', id); fetchData(); } }
-    function updateNotesUI() { const list = document.getElementById('notesList'); list.innerHTML = ''; notes.forEach(n => { const div = document.createElement('div'); div.className = 'history-item'; div.innerHTML = `<div><b>${n.author}:</b> ${n.message}</div>`; list.appendChild(div); }); }
-    async function addNote() { const msg = document.getElementById('noteMessage').value; if(!msg) return; await _supabase.from('app_notes').insert([{ author: 'Brandon', message: msg, group_id: currentGroup, user_id: currentUser }]); document.getElementById('noteMessage').value = ''; fetchData(); }
-    function renderSubList() { const list = document.getElementById('subList'); list.innerHTML = ''; recurring.forEach(s => { const div = document.createElement('div'); div.className = 'history-item'; div.innerHTML = `<div><span class="cat-pill">RECURRING</span><br><b class="item-note-text">${s.name}</b></div><div style="font-weight:700;">-$${s.amount.toFixed(2)}</div>`; list.appendChild(div); }); }
-    function showToast(m) { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = 'toast'; t.innerText = m; c.appendChild(t); setTimeout(() => t.remove(), 3000); }
+    function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard','Groceries'].includes(c)) setType('Need'); else setType('Want'); }
+
+    function toggleMenu() { 
+        const menu = document.getElementById('sideMenu');
+        const overlay = document.getElementById('sideMenuOverlay');
+        if (window.getComputedStyle(document.querySelector('.hamburger')).display === 'none') return;
+        menu.classList.toggle('open'); 
+        overlay.style.display = menu.classList.contains('open') ? 'block' : 'none'; 
+    }
+    
+    function toggleSettings() { 
+        const m = document.getElementById('settingsModal'); 
+        const o = document.getElementById('settingsOverlay'); 
+        const isV = m.style.display === 'block'; 
+        m.style.display = isV ? 'none' : 'block'; 
+        o.style.display = isV ? 'none' : 'block'; 
+        const menu = document.getElementById('sideMenu');
+        if (menu.classList.contains('open')) toggleMenu();
+    }
+    
+    function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t==='Need'); document.getElementById('wantBtn').classList.toggle('active', t==='Want'); }
+    function quickFill(a, c, n, t) { document.getElementById('amount').value = a; document.getElementById('category').value = c; document.getElementById('noteInput').value = n; setType(t); window.scrollTo(0, document.querySelector('.type-toggle').offsetTop - 20); }
     function copyKey() { navigator.clipboard.writeText(currentGroup); showToast("Key Copied!"); }
     async function joinLedger() { const key = document.getElementById('joinKeyInput').value.trim(); if(key.length > 20) { await _supabase.from('app_settings').update({ group_id: key }).eq('user_id', currentUser); location.reload(); } }
-    function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
-    function renderAnalytics() {
-        const ctxCat = document.getElementById('categoryDonutChart').getContext('2d');
-        let categoryTotals = {}; history.forEach(i => { categoryTotals[i.category] = (categoryTotals[i.category] || 0) + i.amount; });
-        let catLabels = Object.keys(categoryTotals); let catData = Object.values(categoryTotals); let catBgColors = catLabels.map(c => catColors[c] || '#94a3b8');
-        if(catChart) catChart.destroy();
-        catChart = new Chart(ctxCat, { type: 'doughnut', data: { labels: catLabels, datasets: [{ data: catData, backgroundColor: catBgColors, borderWidth: 0, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { color: '#f8fafc', font: { size: 10, family: 'Inter' } } } } } });
-    }
+    async function logoutApp() { await _supabase.auth.signOut(); location.reload(); }
+    
+    async function addNote() { const msg = document.getElementById('noteMessage').value; if(!msg) return; await _supabase.from('app_notes').insert([{ author: 'Brandon', message: msg, group_id: currentGroup, user_id: currentUser }]); document.getElementById('noteMessage').value = ''; fetchData(); }
+    function showToast(m) { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = 'toast'; t.innerText = m; c.appendChild(t); setTimeout(() => t.remove(), 3000); }
 </script>
 </body>
 </html>
