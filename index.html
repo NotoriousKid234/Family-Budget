@@ -272,7 +272,6 @@
     let config = { budget: 7400, m_balance: 0, m_rate: 0, c_balance: 0, c_rate: 0 };
     let INCOME = config.budget;
 
-    // Toggle Pin Visibility Function
     function togglePinVisibility() {
         const pinField = document.getElementById('pinField');
         const toggleIcon = document.getElementById('togglePin');
@@ -560,7 +559,11 @@
 
         history.forEach(item => {
             totalS += item.amount;
-            if (item.member === 'Brandon') bS += item.amount; else gS += item.amount;
+            
+            // Exclude Mortgage and Car from individual spending cards
+            if (item.category !== 'Mortgage' && item.category !== 'Car') {
+                if (item.member === 'Brandon') bS += item.amount; else gS += item.amount;
+            }
             
             if (item.category === 'Goal') goalS += item.amount;
             else if (item.intent === 'Want') wantS += item.amount;
