@@ -67,18 +67,16 @@
         
         .edit-icon { color: #60a5fa; cursor: pointer; opacity: 0.6; padding: 8px; background: rgba(96, 165, 250, 0.1); border-radius: 10px; transition: all 0.2s; }
         .edit-icon:hover { opacity: 1; transform: scale(1.1); }
-
         .trash-icon { color: #ef4444; cursor: pointer; opacity: 0.6; padding: 8px; background: rgba(239, 68, 68, 0.1); border-radius: 10px; transition: all 0.2s; }
         .trash-icon:hover { opacity: 1; transform: scale(1.1); }
 
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); margin-bottom: 12px; transition: all 0.3s ease; }
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); margin-bottom: 12px; transition: all 0.3s ease;}
         .btn-manage { background: var(--secondary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 20px; }
 
         input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; }
         .type-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; background: transparent; color: #94a3b8; font-weight: 700; transition: 0.2s; }
         .type-btn.active { background: white; color: #0f172a; }
-        
         .clickable-tag { color: #c084fc; cursor: pointer; text-decoration: underline; font-weight: 700; }
 
         .recur-row { 
@@ -113,12 +111,10 @@
             <div class="logo-glow"><svg width="40" height="40" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
             <h2>Montoya Ledger</h2>
         </div>
-        
         <div style="position: relative; margin: 20px 0;">
             <input type="password" id="pinField" placeholder="••••" style="text-align:center; letter-spacing:12px; font-size: 2rem;">
             <i class="fa-solid fa-eye" id="togglePin" onclick="togglePinView()" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer;"></i>
         </div>
-        
         <button id="authBtn" class="btn-elite" onclick="checkPin()">Authorize Access</button>
     </div>
 
@@ -201,8 +197,8 @@
                 <option value="Misc">📦 Misc</option>
             </select>
             <input type="text" id="noteInput" placeholder="Note or #tags">
-            <button id="syncBtn" class="btn-elite" onclick="addEntry()">Sync Transaction</button>
             
+            <button id="syncBtn" class="btn-elite" onclick="addEntry()">Sync Transaction</button>
             <button id="cancelEditBtn" onclick="cancelEdit()" style="display:none; background:none; border:none; color:#ef4444; cursor:pointer; width:100%; padding:5px 10px 15px 10px; font-weight:bold;">Cancel Edit</button>
             
             <button class="btn-manage" onclick="toggleManager()">Manage Recurring Bills</button>
@@ -345,6 +341,11 @@
         } catch (err) { showToast("Error loading cloud data"); }
     }
 
+    async function changeCycle() {
+        currentViewDate = new Date(document.getElementById('cycleSelect').value);
+        await fetchData();
+    }
+
     function editEntry(id) {
         const item = history.find(h => h.id === id);
         if (!item) return;
@@ -362,7 +363,8 @@
         btn.style.boxShadow = "0 10px 20px -5px rgba(245, 158, 11, 0.4)";
         
         document.getElementById('cancelEditBtn').style.display = 'block';
-        document.getElementById('recurToggleRow').style.display = 'none'; // Hide recurring toggle while editing
+        document.getElementById('recurToggleRow').style.display = 'flex'; 
+        document.getElementById('isRecurring').checked = false;
         
         window.scrollTo({ top: document.querySelector('.type-toggle').offsetTop - 20, behavior: 'smooth' });
     }
@@ -379,7 +381,6 @@
         btn.style.boxShadow = "0 10px 20px -5px rgba(99, 102, 241, 0.4)";
         
         document.getElementById('cancelEditBtn').style.display = 'none';
-        document.getElementById('recurToggleRow').style.display = 'flex';
     }
 
     async function addEntry() {
@@ -417,9 +418,8 @@
                     dbTask = _supabase.from('transactions').insert([payload]);
                 }
 
-                // If user checked "Recurring" on a new entry
                 let recurTask = Promise.resolve();
-                if (isRecur && !editingId) {
+                if (isRecur) {
                     const billDay = prompt("What day of the month does this bill post? (1-31):", new Date().getDate());
                     if (billDay !== null && !isNaN(parseInt(billDay))) {
                         recurTask = _supabase.from('recurring_expenses').insert([{ name: note || cat, amount: amt, billing_day: parseInt(billDay) }]);
@@ -601,11 +601,9 @@
     }
 
     function getCycleDates(baseDate) {
-        let d = new Date(baseDate); 
-        let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY);
+        let d = new Date(baseDate); let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY);
         if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1);
-        let end = new Date(start); end.setMonth(end.getMonth() + 1);
-        return { start, end };
+        let end = new Date(start); end.setMonth(end.getMonth() + 1); return { start, end };
     }
 
     function initChart() {
