@@ -87,7 +87,8 @@
         .trash-icon { color: #ef4444; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; transition: 0.2s; }
         .edit-icon:hover, .trash-icon:hover { opacity: 1; transform: scale(1.1); }
 
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; }
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; transition: opacity 0.2s; }
+        .btn-elite:hover { opacity: 0.9; }
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 15px; }
         .type-btn { flex: 1; border: none; padding: 8px; border-radius: 8px; cursor: pointer; background: transparent; color: #94a3b8; font-weight: 700; }
         .type-btn.active { background: white; color: #0f172a; }
@@ -275,7 +276,6 @@
                 <button class="btn-elite" onclick="addSub()" style="margin-bottom:0;">Add New Bill</button>
             </div>
             <div id="subList"></div>
-            <button class="btn-elite btn-back" onclick="switchView('app')" style="background:transparent; border:1px solid var(--border); color:#94a3b8; margin-top: 15px;">Back to Dashboard</button>
         </div>
         
         <div id="notesManager">
@@ -289,7 +289,6 @@
                 <button class="btn-elite" onclick="addNote()" style="margin-bottom:0;">Post Note</button>
             </div>
             <div id="notesList"></div>
-            <button class="btn-elite btn-back" onclick="switchView('app')" style="background:transparent; border:1px solid var(--border); color:#94a3b8; margin-top: 15px;">Back to Dashboard</button>
         </div>
         
         <div id="analyticsModal">
@@ -316,7 +315,6 @@
 
             <h4 style="text-align:center; color:#94a3b8; margin-top:20px; margin-bottom: 15px; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Discretionary Breakdown</h4>
             <div style="height:250px; position:relative;"><canvas id="categoryDonutChart"></canvas></div>
-            <button class="btn-elite btn-back" onclick="switchView('app')" style="background:transparent; border:1px solid var(--border); color:#94a3b8; margin-top: 25px;">Back to Dashboard</button>
         </div>
 
     </div> <script>
@@ -430,8 +428,8 @@
         let totalS = 0, needS = 0, wantS = 0, goalS = 0, bS = 0, gS = 0, pendingBills = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
         
-        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
         history.forEach(item => {
             totalS += item.amount;
@@ -448,7 +446,6 @@
             let displayNote = (item.note || "").replace(/(#[a-zA-Z0-9_]+)/g, `<span class="clickable-tag" onclick="quickSearch('$1')">$1</span>`);
             const color = catColors[item.category] || "#94a3b8";
 
-            // Timestamp formatting
             let dateObj = new Date(item.created_at);
             let dateStr = isNaN(dateObj) ? '' : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
@@ -494,10 +491,10 @@
         });
 
         const INCOME = config.budget || 7400;
-        document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS - pendingBills).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS - pendingBills).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
         const safeNeed = (INCOME > 0) ? Math.min(100, Math.round((needS/INCOME)*100)) : 0;
         const safeWant = (INCOME > 0) ? Math.min(100, Math.round((wantS/INCOME)*100)) : 0;
@@ -562,12 +559,12 @@
             }
         });
 
-        document.getElementById('lastCycleTotal').innerText = "$" + lastT.toFixed(2);
-        document.getElementById('thisCycleTotal').innerText = "$" + currT.toFixed(2);
+        document.getElementById('lastCycleTotal').innerText = "$" + lastT.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('thisCycleTotal').innerText = "$" + currT.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         
         const diff = currT - lastT; const creepEl = document.getElementById('creepTotal');
-        if (diff > 0) { creepEl.innerText = "+$" + diff.toFixed(2) + " (Creep)"; creepEl.style.color = "#ef4444"; } 
-        else { creepEl.innerText = "-$" + Math.abs(diff).toFixed(2) + " (Savings)"; creepEl.style.color = "#10b981"; }
+        if (diff > 0) { creepEl.innerText = "+$" + diff.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " (Creep)"; creepEl.style.color = "#ef4444"; } 
+        else { creepEl.innerText = "-$" + Math.abs(diff).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " (Savings)"; creepEl.style.color = "#10b981"; }
 
         const ctxCat = document.getElementById('categoryDonutChart').getContext('2d');
         let catLabels = Object.keys(categoryTotals);
@@ -617,7 +614,14 @@
     function quickSearch(tag) { document.getElementById('searchBar').value = tag; filterHistory(); }
     function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard','Groceries'].includes(c)) setType('Need'); else setType('Want'); }
 
-    function toggleMenu() { document.getElementById('sideMenu').classList.toggle('open'); document.getElementById('sideMenuOverlay').style.display = document.getElementById('sideMenuOverlay').style.display === 'block' ? 'none' : 'block'; }
+    function toggleMenu() { 
+        if (window.innerWidth >= 1100) return; // Prevent mobile menu logic on desktop
+        const menu = document.getElementById('sideMenu');
+        const overlay = document.getElementById('sideMenuOverlay');
+        menu.classList.toggle('open'); 
+        overlay.style.display = menu.classList.contains('open') ? 'block' : 'none'; 
+    }
+    
     function toggleSettings() { const m = document.getElementById('settingsModal'); const o = document.getElementById('settingsOverlay'); const isV = m.style.display === 'block'; m.style.display = isV ? 'none' : 'block'; o.style.display = isV ? 'none' : 'block'; }
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t==='Need'); document.getElementById('wantBtn').classList.toggle('active', t==='Want'); }
     function quickFill(a, c, n, t) { document.getElementById('amount').value = a; document.getElementById('category').value = c; document.getElementById('noteInput').value = n; setType(t); window.scrollTo(0, document.querySelector('.type-toggle').offsetTop - 20); }
