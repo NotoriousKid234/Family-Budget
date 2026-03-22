@@ -58,7 +58,9 @@
         .header-left { justify-self: start; display: flex; align-items: center; }
         .header-right { justify-self: end; display: flex; align-items: center; gap: 15px; }
         .hamburger { font-size: 1.5rem; color: #94a3b8; cursor: pointer; }
-        .app-title { font-weight: 800; font-size: 0.9rem; letter-spacing: 1.5px; color: #fff; text-transform: uppercase; text-align: center; margin: 0; }
+        
+        /* Overlap fix applied here */
+        .app-title { font-weight: 800; font-size: 0.85rem; letter-spacing: 1.5px; color: #fff; text-transform: uppercase; text-align: center; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
 
         .cycle-selector { background: var(--primary); border: none; color: #fff; padding: 10px 20px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; width: fit-content; margin: 0 auto 15px auto; display: block; cursor: pointer; outline: none; }
         
@@ -163,7 +165,7 @@
         <div id="app">
             <div class="top-header">
                 <div class="header-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div>
-                <div class="app-title">MONTOYA LEDGER</div>
+                <div class="app-title" id="welcomeTitle">MONTOYA LEDGER</div>
                 <div class="header-right">
                     <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()"><i class="fa-solid fa-bell" style="font-size:1.2rem; color:#94a3b8;"></i><div id="headerPing" class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div></div>
                     <div id="topAvatarBadge" class="user-badge" onclick="switchView('profileManager')"><i class="fa-solid fa-user"></i></div>
@@ -250,9 +252,11 @@
     </div>
 
 <script>
+    // Note: Please ensure your exact Supabase details and IDs are populated below
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
     const CYCLE_START_DAY = 16;
+    const USERS = { 'Brandon': 'e8a86782-b34e-4e94-878d-19e5d487214c', 'Gina': '4f7e2d7d-2b4a-4d7a-8f7e-2e2d7d7d7d7d' };
     
     let history = [], recurring = [], notes = [], currentType = 'Need', currentGroup = null, currentUser = null, editingId = null;
     let config = { budget: 7400, m_balance: 0, c_balance: 0, m_orig: 500000, c_orig: 45000 };
@@ -268,6 +272,9 @@
             if (session) {
                 currentUser = session.user.id;
                 document.body.classList.add('logged-in');
+                const firstName = currentUser === USERS.Brandon ? 'Brandon' : (currentUser === USERS.Gina ? 'Gina' : 'User');
+                const titleEl = document.getElementById('welcomeTitle');
+                if(titleEl) titleEl.innerText = `WELCOME ${firstName}`;
                 loadAppEngine(); 
             }
         });
@@ -292,11 +299,12 @@
 
     function loadProfileIcon() {
         const savedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
-        const finalIcon = `<i class="fa-solid ${savedIcon}"></i>`;
+        const safeIcon = savedIcon.startsWith('fa-') ? savedIcon : 'fa-' + savedIcon;
+        const finalIcon = `<i class="fa-solid ${safeIcon}"></i>`;
         document.getElementById('sidebarAvatar').innerHTML = finalIcon;
         document.getElementById('topAvatarBadge').innerHTML = finalIcon;
         document.querySelectorAll('.prof-icon-opt').forEach(el => el.classList.remove('selected'));
-        const opt = document.getElementById('icon_' + savedIcon);
+        const opt = document.getElementById('icon_' + safeIcon);
         if(opt) opt.classList.add('selected');
     }
 
@@ -356,7 +364,8 @@
         if(currMBal <= 0 && mPerc >= 100 && !celebratedMilestones.mortgage && mOrig > 0) triggerCelebration('mortgage');
         if(currCBal <= 0 && cPerc >= 100 && !celebratedMilestones.car && cOrig > 0) triggerCelebration('car');
 
-        const myIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
+        const savedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
+        const myIcon = savedIcon.startsWith('fa-') ? savedIcon : 'fa-' + savedIcon;
         
         history.forEach(item => {
             totalS += item.amount;
@@ -368,9 +377,11 @@
             }
 
             let isMe = item.user_id === currentUser;
+            let submitterName = item.user_id === USERS.Brandon ? "Brandon" : (item.user_id === USERS.Gina ? "Gina" : "Partner");
             let finalIconClass = isMe ? myIcon : 'fa-user-group';
+
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="display:flex; align-items:center; gap:8px; margin-top:6px;"><div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div><div style="font-size:0.6rem; color:#64748b;"><i class="fa-solid ${finalIconClass}"></i> ${isMe ? 'You' : 'Partner'}</div></div></div><div style="text-align:right;"><div style="font-weight:700;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
+            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="display:flex; align-items:center; gap:8px; margin-top:6px;"><div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div><div style="font-size:0.6rem; color:#64748b;"><i class="fa-solid ${finalIconClass}"></i> Synced by ${submitterName}</div></div></div><div style="text-align:right;"><div style="font-weight:700;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
         });
 
@@ -407,7 +418,12 @@
 
     function updateNotificationsUI() {
         const list = document.getElementById('notifList'); list.innerHTML = '';
-        let acts = []; history.forEach(t => { if(t.user_id !== currentUser) acts.push({ user: 'Partner', text: `synced $${t.amount.toFixed(2)}`, time: new Date(t.created_at) })});
+        let acts = []; history.forEach(t => { 
+            if(t.user_id !== currentUser) {
+                let submitterName = t.user_id === USERS.Brandon ? "Brandon" : (t.user_id === USERS.Gina ? "Gina" : "Partner");
+                acts.push({ user: submitterName, text: `synced $${t.amount.toFixed(2)}`, time: new Date(t.created_at) })
+            }
+        });
         notes.forEach(n => acts.push({ user: n.author, text: `posted a note`, time: new Date(n.created_at) }));
         acts.sort((a,b) => b.time - a.time).slice(0,10).forEach(a => {
             const div = document.createElement('div'); div.style.padding = '10px'; div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
@@ -469,7 +485,7 @@
         });
     }
 
-    async function addNote() { const msg = document.getElementById('noteMessage').value; if(!msg) return; await _supabase.from('app_notes').insert([{ author: (currentUser === 'Brandon' ? 'Brandon' : 'Gina'), message: msg, group_id: currentGroup, user_id: currentUser }]); document.getElementById('noteMessage').value = ''; fetchData(); }
+    async function addNote() { const msg = document.getElementById('noteMessage').value; if(!msg) return; await _supabase.from('app_notes').insert([{ author: (currentUser === USERS.Brandon ? 'Brandon' : 'Gina'), message: msg, group_id: currentGroup, user_id: currentUser }]); document.getElementById('noteMessage').value = ''; fetchData(); }
     async function addSub() { const n = document.getElementById('subName').value, a = parseFloat(document.getElementById('subAmt').value), d = parseInt(document.getElementById('subDay').value); if(!n || !a || !d) return; await _supabase.from('recurring_expenses').insert([{ name: n, amount: a, billing_day: d, group_id: currentGroup, user_id: currentUser }]); document.getElementById('subName').value = ''; document.getElementById('subAmt').value = ''; document.getElementById('subDay').value = ''; fetchData(); }
     
     function calculateMilestones() {
