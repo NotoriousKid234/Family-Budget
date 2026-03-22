@@ -2677,100 +2677,134 @@ Should they buy this right now? Give specific advice using their numbers.`
 }
 
 // ── Live Market Feed ──
-const MARKET_SYMBOLS = [
-    { symbol: 'SPY',  name: 'S&P 500 ETF',  type: 'index' },
-    { symbol: 'QQQ',  name: 'Nasdaq ETF',   type: 'index' },
-    { symbol: 'DIA',  name: 'Dow Jones ETF', type: 'index' },
-    { symbol: 'AAPL', name: 'Apple',         type: 'stock' },
-    { symbol: 'TSLA', name: 'Tesla',         type: 'stock' },
-    { symbol: 'NVDA', name: 'NVIDIA',        type: 'stock' },
-    { symbol: 'BTC-USD', name: 'Bitcoin',   type: 'crypto' },
-    { symbol: 'ETH-USD', name: 'Ethereum',  type: 'crypto' },
+// Uses CoinGecko (free, no key, always on) for crypto
+// Uses Frankfurter for currency context
+// Uses a reliable CORS proxy for stock indices
+
+const CRYPTO_IDS = [
+    { id: 'bitcoin',  symbol: 'BTC', name: 'Bitcoin',  type: 'crypto' },
+    { id: 'ethereum', symbol: 'ETH', name: 'Ethereum', type: 'crypto' },
+    { id: 'solana',   symbol: 'SOL', name: 'Solana',   type: 'crypto' },
+];
+
+// Stock data via Yahoo Finance through multiple proxy fallbacks
+const STOCK_SYMBOLS = [
+    { symbol: 'AAPL', name: 'Apple',   type: 'stock' },
+    { symbol: 'NVDA', name: 'NVIDIA',  type: 'stock' },
+    { symbol: 'TSLA', name: 'Tesla',   type: 'stock' },
+    { symbol: 'MSFT', name: 'Microsoft', type: 'stock' },
+    { symbol: 'SPY',  name: 'S&P 500 ETF', type: 'index' },
+    { symbol: 'QQQ',  name: 'Nasdaq ETF',  type: 'index' },
 ];
 
 let marketTimer = null;
+
+function renderTicker(symbol, name, price, pct, type) {
+    const isUp = pct > 0.05;
+    const isDown = pct < -0.05;
+    const cls = isDown ? 'ticker-down' : isUp ? 'ticker-up' : 'ticker-flat';
+    const arrow = isDown ? '▼' : isUp ? '▲' : '→';
+    const priceStr = price >= 1000
+        ? price.toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2})
+        : price < 1 ? price.toFixed(4) : price.toFixed(2);
+    const div = document.createElement('div');
+    div.className = 'ticker-item';
+    div.innerHTML = `
+        <div class="ticker-left">
+            <span class="ticker-symbol">${symbol}</span>
+            <span class="ticker-name">${name}</span>
+        </div>
+        <div class="ticker-right">
+            <div class="ticker-price">$${priceStr}</div>
+            <div class="ticker-change ${cls}">${arrow} ${Math.abs(pct).toFixed(2)}%</div>
+        </div>`;
+    return div;
+}
+
+function addSectionLabel(panel, label) {
+    const el = document.createElement('div');
+    el.style.cssText = 'font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);padding:10px 12px 4px;';
+    el.innerText = label;
+    panel.appendChild(el);
+}
+
+async function fetchCrypto(panel) {
+    const ids = CRYPTO_IDS.map(c => c.id).join(',');
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+    const data = await res.json();
+    addSectionLabel(panel, '₿ Crypto');
+    CRYPTO_IDS.forEach(c => {
+        const d = data[c.id];
+        if (d) {
+            panel.appendChild(renderTicker(c.symbol, c.name, d.usd, d.usd_24h_change || 0, 'crypto'));
+        }
+    });
+    const div = document.createElement('div'); div.className = 'market-divider';
+    panel.appendChild(div);
+}
+
+async function fetchStocks(panel) {
+    // Try Yahoo Finance via corsproxy.io (more reliable than allorigins)
+    const symbols = STOCK_SYMBOLS.map(s => s.symbol).join(',');
+    const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`;
+    const res = await fetch(proxyUrl);
+    const data = await res.json();
+    const quotes = data?.quoteResponse?.result || [];
+    if (!quotes.length) throw new Error('no quotes');
+
+    const indices = quotes.filter(q => STOCK_SYMBOLS.find(s => s.symbol === q.symbol && s.type === 'index'));
+    const stocks  = quotes.filter(q => STOCK_SYMBOLS.find(s => s.symbol === q.symbol && s.type === 'stock'));
+
+    if (indices.length) {
+        addSectionLabel(panel, '📈 Indices');
+        indices.forEach(q => {
+            panel.appendChild(renderTicker(q.symbol, STOCK_SYMBOLS.find(s=>s.symbol===q.symbol)?.name||q.symbol, q.regularMarketPrice, q.regularMarketChangePercent||0, 'index'));
+        });
+        const div = document.createElement('div'); div.className = 'market-divider'; panel.appendChild(div);
+    }
+    if (stocks.length) {
+        addSectionLabel(panel, '🏢 Stocks');
+        stocks.forEach(q => {
+            panel.appendChild(renderTicker(q.symbol, STOCK_SYMBOLS.find(s=>s.symbol===q.symbol)?.name||q.symbol, q.regularMarketPrice, q.regularMarketChangePercent||0, 'stock'));
+        });
+        const div = document.createElement('div'); div.className = 'market-divider'; panel.appendChild(div);
+    }
+}
 
 async function fetchMarkets() {
     const panel = document.getElementById('marketTickers');
     const updateEl = document.getElementById('marketLastUpdate');
     if (!panel) return;
 
+    panel.innerHTML = '<div class="market-loading"><div class="ai-spinner" style="border-top-color:var(--gold);"></div><span style="font-size:.78rem;color:var(--text-dim);">Loading…</span></div>';
+
     try {
-        // Use a CORS proxy to fetch Yahoo Finance data
-        const symbols = MARKET_SYMBOLS.map(s => s.symbol).join(',');
-        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&fields=regularMarketPrice,regularMarketChangePercent,regularMarketChange`;
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-
-        const res = await fetch(proxyUrl);
-        const data = await res.json();
-        const quotes = data?.quoteResponse?.result || [];
-
-        if (!quotes.length) throw new Error('No data');
-
         panel.innerHTML = '';
-
-        // Group by type
-        const groups = { index: [], stock: [], crypto: [] };
-        quotes.forEach(q => {
-            const meta = MARKET_SYMBOLS.find(s => s.symbol === q.symbol);
-            if (meta) groups[meta.type].push({ ...q, name: meta.name });
-        });
-
-        const groupLabels = { index: '📈 Indices', stock: '🏢 Stocks', crypto: '₿ Crypto' };
-
-        Object.entries(groups).forEach(([type, items]) => {
-            if (!items.length) return;
-
-            // Section divider
-            const label = document.createElement('div');
-            label.style.cssText = 'font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);padding:8px 12px 4px;';
-            label.innerText = groupLabels[type];
-            panel.appendChild(label);
-
-            items.forEach(q => {
-                const pct = q.regularMarketChangePercent || 0;
-                const chg = q.regularMarketChange || 0;
-                const price = q.regularMarketPrice || 0;
-                const isUp = pct > 0;
-                const isFlat = Math.abs(pct) < 0.05;
-                const cls = isFlat ? 'ticker-flat' : isUp ? 'ticker-up' : 'ticker-down';
-                const arrow = isFlat ? '→' : isUp ? '▲' : '▼';
-
-                const priceStr = price >= 1000
-                    ? price.toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2})
-                    : price.toFixed(2);
-
-                const div = document.createElement('div');
-                div.className = 'ticker-item';
-                div.innerHTML = `
-                    <div class="ticker-left">
-                        <span class="ticker-symbol">${q.symbol.replace('-USD','')}</span>
-                        <span class="ticker-name">${q.name}</span>
-                    </div>
-                    <div class="ticker-right">
-                        <div class="ticker-price">$${priceStr}</div>
-                        <div class="ticker-change ${cls}">${arrow} ${Math.abs(pct).toFixed(2)}%</div>
-                    </div>`;
-                panel.appendChild(div);
-            });
-
-            const divider = document.createElement('div');
-            divider.className = 'market-divider';
-            panel.appendChild(divider);
-        });
-
+        // Always fetch crypto first (CoinGecko works 24/7, no CORS issues)
+        await fetchCrypto(panel);
+        // Then try stocks (may fail on weekends/after hours but graceful)
+        try {
+            await fetchStocks(panel);
+        } catch(e) {
+            addSectionLabel(panel, '📈 Stocks & Indices');
+            const msg = document.createElement('div');
+            msg.style.cssText = 'font-size:.72rem;color:var(--text-dim);padding:8px 12px 12px;';
+            msg.innerText = 'Market closed or data unavailable';
+            panel.appendChild(msg);
+        }
         // Remove last divider
         const dividers = panel.querySelectorAll('.market-divider');
-        if (dividers.length) dividers[dividers.length - 1].remove();
+        if (dividers.length) dividers[dividers.length-1].remove();
 
         const now = new Date();
-        if (updateEl) updateEl.innerText = 'Updated ' + now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+        if (updateEl) updateEl.innerText = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 
     } catch(e) {
-        panel.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:.8rem;">
-            <div style="font-size:1.5rem;margin-bottom:8px;">📊</div>
-            Markets unavailable<br>
-            <span style="font-size:.7rem;">Markets may be closed or data unavailable</span>
+        panel.innerHTML = `<div style="text-align:center;padding:24px 16px;color:var(--text-dim);">
+            <div style="font-size:2rem;margin-bottom:8px;">📊</div>
+            <div style="font-size:.8rem;margin-bottom:4px;">Data unavailable</div>
+            <div style="font-size:.7rem;opacity:.6;">Check connection and retry</div>
         </div>`;
         if (updateEl) updateEl.innerText = 'Offline';
     }
