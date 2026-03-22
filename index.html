@@ -21,6 +21,7 @@
         }
 
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; }
+        
         .bg-orb { position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; opacity: 0.35; pointer-events: none; }
         .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; }
         .orb-2 { width: 600px; height: 600px; background: #ec4899; bottom: -200px; right: -150px; }
@@ -29,56 +30,96 @@
         .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 4000; }
+        #sideMenuOverlay { z-index: 9998 !important; } 
         .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg); border-right: 1px solid var(--border); z-index: 9999 !important; transition: left 0.3s ease; display: flex; flex-direction: column; }
         .side-menu.open { left: 0; }
+        
+        .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 4100; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
 
-        /* CONTENT WRAPPER FOR DESKTOP STABILITY */
-        .app-container { width: 100%; max-width: 460px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
-        .app-panel { display: none; }
+        #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #configManager, #shareManager, #profileManager, #memberBreakdownManager { 
+            background: var(--card); backdrop-filter: blur(25px); padding: 25px; 
+            border-radius: 32px; width: 92%; max-width: 440px; 
+            border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+            margin: 20px auto; box-sizing: border-box; flex-shrink: 0;
+        }
+
+        .dashboard-wrapper { display: none; }
+        body.logged-in .dashboard-wrapper { display: block; }
+        body.logged-in #loginScreen { display: none !important; }
+        
         #app { display: block; }
+        #subManager, #notesManager, #analyticsModal, #configManager, #shareManager, #profileManager, #memberBreakdownManager { display: none; }
 
-        /* HEADER */
-        .top-header { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; margin-bottom: 25px; width: 100%; }
+        .menu-header { padding: 30px 20px; font-size: 1.5rem; font-weight: 800; border-bottom: 1px solid var(--border); background: var(--card); color: #fff; display: flex; align-items: center; gap: 12px; }
+        .menu-item { padding: 20px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; color: var(--text); transition: background 0.2s; }
+        .menu-item:hover { background: rgba(255,255,255,0.05); }
+
+        .top-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 25px; width: 100%; }
+        .header-left { justify-self: start; display: flex; align-items: center; }
+        .header-right { justify-self: end; display: flex; align-items: center; gap: 15px; }
         .hamburger { font-size: 1.5rem; color: #94a3b8; cursor: pointer; }
-        .app-title { font-weight: 800; font-size: 0.8rem; letter-spacing: 1px; color: #fff; text-transform: uppercase; text-align: center; margin: 0; }
-        .header-icons { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+        .app-title { font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; color: #fff; text-transform: uppercase; text-align: center; margin: 0; white-space: nowrap; }
 
         .cycle-selector { background: var(--primary); border: none; color: #fff; padding: 10px 20px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; width: fit-content; margin: 0 auto 15px auto; display: block; cursor: pointer; outline: none; }
+        
         .balance-amount { font-size: 3rem; font-weight: 700; text-align: center; margin-bottom: 5px; }
+        .pill-container { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 8px 14px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; }
+        .safe-pill { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
 
-        /* COMPONENT STYLING */
-        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 12px; }
-        .tracker-bar-bg { height: 10px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; margin-top: 8px; }
-        .tracker-bar-fill { background: linear-gradient(90deg, #3b82f6, #60a5fa); height: 100%; transition: width 1s, background 0.5s; }
+        .vault-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; }
+        .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 5px; }
+
+        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 15px; }
+        .tracker-bar-bg { height: 10px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; margin-top: 8px; display: flex; }
+        .tracker-bar-fill { background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
 
         .milestone-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .milestone-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 20px; padding: 12px; text-align: center; }
-
-        .type-toggle { display: flex !important; background: rgba(0,0,0,0.4) !important; padding: 4px !important; border-radius: 14px !important; margin-bottom: 15px !important; border: 1px solid var(--border) !important; }
-        .type-btn { flex: 1 !important; border: none !important; padding: 10px !important; border-radius: 10px !important; cursor: pointer !important; background: transparent !important; color: #94a3b8 !important; font-weight: 700 !important; font-size: 0.8rem !important; }
-        .type-btn.active { background: white !important; color: #0f172a !important; }
+        .streak-fire { color: #f97316; font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.5)); }
+        .goal-trophy { color: #eab308; font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(234, 179, 8, 0.5)); }
 
         .member-spend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .member-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 20px; text-align: center; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+        .member-box:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
 
         .history-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; margin-bottom: 10px; }
+        .cat-pill { font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; width: fit-content; background: rgba(255,255,255,0.1); color: #fff; }
         .item-note-text { font-size: 1rem; font-weight: 700; color: #fff; display: block; margin-top: 4px; }
+        .member-pill { display: flex; align-items: center; gap: 4px; font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; width: fit-content; }
+        .pill-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .pill-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .pill-split { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
+
+        .edit-icon { color: #60a5fa; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
+        .trash-icon { color: #ef4444; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
+
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; transition: opacity 0.2s; }
+        .quick-sync-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
+        .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 6px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
         
-        .user-badge { width: 36px; height: 36px; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.4); }
+        .user-badge { width: 38px; height: 38px; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.4); }
 
         .icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
         .prof-icon-opt { aspect-ratio: 1; background: rgba(0,0,0,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; border: 2px solid transparent; color: #94a3b8; transition: 0.2s; }
         .prof-icon-opt.selected { border-color: #fff; background: var(--primary); color: white; }
 
-        .recur-row { display: flex; justify-content: space-between; align-items: center; background: rgba(168, 85, 247, 0.05); padding: 12px 16px; border-radius: 14px; margin-bottom: 15px; border: 1px solid rgba(168, 85, 247, 0.2); font-size: 0.8rem; font-weight: 700; color: #e0e7ff; }
+        /* OVERRIDE FOR NEED/WANT BUTTONS */
+        .type-toggle { display: flex; background: rgba(0,0,0,0.3) !important; padding: 4px; border-radius: 14px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .type-btn { flex: 1; border: none; padding: 10px; border-radius: 10px; cursor: pointer; background: transparent !important; color: #94a3b8 !important; font-weight: 700; transition: 0.3s; font-size: 0.8rem; }
+        .type-btn.active { background: white !important; color: #0f172a !important; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
+        .recur-row { display: flex; justify-content: space-between; align-items: center; background: rgba(168, 85, 247, 0.05); padding: 12px 16px; border-radius: 14px; margin-bottom: 15px; border: 1px solid rgba(168, 85, 247, 0.2); font-size: 0.8rem; font-weight: 700; color: #e0e7ff; }
 
         @media (min-width: 1100px) {
             body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 40px; padding: 40px; }
             body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-            .app-container { margin: 0; width: 550px; max-width: 550px; padding: 0; }
-            .hamburger { visibility: hidden !important; width: 0; }
+            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #configManager, body.logged-in #shareManager, body.logged-in #profileManager, body.logged-in #memberBreakdownManager { margin: 0; width: 550px; flex-shrink: 0; }
+            body.logged-in .hamburger { visibility: hidden !important; width: 0; height: 0; }
+            body.logged-in .top-header { grid-template-columns: 40px 1fr 40px; } 
         }
     </style>
 </head>
@@ -92,15 +133,16 @@
     <div id="notifModal" class="custom-modal">
         <h3 style="text-align:center; margin-top:0; color:#fff;">Recent Activity</h3>
         <div id="notifList" style="max-height:400px; overflow-y:auto; margin-bottom: 15px;"></div>
-        <button class="btn-elite" onclick="toggleNotifications(); switchView('notesManager');" style="background:var(--primary); color:#fff; border:none; padding:12px; border-radius:12px; width:100%; font-weight:bold; cursor:pointer;">View All Notes</button>
+        <button class="btn-elite" onclick="toggleNotifications(); switchView('notesManager');">View All Notes</button>
     </div>
 
-    <div id="loginScreen" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
-        <div style="background: var(--card); padding: 30px; border-radius: 32px; width: 90%; max-width: 400px; border: 1px solid var(--border); text-align: center;">
-            <div class="logo-glow" style="margin:0 auto 15px auto; width:60px; height:60px; background:rgba(99,102,241,0.1); border-radius:16px; display:flex; align-items:center; justify-content:center; color:#818cf8;"><i class="fa-solid fa-vault fa-2x"></i></div>
-            <h2 style="margin:0 0 20px 0;">Montoya Ledger</h2>
-            <input type="email" id="emailField" placeholder="Email"><input type="password" id="passwordField" placeholder="Password"><button style="background:var(--primary); color:#fff; border:none; padding:16px; border-radius:16px; width:100%; font-weight:bold; cursor:pointer; margin-top:10px;" onclick="authenticateUser()">Secure Login</button>
+    <div id="loginScreen">
+        <div style="text-align:center; margin-bottom:30px;">
+            <div class="logo-glow" style="margin:0 auto 15px auto; width:60px; height:60px; background:rgba(99,102,241,0.1); border-radius:16px; display:flex; align-items:center; justify-content:center; color:#818cf8;"><svg width="30" height="30" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg></div>
+            <h2 id="authTitle" style="margin:0;">Montoya Ledger</h2>
         </div>
+        <input type="email" id="emailField" placeholder="Email"><input type="password" id="passwordField" placeholder="Password"><button id="authBtn" class="btn-elite" onclick="authenticateUser()">Secure Login</button>
+        <div style="text-align:center; margin-top:20px;"><span id="authToggleText" style="color:#94a3b8; font-size:0.85rem; cursor:pointer;" onclick="toggleAuthMode()">New user? <b style="color:#c084fc;">Sign Up</b></span></div>
     </div>
 
     <div id="dashboardWrapper" class="dashboard-wrapper">
@@ -112,141 +154,110 @@
             <div class="menu-item" onclick="switchView('notesManager');"><i class="fa-solid fa-comment-dots"></i> Family Notes</div>
             <div class="menu-item" onclick="switchView('analyticsModal');"><i class="fa-solid fa-chart-line"></i> Cycle Analytics</div>
             <div class="menu-item" onclick="switchView('configManager');"><i class="fa-solid fa-gear"></i> Ledger Config</div>
+            <div class="menu-item" onclick="switchView('shareManager');"><i class="fa-solid fa-cloud"></i> Ledger Share</div>
             <div class="menu-item" onclick="switchView('profileManager');"><i class="fa-solid fa-user-astronaut"></i> Profile Settings</div>
             <div style="flex-grow: 1;"></div>
-            <div class="menu-item" onclick="logoutApp();" style="color:#ef4444; border-top: 1px solid var(--border);"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
+            <div class="menu-item" onclick="logoutApp();" style="color:#ef4444; border-top:1px solid var(--border);"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
         </div>
 
-        <div class="app-container">
-            <div id="app" class="app-panel" style="display:block;">
-                <div class="top-header">
-                    <div class="header-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div>
-                    <div class="app-title" id="welcomeTitle">WELCOME BRANDON</div>
-                    <div class="header-right">
-                        <i class="fa-solid fa-bell" style="font-size:1.2rem; color:#94a3b8; cursor:pointer;" onclick="toggleNotifications()"></i>
-                        <div id="topAvatarBadge" class="user-badge" onclick="switchView('profileManager')"><i class="fa-solid fa-user"></i></div>
-                    </div>
-                </div>
-                <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
-                <div class="vault-grid">
-                    <div class="mortgage-vault"><div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Mortgage</div><div id="mortgageBalanceText" class="clock-time">$0.00</div></div>
-                    <div class="mortgage-vault"><div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Car Loan</div><div id="carBalanceText" class="clock-time">$0.00</div></div>
-                </div>
-                <div class="payoff-tracker"><div style="display:flex; justify-content:space-between; font-size:0.75rem;"><span style="color:#f8fafc; font-weight:700;">Mortgage Payoff</span><span id="mortgagePayoffPerc" style="color:#818cf8; font-weight:800;">0%</span></div><div class="tracker-bar-bg"><div id="mortgagePayoffBar" class="tracker-bar-fill" style="width:0%;"></div></div></div>
-                <div class="payoff-tracker"><div style="display:flex; justify-content:space-between; font-size:0.75rem;"><span style="color:#f8fafc; font-weight:700;">Car Payoff</span><span id="carPayoffPerc" style="color:#60a5fa; font-weight:800;">0%</span></div><div class="tracker-bar-bg"><div id="carPayoffBar" class="tracker-bar-fill" style="width:0%;"></div></div></div>
-                
-                <div class="payoff-tracker">
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem;">
-                        <span style="color:#f8fafc; font-weight:700;">Savings Goal (<span id="targetGoalText">20</span>%)</span>
-                        <span id="savingsGoalPerc" style="color:#10b981; font-weight:800;">0%</span>
-                    </div>
-                    <div class="tracker-bar-bg">
-                        <div id="savingsGoalBar" class="tracker-bar-fill" style="background:linear-gradient(90deg, #10b981, #34d399); width:0%;"></div>
-                    </div>
-                </div>
-
-                <div id="balance" class="balance-amount">$0.00</div>
-                <div class="pill-container"><div id="paceDisplay" class="pace-pill" style="background:rgba(16, 185, 129, 0.1); color:#10b981; padding:8px 14px; border-radius:100px; font-size:0.75rem; font-weight:700;">Pace: $0.00 / day</div><div id="safeToSpend" class="pace-pill safe-pill" style="background:rgba(59, 130, 246, 0.1); color:#60a5fa; border:1px solid rgba(59, 130, 246, 0.2); padding:8px 14px; border-radius:100px; font-size:0.75rem; font-weight:700;">Safe: $0.00</div></div>
-
-                <div class="member-spend-grid">
-                    <div class="member-box" onclick="openMemberBreakdown('Brandon')"><div style="color:var(--brandon); font-size:0.6rem; font-weight:700; text-transform:uppercase;">Brandon</div><div id="brandonSpend" style="font-weight:700; font-size:1.1rem; color:#fff;">$0.00</div></div>
-                    <div class="member-box" onclick="openMemberBreakdown('Gina')"><div style="color:var(--gina); font-size:0.6rem; font-weight:700; text-transform:uppercase;">Gina</div><div id="ginaSpend" style="font-weight:700; font-size:1.1rem; color:#fff;">$0.00</div></div>
-                </div>
-
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:15px;">
-                    <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
-                    <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-bottom:15px; scrollbar-width:none;">
-                        <div style="background:rgba(255,255,255,0.05); border:1px solid var(--border); padding:6px 12px; border-radius:100px; font-size:0.7rem; font-weight:700; color:#e2e8f0; white-space:nowrap; cursor:pointer;" onclick="quickFill(15, 'Dining', 'McDonalds', 'Want')"><i class="fa-solid fa-burger" style="color:#f59e0b"></i> McDonalds</div>
-                        <div style="background:rgba(255,255,255,0.05); border:1px solid var(--border); padding:6px 12px; border-radius:100px; font-size:0.7rem; font-weight:700; color:#e2e8f0; white-space:nowrap; cursor:pointer;" onclick="quickFill(40, 'Car', 'Gas', 'Need')"><i class="fa-solid fa-gas-pump" style="color:#3b82f6"></i> Gas</div>
-                        <div style="background:rgba(255,255,255,0.05); border:1px solid var(--border); padding:6px 12px; border-radius:100px; font-size:0.7rem; font-weight:700; color:#e2e8f0; white-space:nowrap; cursor:pointer;" onclick="quickFill(100, 'Groceries', 'Publix', 'Need')"><i class="fa-solid fa-basket-shopping" style="color:#10b981"></i> Publix</div>
-                    </div>
-                    <div class="recur-row" id="recurToggleRow"><span>Set as Recurring Bill?</span><input type="checkbox" id="isRecurring" style="width:18px; height:18px; cursor:pointer;"></div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option><option value="Split">Split</option></select><input type="number" id="amount" placeholder="0.00" inputmode="decimal"></div>
-                    <select id="category" onchange="autoSuggest(this.value)">
-                        <option value="Groceries">🛒 Groceries</option><option value="Dining">🍔 Dining</option><option value="Utilities">💡 Utilities</option><option value="Mortgage">🏠 Mortgage</option><option value="Car">🚗 Car Payment</option><option value="CreditCard">💳 Credit Card</option><option value="Subscription">📺 Subscription</option><option value="Beauty">✂️ Beauty</option><option value="Goal">🎯 Goal</option><option value="Misc">📦 Misc</option>
-                    </select>
-                    <input type="text" id="noteInput" placeholder="Note..."><button style="background:var(--primary); color:#fff; border:none; padding:16px; border-radius:16px; width:100%; font-weight:bold; cursor:pointer;" id="syncBtn" onclick="addEntry()">Sync Transaction</button>
-                </div>
-                <input type="text" id="searchBar" placeholder="🔍 Search history..." onkeyup="filterHistory()">
-                <div id="historyList" style="margin-top:15px;"></div>
-            </div>
-
-            <div id="memberBreakdownManager" class="app-panel">
-                <div class="top-header"><div class="header-left"></div><div class="app-title" id="memberBreakdownTitle">SPEND</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div>
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><div style="height:250px; position:relative;"><canvas id="memberDonutChart"></canvas></div></div>
-                <div id="memberHistoryList"></div>
-            </div>
-
-            <div id="subManager" class="app-panel">
-                <div class="top-header"><div class="header-left"></div><div class="app-title">BILLS & SUBS</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div>
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
-                    <input type="text" id="subName" placeholder="Bill Name"><input type="number" id="subAmt" placeholder="Amount"><input type="number" id="subDay" placeholder="Billing Day (1-31)">
-                    <button style="background:var(--primary); color:#fff; border:none; padding:16px; border-radius:16px; width:100%; font-weight:bold; cursor:pointer;" onclick="addSub()">Add Bill</button>
-                </div>
-                <div id="subList"></div>
-            </div>
-
-            <div id="analyticsModal" class="app-panel">
-                <div class="top-header"><div class="header-left"></div><div class="app-title">ANALYTICS</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div>
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span style="color:#94a3b8;">Cycle Spend:</span><span id="cycleTotal" style="font-weight:700;">$0.00</span></div>
-                    <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;"><span style="color:#c4b5fd; font-weight:700;">Left in Budget:</span><span id="creepTotal" style="font-weight:700;">$0.00</span></div>
-                </div>
-                <div style="height:300px;"><canvas id="categoryDonutChart"></canvas></div>
-            </div>
-
-            <div id="notesManager" class="app-panel">
-                <div class="top-header"><div class="header-left"></div><div class="app-title">FAMILY NOTES</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div>
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
-                    <textarea id="noteMessage" placeholder="New note..." style="height:100px;"></textarea>
-                    <button style="background:var(--primary); color:#fff; border:none; padding:16px; border-radius:16px; width:100%; font-weight:bold; cursor:pointer;" onclick="addNote()">Post Note</button>
-                </div>
-                <div id="notesList"></div>
-            </div>
-
-            <div id="configManager" class="app-panel">
-                <div class="top-header"><div class="header-left"></div><div class="app-title">CONFIG</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div>
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);">
-                    <label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET</label><input type="number" id="conf_income">
-                    <label style="font-size:0.7rem; font-weight:700; margin-top: 10px; display:block;">TARGET SAVINGS %</label><input type="number" id="conf_sgoal" placeholder="e.g. 20">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;"><input type="number" id="conf_mbal" placeholder="Mortgage Bal"><input type="number" id="conf_cbal" placeholder="Car Bal"></div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><input type="number" id="conf_morig" placeholder="Mortgage Orig"><input type="number" id="conf_corig" placeholder="Car Orig"></div>
-                    <button style="background:var(--primary); color:#fff; border:none; padding:16px; border-radius:16px; width:100%; font-weight:bold; cursor:pointer; margin-top:10px;" onclick="saveConfig()">Save Settings</button>
+        <div id="app">
+            <div class="top-header">
+                <div class="header-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div>
+                <div class="app-title" id="welcomeTitle">Welcome to your ledger</div>
+                <div class="header-right">
+                    <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()"><i class="fa-solid fa-bell" style="font-size:1.2rem; color:#94a3b8;"></i><div id="headerPing" class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div></div>
+                    <div id="topAvatarBadge" class="user-badge" onclick="switchView('profileManager')"><i class="fa-solid fa-user"></i></div>
                 </div>
             </div>
-
-            <div id="profileManager" class="app-panel">
-                <div class="top-header"><div class="header-left"></div><div class="app-title">PROFILE</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div>
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);">
-                    <label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">CHOOSE AVATAR</label>
-                    <div class="icon-grid">
-                        <div class="prof-icon-opt" id="icon_fa-user" onclick="setProfileIcon('fa-user')"><i class="fa-solid fa-user"></i></div>
-                        <div class="prof-icon-opt" id="icon_fa-hat-wizard" onclick="setProfileIcon('fa-hat-wizard')"><i class="fa-solid fa-hat-wizard"></i></div>
-                        <div class="prof-icon-opt" id="icon_fa-car" onclick="setProfileIcon('fa-car')"><i class="fa-solid fa-car"></i></div>
-                        <div class="prof-icon-opt" id="icon_fa-motorcycle" onclick="setProfileIcon('fa-motorcycle')"><i class="fa-solid fa-motorcycle"></i></div>
-                        <div class="prof-icon-opt" id="icon_fa-futbol" onclick="setProfileIcon('fa-futbol')"><i class="fa-solid fa-futbol"></i></div>
-                        <div class="prof-icon-opt" id="icon_fa-gamepad" onclick="setProfileIcon('fa-gamepad')"><i class="fa-solid fa-gamepad"></i></div>
-                        <div class="prof-icon-opt" id="icon_fa-cat" onclick="setProfileIcon('fa-cat')"><i class="fa-solid fa-cat"></i></div>
-                        <div class="prof-icon-opt" id="icon_fa-dog" onclick="setProfileIcon('fa-dog')"><i class="fa-solid fa-dog"></i></div>
-                    </div>
-                    <label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">UPDATE PASSWORD</label>
-                    <input type="password" id="newPasswordInput" placeholder="New Password...">
-                    <button style="background:var(--primary); color:#fff; border:none; padding:16px; border-radius:16px; width:100%; font-weight:bold; cursor:pointer;" onclick="updatePassword()">Update</button>
-                </div>
+            <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
+            <div class="vault-grid">
+                <div class="mortgage-vault"><div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Mortgage</div><div id="mortgageBalanceText" class="clock-time">$0.00</div></div>
+                <div class="mortgage-vault"><div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Car Loan</div><div id="carBalanceText" class="clock-time">$0.00</div></div>
             </div>
+            <div style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;">
+                <div class="payoff-tracker"><div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-weight:700; font-size:0.85rem; color:#f8fafc;">Mortgage Payoff</span><span id="mortgagePayoffPerc" style="font-weight:800; color:#818cf8; font-size:0.85rem;">0%</span></div><div class="tracker-bar-bg"><div id="mortgagePayoffBar" class="tracker-bar-fill" style="background:linear-gradient(90deg, #4f46e5, #818cf8); width:0%;"></div></div><div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#94a3b8; margin-top:8px;"> <span id="mortgagePaidAmount">Paid: $0.00</span><span id="mortgageRemainingAmount">Rem: $0.00</span></div></div>
+                <div class="payoff-tracker"><div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-weight:700; font-size:0.85rem; color:#f8fafc;">Car Payoff</span><span id="carPayoffPerc" style="font-weight:800; color:#60a5fa; font-size:0.85rem;">0%</span></div><div class="tracker-bar-bg"><div id="carPayoffBar" class="tracker-bar-fill" style="width:0%;"></div></div><div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#94a3b8; margin-top:8px;"> <span id="carPaidAmount">Paid: $0.00</span><span id="carRemainingAmount">Rem: $0.00</span></div></div>
+            </div>
+            <div class="milestone-row">
+                <div class="milestone-card"><i class="fa-solid fa-fire streak-fire"></i><div style="font-size:1.1rem; font-weight:800; margin-top:5px;" id="streakDisplay">0</div><div style="font-size:0.55rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">Streak</div></div>
+                <div class="milestone-card"><i class="fa-solid fa-trophy goal-trophy"></i><div style="font-size:1.1rem; font-weight:800; margin-top:5px;" id="savingsPowerDisplay">0%</div><div style="font-size:0.55rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">Power</div></div>
+            </div>
+            <div id="balance" class="balance-amount">$0.00</div>
+            <div class="pill-container"><div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div><div id="safeToSpend" class="pace-pill safe-pill">Safe: $0.00</div></div>
+            <div class="member-spend-grid">
+                <div class="member-box" onclick="openMemberAnalytics('Brandon')"><div style="color:var(--brandon); font-size:0.6rem; font-weight:700; text-transform:uppercase;">Brandon</div><div id="brandonSpend" style="font-weight:700; font-size:1.1rem; color:#fff;">$0.00</div></div>
+                <div class="member-box" onclick="openMemberAnalytics('Gina')"><div style="color:var(--gina); font-size:0.6rem; font-weight:700; text-transform:uppercase;">Gina</div><div id="ginaSpend" style="font-weight:700; font-size:1.1rem; color:#fff;">$0.00</div></div>
+            </div>
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:15px;">
+                <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
+                <div class="quick-sync-row">
+                    <div class="quick-chip" onclick="quickFill(15, 'Dining', 'McDonalds', 'Want')"><i class="fa-solid fa-burger" style="color:#f59e0b"></i> McDonalds</div>
+                    <div class="quick-chip" onclick="quickFill(40, 'Car', 'Gas', 'Need')"><i class="fa-solid fa-gas-pump" style="color:#3b82f6"></i> Gas</div>
+                    <div class="quick-chip" onclick="quickFill(100, 'Groceries', 'Publix', 'Need')"><i class="fa-solid fa-basket-shopping" style="color:#10b981"></i> Publix</div>
+                </div>
+                <div class="recur-row" id="recurToggleRow"><span>Set as Recurring Bill?</span><input type="checkbox" id="isRecurring" style="width:18px; height:18px; cursor:pointer;"></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option><option value="Split">Split</option></select><input type="number" id="amount" placeholder="0.00" inputmode="decimal"></div>
+                <select id="category" onchange="autoSuggest(this.value)">
+                    <option value="Groceries">🛒 Groceries</option><option value="Dining">🍔 Dining</option><option value="Utilities">💡 Utilities</option><option value="Mortgage">🏠 Mortgage</option><option value="Car">🚗 Car Payment</option><option value="CreditCard">💳 Credit Card</option><option value="Subscription">📺 Subscription</option><option value="Beauty">✂️ Beauty</option><option value="Goal">🎯 Vault / Goal</option><option value="Misc">📦 Misc</option>
+                </select>
+                <input type="text" id="noteInput" placeholder="Note or #tags"><button class="btn-elite" id="syncBtn" onclick="addEntry()">Sync Transaction</button>
+            </div>
+            <input type="text" id="searchBar" placeholder="🔍 Search history..." onkeyup="filterHistory()">
+            <div id="historyList" style="margin-top:15px;"></div>
         </div>
+
+        <div id="memberBreakdownManager">
+            <div class="top-header"><div class="header-left"></div><div class="app-title" id="memberBreakdownTitle">SPEND</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div>
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><div style="height:250px; position:relative;"><canvas id="memberDonutChart"></canvas></div></div>
+            <h4 style="color:#94a3b8; font-size:0.75rem; text-transform:uppercase; margin-left: 10px;">Recent Transactions</h4>
+            <div id="memberHistoryList"></div>
+        </div>
+
+        <div id="subManager"><div class="top-header"><div class="header-left"></div><div class="app-title">BILLS & SUBSCRIPTIONS</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><input type="text" id="subName" placeholder="Bill Name"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="subAmt" placeholder="Amount"><input type="number" id="subDay" placeholder="Day (1-31)"></div><button class="btn-elite" onclick="addSub()" style="margin-bottom:0;">Add New Bill</button></div><div id="subList"></div></div>
+        
+        <div id="notesManager"><div class="top-header"><div class="header-left"></div><div class="app-title">FAMILY NOTES</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><textarea id="noteMessage" placeholder="Type a message..." style="height:100px;"></textarea><button class="btn-elite" onclick="addNote()" style="margin-bottom:0;">Post Note</button></div><div id="notesList"></div></div>
+        
+        <div id="analyticsModal">
+            <div class="top-header"><div class="header-left"></div><div class="app-title">CYCLE ANALYTICS</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div>
+            
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span style="color:#94a3b8;">Cycle Spend:</span><span id="cycleTotal" style="font-weight:700;">$0.00</span></div>
+                <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;"><span style="color:#c4b5fd; font-weight:700;">Left in Budget:</span><span id="creepTotal" style="font-weight:700;">$0.00</span></div>
+            </div>
+
+            <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
+                <h4 style="margin:0 0 10px 0; color:#fff; font-size:0.85rem; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-calendar-check" style="color:var(--need);"></i> Payoff Forecaster</h4>
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:8px;">
+                    <span style="color:#94a3b8;">Mortgage Free By:</span>
+                    <span id="mortgageForecastDate" style="font-weight:700; color:#818cf8;">Awaiting Sync</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem;">
+                    <span style="color:#94a3b8;">Car Free By:</span>
+                    <span id="carForecastDate" style="font-weight:700; color:#60a5fa;">Awaiting Sync</span>
+                </div>
+            </div>
+
+            <div style="height:300px; position:relative;"><canvas id="categoryDonutChart"></canvas></div>
+            <button class="btn-elite" onclick="exportCSV()" style="margin-top:20px;">Export Cycle to CSV</button>
+        </div>
+        
+        <div id="configManager"><div class="top-header"><div class="header-left"></div><div class="app-title">LEDGER CONFIG</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET</label><input type="number" id="conf_income"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><div><label style="font-size:0.7rem; font-weight:700;">MORTGAGE BAL</label><input type="number" id="conf_mbal"></div><div><label style="font-size:0.7rem; font-weight:700;">CAR LOAN BAL</label><input type="number" id="conf_cbal"></div></div><label style="font-size:0.7rem; font-weight:700; margin-top: 15px; display:block;">ORIGINAL LOAN AMOUNTS</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="conf_morig" placeholder="Mortgage Orig"><input type="number" id="conf_corig" placeholder="Car Orig"></div><button class="btn-elite" onclick="saveConfig()">Save Settings</button></div></div>
+        
+        <div id="shareManager"><div class="top-header"><div class="header-left"></div><div class="app-title">LEDGER SHARE</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><div id="ledgerKeyDisplay" style="background:#000; color:#10b981; font-family:monospace; padding:15px; border-radius:8px; font-size:0.8rem; text-align:center; cursor:pointer;" onclick="copyKey()">Loading...</div><input type="text" id="joinKeyInput" placeholder="Paste Join Key..."><button class="btn-elite" onclick="joinLedger()" style="background:var(--secondary)">Link Ledger</button></div></div>
+        
+        <div id="profileManager"><div class="top-header"><div class="header-left"></div><div class="app-title">PROFILE SETTINGS</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">CHOOSE YOUR AVATAR</label><div class="icon-grid"><div class="prof-icon-opt" id="icon_fa-user" onclick="setProfileIcon('fa-user')"><i class="fa-solid fa-user"></i></div><div class="prof-icon-opt" id="icon_fa-gamepad" onclick="setProfileIcon('fa-gamepad')"><i class="fa-solid fa-gamepad"></i></div><div class="prof-icon-opt" id="icon_fa-futbol" onclick="setProfileIcon('fa-futbol')"><i class="fa-solid fa-futbol"></i></div><div class="prof-icon-opt" id="icon_fa-dog" onclick="setProfileIcon('fa-dog')"><i class="fa-solid fa-dog"></i></div><div class="prof-icon-opt" id="icon_fa-cat" onclick="setProfileIcon('fa-cat')"><i class="fa-solid fa-cat"></i></div><div class="prof-icon-opt" id="icon_fa-hat-wizard" onclick="setProfileIcon('fa-hat-wizard')"><i class="fa-solid fa-hat-wizard"></i></div><div class="prof-icon-opt" id="icon_fa-car" onclick="setProfileIcon('fa-car')"><i class="fa-solid fa-car"></i></div><div class="prof-icon-opt" id="icon_fa-motorcycle" onclick="setProfileIcon('fa-motorcycle')"><i class="fa-solid fa-motorcycle"></i></div></div><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">UPDATE PASSWORD</label><input type="password" id="newPasswordInput" placeholder="New password..."><button class="btn-elite" onclick="updatePassword()">Update Password</button></div></div>
     </div>
 
 <script>
     const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
     const CYCLE_START_DAY = 16;
-    const USERS = { 'Brandon': 'e8a86782-b34e-4e94-878d-19e5d487214c', 'Gina': '4f7e2d7d-2b4a-4d7a-8f7e-2e2d7d7d7d7d' };
     
-    let history = [], recurring = [], notes = [], currentType = 'Need', currentGroup = null, currentUser = null, editingId = null;
-    let config = { budget: 7400, m_balance: 0, c_balance: 0, m_orig: 500000, c_orig: 45000, savings_goal: 20 };
+    let history = [], recurring = [], notes = [], currentType = 'Need', currentGroup = null, currentUser = null, currentEmail = '', editingId = null;
+    let config = { budget: 7400, m_balance: 0, c_balance: 0, m_orig: 500000, c_orig: 45000 };
     let currentViewDate = new Date();
-    let _supabase, catChart, memberChart;
+    let _supabase, catChart, memberChart, isSignUpMode = false;
+    let celebratedMilestones = { car: false, mortgage: false };
 
     const catColors = { Groceries: "#10b981", Dining: "#f59e0b", Utilities: "#06b6d4", Mortgage: "#6366f1", Car: "#3b82f6", CreditCard: "#ef4444", Subscription: "#c084fc", Beauty: "#ec4899", Goal: "#a855f7", Misc: "#94a3b8" };
 
@@ -255,22 +266,32 @@
         _supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
                 currentUser = session.user.id;
+                currentEmail = session.user.email || '';
                 document.body.classList.add('logged-in');
-                document.getElementById('welcomeTitle').innerText = `WELCOME ${currentUser === USERS.Brandon ? 'BRANDON' : 'GINA'}`;
+                
+                let firstName = "Partner";
+                if (currentEmail.toLowerCase().includes('brandon')) firstName = "Brandon";
+                else if (currentEmail.toLowerCase().includes('gina')) firstName = "Gina";
+                
+                const titleEl = document.getElementById('welcomeTitle');
+                if(titleEl) titleEl.innerText = `Welcome to your ledger ${firstName}`;
+                
                 loadAppEngine(); 
             }
         });
     } catch (e) { console.error(e); }
 
     function switchView(viewId) {
-        document.querySelectorAll('.app-panel').forEach(p => p.style.display = 'none');
+        ['app','subManager','notesManager','analyticsModal','configManager','shareManager','profileManager','memberBreakdownManager'].forEach(v => {
+            document.getElementById(v).style.display = 'none';
+        });
         document.getElementById(viewId).style.display = 'block';
         window.scrollTo(0,0);
         if (viewId === 'app' || viewId === 'analyticsModal') fetchData();
         if (document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
     }
 
-    async function setProfileIcon(iconClass) {
+    function setProfileIcon(iconClass) {
         localStorage.setItem('montoya_profile_icon', iconClass);
         loadProfileIcon();
         updateUI(); 
@@ -281,8 +302,13 @@
         const savedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
         const safeIcon = savedIcon.startsWith('fa-') ? savedIcon : 'fa-' + savedIcon;
         const finalIcon = `<i class="fa-solid ${safeIcon}"></i>`;
-        document.getElementById('sidebarAvatar').innerHTML = finalIcon;
-        document.getElementById('topAvatarBadge').innerHTML = finalIcon;
+        
+        const sideAvatar = document.getElementById('sidebarAvatar');
+        if(sideAvatar) sideAvatar.innerHTML = finalIcon;
+        
+        const topAvatar = document.getElementById('topAvatarBadge');
+        if(topAvatar) topAvatar.innerHTML = finalIcon;
+        
         document.querySelectorAll('.prof-icon-opt').forEach(el => el.classList.remove('selected'));
         const opt = document.getElementById('icon_' + safeIcon);
         if(opt) opt.classList.add('selected');
@@ -291,125 +317,136 @@
     async function loadAppEngine() {
         const { data, error } = await _supabase.from('app_settings').select('*').limit(1);
         if (data && data.length > 0) {
-            config.budget = data[0].budget || 7400;
-            config.m_balance = data[0].m_balance || 0;
-            config.c_balance = data[0].c_balance || 0;
-            config.m_orig = data[0].m_orig || 500000;
-            config.c_orig = data[0].c_orig || 45000;
-            currentGroup = data[0].group_id;
+            config = data[0]; 
+            currentGroup = config.group_id;
+            document.getElementById('ledgerKeyDisplay').innerText = currentGroup;
+            document.getElementById('conf_income').value = config.budget;
+            document.getElementById('conf_mbal').value = config.m_balance || 0;
+            document.getElementById('conf_cbal').value = config.c_balance || 0;
+            document.getElementById('conf_morig').value = config.m_orig || 500000;
+            document.getElementById('conf_corig').value = config.c_orig || 45000;
         }
-        
-        // Load local goal to prevent DB conflicts
-        config.savings_goal = parseFloat(localStorage.getItem('montoya_savings_goal_' + currentGroup)) || 20;
+        config.m_orig = config.m_orig || 500000;
+        config.c_orig = config.c_orig || 45000;
 
-        document.getElementById('conf_income').value = config.budget;
-        document.getElementById('conf_mbal').value = config.m_balance;
-        document.getElementById('conf_cbal').value = config.c_balance;
-        document.getElementById('conf_morig').value = config.m_orig;
-        document.getElementById('conf_corig').value = config.c_orig;
-        document.getElementById('conf_sgoal').value = config.savings_goal;
-
-        loadProfileIcon(); initCycles(); fetchData();
+        loadProfileIcon();
+        initCycles(); 
+        fetchData();
     }
 
     async function fetchData() {
         if (!currentGroup) return;
         const { start, end } = getCycleDates(currentViewDate);
-        const [tRes, rRes, nRes] = await Promise.all([
+        const [transRes, recurRes, noteRes] = await Promise.all([
             _supabase.from('transactions').select('*').eq('group_id', currentGroup).gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
             _supabase.from('recurring_expenses').select('*').eq('group_id', currentGroup),
             _supabase.from('app_notes').select('*').eq('group_id', currentGroup).order('created_at', { ascending: false })
         ]);
-        history = tRes.data || []; recurring = rRes.data || []; notes = nRes.data || [];
-        updateUI(); updateNotesUI(); updateNotificationsUI(); renderSubList(); renderAnalytics();
+        history = transRes.data || []; recurring = recurRes.data || []; notes = noteRes.data || [];
+        updateUI(); updateNotesUI(); updateNotificationsUI(); calculateMilestones(); renderSubList(); renderAnalytics();
     }
 
     function updateUI() {
-        let totalS = 0, bS = 0, gS = 0, pendingTotal = 0;
+        let totalS = 0, bS = 0, gS = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
-        const myIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
-        const finalIcon = myIcon.startsWith('fa-') ? myIcon : 'fa-' + myIcon;
+        
+        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-
-        const mPerc = Math.min(100, ((config.m_orig - config.m_balance) / config.m_orig) * 100);
+        const mOrig = config.m_orig || 500000; const currMBal = config.m_balance || 0;
+        const mAmtPaid = Math.max(0, mOrig - currMBal); const mPerc = mOrig > 0 ? Math.min(100, (mAmtPaid / mOrig) * 100) : 0;
         document.getElementById('mortgagePayoffBar').style.width = mPerc + "%";
         document.getElementById('mortgagePayoffPerc').innerText = Math.round(mPerc) + "%";
+        document.getElementById('mortgagePaidAmount').innerText = "Paid: $" + mAmtPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('mortgageRemainingAmount').innerText = "Rem: $" + currMBal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-        const cPerc = Math.min(100, ((config.c_orig - config.c_balance) / config.c_orig) * 100);
+        const cOrig = config.c_orig || 45000; const currCBal = config.c_balance || 0;
+        const cAmtPaid = Math.max(0, cOrig - currCBal); const cPerc = cOrig > 0 ? Math.min(100, (cAmtPaid / cOrig) * 100) : 0;
         document.getElementById('carPayoffBar').style.width = cPerc + "%";
         document.getElementById('carPayoffPerc').innerText = Math.round(cPerc) + "%";
+        document.getElementById('carPaidAmount').innerText = "Paid: $" + cAmtPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('carRemainingAmount').innerText = "Rem: $" + currCBal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
+        if(currMBal <= 0 && mPerc >= 100 && !celebratedMilestones.mortgage && mOrig > 0) triggerCelebration('mortgage');
+        if(currCBal <= 0 && cPerc >= 100 && !celebratedMilestones.car && cOrig > 0) triggerCelebration('car');
+
+        const savedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
+        const myIcon = savedIcon.startsWith('fa-') ? savedIcon : 'fa-' + savedIcon;
+        
         history.forEach(item => {
             totalS += item.amount;
+            
             if (!['Mortgage','Car','Utilities'].includes(item.category)) {
                 if (item.member === 'Brandon') bS += item.amount;
                 else if (item.member === 'Gina') gS += item.amount;
-                else { bS += (item.amount/2); gS += (item.amount/2); }
+                else if (item.member === 'Split') { bS += item.amount/2; gS += item.amount/2; }
             }
+
             let isMe = item.user_id === currentUser;
-            let submitterName = item.user_id === USERS.Brandon ? "Brandon" : (item.user_id === USERS.Gina ? "Gina" : "Partner");
-            let iconClass = isMe ? finalIcon : 'fa-user-group';
             
+            // Dynamic Name Logic for History
+            let submitterName = "Partner";
+            if (isMe) {
+                if (currentEmail.toLowerCase().includes('brandon')) submitterName = "Brandon";
+                else if (currentEmail.toLowerCase().includes('gina')) submitterName = "Gina";
+                else submitterName = "You";
+            } else {
+                if (currentEmail.toLowerCase().includes('brandon')) submitterName = "Gina"; // If I am Brandon, partner is Gina
+                else if (currentEmail.toLowerCase().includes('gina')) submitterName = "Brandon"; // If I am Gina, partner is Brandon
+            }
+
+            let finalIconClass = isMe ? myIcon : 'fa-user-group';
+
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="font-size:0.6rem; color:#64748b; margin-top:6px;"><i class="fa-solid ${iconClass}"></i> Synced by ${submitterName}</div></div><div style="text-align:right;"><div style="font-weight:700;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')" style="color:#60a5fa; margin-right:10px; cursor:pointer;"></i><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')" style="color:#ef4444; cursor:pointer;"></i></div>`;
+            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="display:flex; align-items:center; gap:8px; margin-top:6px;"><div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div><div style="font-size:0.6rem; color:#64748b;"><i class="fa-solid ${finalIconClass}"></i> Synced by ${submitterName}</div></div></div><div style="text-align:right;"><div style="font-weight:700;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
         });
 
+        const INCOME = config.budget || 7400;
+        document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('paceDisplay').innerText = `Pace: $${((INCOME - totalS) / 30).toFixed(2)} / day`;
+        
+        let pendingTotal = 0;
         recurring.forEach(sub => {
             const alreadyPaid = history.some(h => h.note.toLowerCase().includes(sub.name.toLowerCase()));
             if (!alreadyPaid) pendingTotal += sub.amount;
         });
-
-        const INCOME = config.budget || 7400;
-        document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('brandonSpend').innerText = "$" + bS.toFixed(2);
-        document.getElementById('ginaSpend').innerText = "$" + gS.toFixed(2);
-        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS - pendingTotal).toFixed(2);
-        
-        const daysLeft = Math.max(1, Math.ceil((getCycleDates(currentViewDate).end - new Date()) / (1000 * 60 * 60 * 24)));
-        document.getElementById('paceDisplay').innerText = `Pace: $${((INCOME - totalS) / daysLeft).toFixed(2)} / day`;
-
-        // SAVINGS GOAL LOGIC
-        let targetGoal = config.savings_goal || 20;
-        document.getElementById('targetGoalText').innerText = targetGoal;
-        let currentPower = INCOME > 0 ? ((INCOME - totalS) / INCOME) * 100 : 0;
-        let goalProgress = targetGoal > 0 ? (currentPower / targetGoal) * 100 : 0;
-        document.getElementById('savingsGoalBar').style.width = Math.max(0, Math.min(100, goalProgress)) + "%";
-        document.getElementById('savingsGoalPerc').innerText = Math.round(currentPower) + "%";
-        
-        if (currentPower < targetGoal) {
-            document.getElementById('savingsGoalBar').style.background = "linear-gradient(90deg, #f59e0b, #fbbf24)";
-            document.getElementById('savingsGoalPerc').style.color = "#f59e0b";
-        } else {
-            document.getElementById('savingsGoalBar').style.background = "linear-gradient(90deg, #10b981, #34d399)";
-            document.getElementById('savingsGoalPerc').style.color = "#10b981";
-        }
+        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS - pendingTotal).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
 
-    function openMemberBreakdown(name) {
+    function openMemberAnalytics(memberName) {
         switchView('memberBreakdownManager');
-        document.getElementById('memberBreakdownTitle').innerText = name.toUpperCase() + "'S SPEND";
-        const mHistory = history.filter(h => (h.member === name || h.member === 'Split') && !['Mortgage','Car','Utilities'].includes(h.category));
+        document.getElementById('memberBreakdownTitle').innerText = memberName.toUpperCase() + "'S SPEND";
+        
+        const memHistory = history.filter(h => (h.member === memberName || h.member === 'Split') && !['Mortgage','Car','Utilities'].includes(h.category));
+        
         let totals = {};
-        mHistory.forEach(i => { let a = i.member === 'Split' ? i.amount/2 : i.amount; totals[i.category] = (totals[i.category] || 0) + a; });
+        memHistory.forEach(i => { let amt = i.member === 'Split' ? i.amount/2 : i.amount; totals[i.category] = (totals[i.category] || 0) + amt; });
+        
         const ctx = document.getElementById('memberDonutChart').getContext('2d');
         if(memberChart) memberChart.destroy();
-        memberChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(totals), datasets: [{ data: Object.values(totals), backgroundColor: Object.keys(totals).map(l => catColors[l] || "#94a3b8"), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false } });
+        memberChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(totals), datasets: [{ data: Object.values(totals), backgroundColor: Object.keys(totals).map(l => catColors[l] || "#94a3b8"), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } } });
+        
         const list = document.getElementById('memberHistoryList'); list.innerHTML = '';
-        mHistory.forEach(i => {
+        memHistory.forEach(item => {
+            let amt = item.member === 'Split' ? item.amount/2 : item.amount;
+            let dateStr = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[i.category] || "#94a3b8"}22; color:${catColors[i.category] || "#94a3b8"}">${i.category}</span><span class="item-note-text">${i.note || i.category}</span></div><div style="font-weight:700;">-$${(i.member === 'Split' ? i.amount/2 : i.amount).toFixed(2)}</div>`;
+            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="font-size:0.6rem; color:#64748b; margin-top:6px;">${dateStr}</div></div><div style="text-align:right;"><div style="font-weight:700;">-$${amt.toFixed(2)}</div><i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
         });
     }
 
     function updateNotificationsUI() {
         const list = document.getElementById('notifList'); list.innerHTML = '';
-        let acts = []; history.forEach(t => { 
+        let acts = []; 
+        history.forEach(t => { 
             if(t.user_id !== currentUser) {
-                let submitterName = t.user_id === USERS.Brandon ? "Brandon" : (t.user_id === USERS.Gina ? "Gina" : "Partner");
+                let submitterName = "Partner";
+                if (currentEmail.toLowerCase().includes('brandon')) submitterName = "Gina";
+                else if (currentEmail.toLowerCase().includes('gina')) submitterName = "Brandon";
                 acts.push({ user: submitterName, text: `synced $${t.amount.toFixed(2)}`, time: new Date(t.created_at) })
             }
         });
@@ -420,24 +457,48 @@
             list.appendChild(div);
         });
         const lastV = parseInt(localStorage.getItem('montoya_notifs_viewed') || '0');
-        document.getElementById('headerPing').style.display = (acts.length > 0 && acts[0].time.getTime() > lastV) ? 'block' : 'none';
+        const pingEl = document.getElementById('headerPing');
+        if(pingEl) pingEl.style.display = (acts.length > 0 && acts[0].time.getTime() > lastV) ? 'block' : 'none';
     }
 
     function renderAnalytics() {
         const ctx = document.getElementById('categoryDonutChart').getContext('2d');
-        let totals = {}; history.forEach(i => totals[i.category] = (totals[i.category] || 0) + i.amount);
+        let totals = {}; let mortgageCyclePayment = 0; let carCyclePayment = 0;
+        
+        history.forEach(i => { 
+            totals[i.category] = (totals[i.category] || 0) + i.amount; 
+            if (i.category === 'Mortgage') mortgageCyclePayment += i.amount;
+            if (i.category === 'Car') carCyclePayment += i.amount;
+        });
+
         if(catChart) catChart.destroy();
-        catChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(totals), datasets: [{ data: Object.values(totals), backgroundColor: Object.keys(totals).map(l => catColors[l] || "#94a3b8"), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false } });
+        catChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(totals), datasets: [{ data: Object.values(totals), backgroundColor: Object.keys(totals).map(l => catColors[l] || "#94a3b8"), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } } });
         let spent = 0; history.forEach(i => spent += i.amount);
-        document.getElementById('cycleTotal').innerText = "$" + spent.toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('creepTotal').innerText = "$" + (config.budget - spent).toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('cycleTotal').innerText = "$" + spent.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('creepTotal').innerText = "$" + (config.budget - spent).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        const mBal = config.m_balance || 0;
+        if (mortgageCyclePayment > 0 && mBal > 0) {
+            let monthsLeft = Math.ceil(mBal / mortgageCyclePayment);
+            let d = new Date(); d.setMonth(d.getMonth() + monthsLeft);
+            document.getElementById('mortgageForecastDate').innerText = d.toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
+        } else if (mBal <= 0 && config.m_orig > 0) { document.getElementById('mortgageForecastDate').innerText = "PAID OFF!"; document.getElementById('mortgageForecastDate').style.color = "#10b981";
+        } else { document.getElementById('mortgageForecastDate').innerText = "Awaiting Sync"; }
+
+        const cBal = config.c_balance || 0;
+        if (carCyclePayment > 0 && cBal > 0) {
+            let monthsLeft = Math.ceil(cBal / carCyclePayment);
+            let d = new Date(); d.setMonth(d.getMonth() + monthsLeft);
+            document.getElementById('carForecastDate').innerText = d.toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
+        } else if (cBal <= 0 && config.c_orig > 0) { document.getElementById('carForecastDate').innerText = "PAID OFF!"; document.getElementById('carForecastDate').style.color = "#10b981";
+        } else { document.getElementById('carForecastDate').innerText = "Awaiting Sync"; }
     }
 
     function updateNotesUI() {
         const list = document.getElementById('notesList'); list.innerHTML = '';
         notes.forEach(n => {
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><b style="color:${n.author === 'Gina' ? 'var(--gina)' : 'var(--brandon)'}">${n.author}:</b> ${n.message}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteNote('${n.id}')" style="color:#ef4444; cursor:pointer;"></i>`;
+            div.innerHTML = `<div><b style="color:${n.author === 'Gina' ? 'var(--gina)' : 'var(--brandon)'}">${n.author}:</b> ${n.message}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteNote('${n.id}')"></i>`;
             list.appendChild(div);
         });
     }
@@ -446,49 +507,96 @@
         const list = document.getElementById('subList'); list.innerHTML = '';
         recurring.forEach(s => {
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><b>${s.name}</b><br><small style="color:#94a3b8">Billed Day ${s.billing_day}</small></div><div style="text-align:right;"><div style="font-weight:700;">$${s.amount.toFixed(2)}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteSub('${s.id}')" style="color:#ef4444; cursor:pointer;"></i></div>`;
+            div.innerHTML = `<div><b>${s.name}</b><br><small style="color:#94a3b8">Billed Day ${s.billing_day}</small></div><div style="text-align:right;"><div style="font-weight:700;">$${s.amount.toFixed(2)}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteSub('${s.id}')"></i></div>`;
             list.appendChild(div);
         });
     }
 
+    async function addNote() { 
+        const msg = document.getElementById('noteMessage').value; if(!msg) return; 
+        let authorName = "Partner";
+        if (currentEmail.toLowerCase().includes('brandon')) authorName = "Brandon";
+        else if (currentEmail.toLowerCase().includes('gina')) authorName = "Gina";
+        await _supabase.from('app_notes').insert([{ author: authorName, message: msg, group_id: currentGroup, user_id: currentUser }]); 
+        document.getElementById('noteMessage').value = ''; fetchData(); 
+    }
+    
+    async function addSub() { const n = document.getElementById('subName').value, a = parseFloat(document.getElementById('subAmt').value), d = parseInt(document.getElementById('subDay').value); if(!n || !a || !d) return; await _supabase.from('recurring_expenses').insert([{ name: n, amount: a, billing_day: d, group_id: currentGroup, user_id: currentUser }]); document.getElementById('subName').value = ''; document.getElementById('subAmt').value = ''; document.getElementById('subDay').value = ''; fetchData(); }
+    
+    function calculateMilestones() {
+        const combined = [...history, ...notes].map(x => new Date(x.created_at).toDateString());
+        const unique = [...new Set(combined)]; let streak = 0; let check = new Date();
+        while (unique.includes(check.toDateString())) { streak++; check.setDate(check.getDate() - 1); }
+        document.getElementById('streakDisplay').innerText = streak;
+        let spent = 0; history.forEach(i => spent += i.amount);
+        document.getElementById('savingsPowerDisplay').innerText = Math.round(((config.budget - spent) / config.budget) * 100) + "%";
+    }
+    
+    function triggerCelebration(type) { celebratedMilestones[type] = true; confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); showToast(`🎉 ${type.toUpperCase()} PAID OFF!`); }
+    
+    function exportCSV() {
+        let csv = 'Date,Category,Member,Amount,Note\n';
+        history.forEach(i => csv += `${new Date(i.created_at).toLocaleDateString()},${i.category},${i.member},${i.amount},${i.note}\n`);
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', 'Montoya_Ledger.csv'); a.click();
+    }
+    
+    async function authenticateUser() { const email = document.getElementById('emailField').value; const pass = document.getElementById('passwordField').value; const btn = document.getElementById('authBtn'); if(!email || !pass) return; try { const { data, error } = isSignUpMode ? await _supabase.auth.signUp({email, password: pass}) : await _supabase.auth.signInWithPassword({email, password: pass}); if (error) throw error; if (data.session) location.reload(); } catch (err) { alert(err.message); } }
+    
     async function saveConfig() { 
         config.budget = parseFloat(document.getElementById('conf_income').value) || config.budget; 
         config.m_balance = parseFloat(document.getElementById('conf_mbal').value) || 0; 
         config.c_balance = parseFloat(document.getElementById('conf_cbal').value) || 0; 
         config.m_orig = parseFloat(document.getElementById('conf_morig').value) || config.m_orig; 
         config.c_orig = parseFloat(document.getElementById('conf_corig').value) || config.c_orig; 
-        
-        let newGoal = parseFloat(document.getElementById('conf_sgoal').value) || 20;
-        config.savings_goal = newGoal;
-        localStorage.setItem('montoya_savings_goal_' + currentGroup, newGoal);
-
-        const safeUpdateObj = { budget: config.budget, m_balance: config.m_balance, c_balance: config.c_balance, m_orig: config.m_orig, c_orig: config.c_orig };
-        await _supabase.from('app_settings').update(safeUpdateObj).eq('group_id', currentGroup); 
-        switchView('app'); showToast("Settings Saved!"); 
+        await _supabase.from('app_settings').update(config).eq('group_id', currentGroup); switchView('app'); showToast("Settings Saved!"); 
     }
-
+    
     async function addEntry() { 
         const amtInput = document.getElementById('amount').value; const amt = parseFloat(amtInput); if (!amt) return; 
         const cat = document.getElementById('category').value; const isRecur = document.getElementById('isRecurring').checked; 
         if (cat === 'Mortgage' && !editingId) config.m_balance -= amt; if (cat === 'Car' && !editingId) config.c_balance -= amt; 
+        
         const payload = { amount: amt, member: document.getElementById('memberSelect').value, category: cat, note: document.getElementById('noteInput').value, intent: currentType, user_id: currentUser, group_id: currentGroup }; 
-        if (editingId) { await _supabase.from('transactions').update(payload).eq('id', editingId); editingId = null; document.getElementById('syncBtn').innerText = "Sync Transaction"; document.getElementById('recurToggleRow').style.display = 'flex'; } 
-        else { await _supabase.from('transactions').insert([payload]); if (isRecur) await _supabase.from('recurring_expenses').insert([{ name: payload.note || cat, amount: amt, group_id: currentGroup, user_id: currentUser, billing_day: new Date().getDate() }]); } 
-        const safeUpdateObj = { m_balance: config.m_balance, c_balance: config.c_balance };
-        await _supabase.from('app_settings').update(safeUpdateObj).eq('group_id', currentGroup); 
+        
+        if (editingId) { 
+            await _supabase.from('transactions').update(payload).eq('id', editingId); 
+            editingId = null; 
+            document.getElementById('syncBtn').innerText = "Sync Transaction"; 
+            document.getElementById('recurToggleRow').style.display = 'flex'; 
+        } else { 
+            await _supabase.from('transactions').insert([payload]); 
+            if (isRecur) await _supabase.from('recurring_expenses').insert([{ name: payload.note || cat, amount: amt, group_id: currentGroup, user_id: currentUser, billing_day: new Date().getDate() }]); 
+        } 
+        
+        await _supabase.from('app_settings').update({ m_balance: config.m_balance, c_balance: config.c_balance }).eq('group_id', currentGroup); 
         document.getElementById('amount').value = ''; document.getElementById('noteInput').value = ''; document.getElementById('isRecurring').checked = false; fetchData(); 
     }
 
-    async function addNote() { const msg = document.getElementById('noteMessage').value; if(!msg) return; await _supabase.from('app_notes').insert([{ author: (currentUser === USERS.Brandon ? 'Brandon' : 'Gina'), message: msg, group_id: currentGroup, user_id: currentUser }]); document.getElementById('noteMessage').value = ''; fetchData(); }
-    async function addSub() { const n = document.getElementById('subName').value, a = parseFloat(document.getElementById('subAmt').value), d = parseInt(document.getElementById('subDay').value); if(!n || !a || !d) return; await _supabase.from('recurring_expenses').insert([{ name: n, amount: a, billing_day: d, group_id: currentGroup, user_id: currentUser }]); document.getElementById('subName').value = ''; document.getElementById('subAmt').value = ''; document.getElementById('subDay').value = ''; fetchData(); }
-    function editEntry(id) { const item = history.find(h => h.id === id); if (!item) return; editingId = id; document.getElementById('amount').value = item.amount; document.getElementById('noteInput').value = item.note; document.getElementById('memberSelect').value = item.member; document.getElementById('category').value = item.category; setType(item.intent); document.getElementById('syncBtn').innerText = "Update Transaction"; document.getElementById('recurToggleRow').style.display = 'none'; switchView('app'); window.scrollTo(0,0); }
+    function editEntry(id) { 
+        const item = history.find(h => h.id === id); if (!item) return; editingId = id; 
+        document.getElementById('amount').value = item.amount; 
+        document.getElementById('noteInput').value = item.note; 
+        document.getElementById('memberSelect').value = item.member; 
+        document.getElementById('category').value = item.category; 
+        setType(item.intent); 
+        document.getElementById('syncBtn').innerText = "Update Transaction"; 
+        document.getElementById('recurToggleRow').style.display = 'none'; 
+        switchView('app');
+        window.scrollTo(0,0); 
+    }
+
     async function deleteEntry(id) { if (confirm("Delete?")) { await _supabase.from('transactions').delete().eq('id', id); fetchData(); } }
     async function deleteSub(id) { if (confirm("Delete bill?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); fetchData(); } }
     async function deleteNote(id) { if (confirm("Delete note?")) { await _supabase.from('app_notes').delete().eq('id', id); fetchData(); } }
     function toggleNotifications() { const m = document.getElementById('notifModal'); const o = document.getElementById('notifOverlay'); const isV = m.style.display === 'block'; m.style.display = isV ? 'none' : 'block'; o.style.display = isV ? 'none' : 'block'; if(!isV) localStorage.setItem('montoya_notifs_viewed', Date.now().toString()); }
-    function toggleMenu() { const m = document.getElementById('sideMenu'); m.classList.toggle('open'); document.getElementById('sideMenuOverlay').style.display = m.classList.contains('open') ? 'block' : 'none'; }
+    function toggleMenu() { if (window.innerWidth >= 1100) return; const m = document.getElementById('sideMenu'); const o = document.getElementById('sideMenuOverlay'); m.classList.toggle('open'); o.style.display = m.classList.contains('open') ? 'block' : 'none'; }
+    function toggleAuthMode() { isSignUpMode = !isSignUpMode; document.getElementById('authTitle').innerText = isSignUpMode ? "Create Account" : "Montoya Ledger"; document.getElementById('authBtn').innerText = isSignUpMode ? "Sign Up" : "Secure Login"; }
     function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t==='Need'); document.getElementById('wantBtn').classList.toggle('active', t==='Want'); }
     function quickFill(a, c, n, t) { document.getElementById('amount').value = a; document.getElementById('category').value = c; document.getElementById('noteInput').value = n; setType(t); window.scrollTo(0, document.querySelector('.type-toggle').offsetTop - 20); }
+    function copyKey() { navigator.clipboard.writeText(currentGroup); showToast("Key Copied!"); }
+    async function joinLedger() { const key = document.getElementById('joinKeyInput').value.trim(); if(key.length > 20) { await _supabase.from('app_settings').update({ group_id: key }).eq('user_id', currentUser); location.reload(); } }
     function getCycleDates(baseDate) { let d = new Date(baseDate); let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY); if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); let end = new Date(start); end.setMonth(end.getMonth() + 1); return { start, end }; }
     function initCycles() { const select = document.getElementById('cycleSelect'); select.innerHTML = ''; let now = new Date(); for(let i=0; i<6; i++) { let d = new Date(now.getFullYear(), now.getMonth() - i, 16); let opt = document.createElement('option'); opt.value = d.toISOString(); opt.text = d.toLocaleString('default', { month: 'short' }) + " Cycle"; select.appendChild(opt); } }
     async function changeCycle() { currentViewDate = new Date(document.getElementById('cycleSelect').value); await fetchData(); }
@@ -497,7 +605,6 @@
     function filterHistory() { const q = document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('.history-item').forEach(item => { item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none'; }); }
     function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
     async function updatePassword() { const newPass = document.getElementById('newPasswordInput').value; if(newPass.length < 6) { showToast("Min 6 chars"); return; } try { await _supabase.auth.updateUser({ password: newPass }); showToast("Password Updated!"); } catch (err) { alert(err.message); } }
-    async function authenticateUser() { const email = document.getElementById('emailField').value; const pass = document.getElementById('passwordField').value; if(!email || !pass) return; try { const { data, error } = await _supabase.auth.signInWithPassword({email, password: pass}); if (error) throw error; if (data.session) location.reload(); } catch (err) { alert(err.message); } }
 </script>
 </body>
 </html>
