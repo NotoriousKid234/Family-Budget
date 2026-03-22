@@ -628,7 +628,7 @@
 // ══════════════════════════════════════════════
 const SUPABASE_URL  = 'https://hieqohmhrpjvhotutwls.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX';
-const ANTHROPIC_KEY = '';
+// AI calls go through Netlify proxy — no key needed here
 const CYCLE_START   = 16;
 const USERS = {
     Brandon: 'e8a86782-b34e-4e94-878d-19e5d487214c',
@@ -918,24 +918,20 @@ async function askAI() {
 - Spending by category: ${catStr||'No transactions yet'}
 - Number of transactions: ${history.length}`;
 
-    if(!ANTHROPIC_KEY){ body.innerText="Add your Anthropic API key to the ANTHROPIC_KEY variable at the top of the script to enable AI insights. Your financial data is ready to analyze — just needs the key!"; addAIHistory(q,'[API key required]'); return; }
-
     try {
-        const res=await fetch('https://api.anthropic.com/v1/messages',{
+        const res=await fetch('/.netlify/functions/ai-proxy',{
             method:'POST',
-            headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01'},
+            headers:{'Content-Type':'application/json'},
             body:JSON.stringify({
-                model:'claude-sonnet-4-20250514',
-                max_tokens:400,
                 system:`You are a friendly, direct financial coach for a family. You have access to their real spending data. Give concise, actionable advice in 2-4 sentences. Use specific numbers from the data. Be encouraging but honest. No markdown, just plain conversational text.`,
-                messages:[{role:'user',content:`${context}\n\nUser question: ${q}`}]
+                prompt:`${context}\n\nUser question: ${q}`
             })
         });
         const d=await res.json();
         const text=d.content?.[0]?.text||'Unable to get a response. Please try again.';
         body.innerText=text;
         addAIHistory(q,text);
-    } catch(e){ body.innerText='Connection error. Check your API key and try again.'; }
+    } catch(e){ body.innerText='Connection error. Please try again in a moment.'; }
     document.getElementById('aiQuestion').value='';
 }
 
