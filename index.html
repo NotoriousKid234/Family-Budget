@@ -36,7 +36,7 @@
         
         .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 4100; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
 
-        #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #configManager, #shareManager, #profileManager { 
+        #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #configManager, #shareManager, #profileManager, #memberBreakdownManager { 
             background: var(--card); backdrop-filter: blur(25px); padding: 25px; 
             border-radius: 32px; width: 92%; max-width: 440px; 
             border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
@@ -48,17 +48,17 @@
         body.logged-in #loginScreen { display: none !important; }
         
         #app { display: block; }
-        #subManager, #notesManager, #analyticsModal, #configManager, #shareManager, #profileManager { display: none; }
+        #subManager, #notesManager, #analyticsModal, #configManager, #shareManager, #profileManager, #memberBreakdownManager { display: none; }
 
         .menu-header { padding: 30px 20px; font-size: 1.5rem; font-weight: 800; border-bottom: 1px solid var(--border); background: var(--card); color: #fff; display: flex; align-items: center; gap: 12px; }
         .menu-item { padding: 20px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; color: var(--text); transition: background 0.2s; }
         .menu-item:hover { background: rgba(255,255,255,0.05); }
 
-        /* HEADER GRID FOR PERFECT CENTERING */
         .top-header { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; margin-bottom: 25px; width: 100%; }
+        .header-left { display: flex; align-items: center; }
+        .header-right { display: flex; align-items: center; justify-content: flex-end; gap: 15px; }
         .hamburger { font-size: 1.5rem; color: #94a3b8; cursor: pointer; justify-self: start; }
-        .app-title { font-weight: 800; font-size: 0.9rem; letter-spacing: 1.5px; color: #fff; text-transform: uppercase; text-align: center; }
-        .header-icons { display: flex; align-items: center; gap: 12px; justify-self: end; }
+        .app-title { font-weight: 800; font-size: 0.9rem; letter-spacing: 1.5px; color: #fff; text-transform: uppercase; text-align: center; margin: 0; }
 
         .cycle-selector { background: var(--primary); border: none; color: #fff; padding: 10px 20px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; width: fit-content; margin: 0 auto 15px auto; display: block; cursor: pointer; outline: none; }
         
@@ -77,14 +77,16 @@
 
         .milestone-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .milestone-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 20px; padding: 12px; text-align: center; }
+        .streak-fire { color: #f97316; font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.5)); }
+        .goal-trophy { color: #eab308; font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(234, 179, 8, 0.5)); }
 
-        /* THE NEED/WANT TOGGLE STYLING */
         .type-toggle { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 14px; margin-bottom: 15px; border: 1px solid var(--border); }
         .type-btn { flex: 1; border: none; padding: 10px; border-radius: 10px; cursor: pointer; background: transparent; color: #94a3b8; font-weight: 700; transition: 0.3s; font-size: 0.8rem; }
         .type-btn.active { background: white; color: #0f172a; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
         .member-spend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .member-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 20px; text-align: center; border: 1px solid var(--border); }
+        .member-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 20px; text-align: center; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+        .member-box:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
 
         .history-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; margin-bottom: 10px; }
         .cat-pill { font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; width: fit-content; background: rgba(255,255,255,0.1); color: #fff; }
@@ -92,6 +94,10 @@
         .member-pill { display: flex; align-items: center; gap: 4px; font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; width: fit-content; }
         .pill-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .pill-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .pill-split { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
+
+        .edit-icon { color: #60a5fa; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
+        .trash-icon { color: #ef4444; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
 
         .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; transition: opacity 0.2s; }
         .quick-sync-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
@@ -108,7 +114,7 @@
         @media (min-width: 1100px) {
             body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 40px; padding: 40px; }
             body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #configManager, body.logged-in #shareManager, body.logged-in #profileManager { margin: 0; width: 550px; flex-shrink: 0; }
+            body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #configManager, body.logged-in #shareManager, body.logged-in #profileManager, body.logged-in #memberBreakdownManager { margin: 0; width: 550px; flex-shrink: 0; }
             body.logged-in .hamburger { visibility: hidden !important; width: 0; height: 0; }
             body.logged-in .top-header { grid-template-columns: 40px 1fr 40px; } 
         }
@@ -153,9 +159,9 @@
 
         <div id="app">
             <div class="top-header">
-                <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i>
+                <div class="header-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div>
                 <div class="app-title">MONTOYA LEDGER</div>
-                <div class="header-icons">
+                <div class="header-right">
                     <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()"><i class="fa-solid fa-bell" style="font-size:1.2rem; color:#94a3b8;"></i><div id="headerPing" class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div></div>
                     <div id="topAvatarBadge" class="user-badge" onclick="switchView('profileManager')"><i class="fa-solid fa-user"></i></div>
                 </div>
@@ -176,8 +182,8 @@
             <div id="balance" class="balance-amount">$0.00</div>
             <div class="pill-container"><div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div><div id="safeToSpend" class="pace-pill safe-pill">Safe: $0.00</div></div>
             <div class="member-spend-grid">
-                <div class="member-box"><div style="color:var(--brandon); font-size:0.6rem; font-weight:700; text-transform:uppercase;">Brandon</div><div id="brandonSpend" style="font-weight:700; font-size:1.1rem; color:#fff;">$0.00</div></div>
-                <div class="member-box"><div style="color:var(--gina); font-size:0.6rem; font-weight:700; text-transform:uppercase;">Gina</div><div id="ginaSpend" style="font-weight:700; font-size:1.1rem; color:#fff;">$0.00</div></div>
+                <div class="member-box" onclick="openMemberAnalytics('Brandon')"><div style="color:var(--brandon); font-size:0.6rem; font-weight:700; text-transform:uppercase;">Brandon</div><div id="brandonSpend" style="font-weight:700; font-size:1.1rem; color:#fff;">$0.00</div></div>
+                <div class="member-box" onclick="openMemberAnalytics('Gina')"><div style="color:var(--gina); font-size:0.6rem; font-weight:700; text-transform:uppercase;">Gina</div><div id="ginaSpend" style="font-weight:700; font-size:1.1rem; color:#fff;">$0.00</div></div>
             </div>
             <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:15px;">
                 <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
@@ -185,7 +191,7 @@
                     <div class="quick-chip" onclick="quickFill(15, 'Dining', 'McDonalds', 'Want')"><i class="fa-solid fa-burger" style="color:#f59e0b"></i> McDonalds</div>
                     <div class="quick-chip" onclick="quickFill(40, 'Car', 'Gas', 'Need')"><i class="fa-solid fa-gas-pump" style="color:#3b82f6"></i> Gas</div>
                     <div class="quick-chip" onclick="quickFill(100, 'Groceries', 'Publix', 'Need')"><i class="fa-solid fa-basket-shopping" style="color:#10b981"></i> Publix</div>
-                    <div class="quick-chip" onclick="quickFill(450.00, 'Car', 'Car Loan', 'Need')"><i class="fa-solid fa-car" style="color:#3b82f6"></i> Car Loan</div>
+                    <div class="quick-chip" onclick="quickFill(450, 'Car', 'Car Loan', 'Need')"><i class="fa-solid fa-car" style="color:#3b82f6"></i> Car Loan</div>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option><option value="Split">Split</option></select><input type="number" id="amount" placeholder="0.00" inputmode="decimal"></div>
                 <select id="category" onchange="autoSuggest(this.value)">
@@ -197,12 +203,19 @@
             <div id="historyList" style="margin-top:15px;"></div>
         </div>
 
-        <div id="subManager"><div class="top-header"><i></i><div class="app-title">BILLS & SUBS</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><input type="text" id="subName" placeholder="Bill Name"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="subAmt" placeholder="Amount"><input type="number" id="subDay" placeholder="Day (1-31)"></div><button class="btn-elite" onclick="addSub()" style="margin-bottom:0;">Add Bill</button></div><div id="subList"></div></div>
-        <div id="notesManager"><div class="top-header"><i></i><div class="app-title">FAMILY NOTES</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><textarea id="noteMessage" placeholder="New note..." style="height:100px;"></textarea><button class="btn-elite" onclick="addNote()">Post Note</button><div id="notesList"></div></div>
-        <div id="analyticsModal"><div class="top-header"><i></i><div class="app-title">ANALYTICS</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span style="color:#94a3b8;">Cycle Spend:</span><span id="cycleTotal" style="font-weight:700;">$0.00</span></div><div style="display:flex; justify-content:space-between; border-top:1px solid var(--border); padding-top:12px;"><span style="color:#c4b5fd; font-weight:700;">Left in Budget:</span><span id="creepTotal" style="font-weight:700;">$0.00</span></div></div><div style="height:300px; position:relative;"><canvas id="categoryDonutChart"></canvas></div><button class="btn-elite" onclick="exportCSV()" style="margin-top:20px;">Export to CSV</button></div>
-        <div id="configManager"><div class="top-header"><i></i><div class="app-title">LEDGER CONFIG</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><input type="number" id="conf_income" placeholder="Monthly Budget"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="conf_mbal" placeholder="Mortgage Bal"><input type="number" id="conf_cbal" placeholder="Car Bal"></div><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="conf_morig" placeholder="Mortgage Orig"><input type="number" id="conf_corig" placeholder="Car Orig"></div><button class="btn-elite" onclick="saveConfig()">Save All</button></div></div>
-        <div id="shareManager"><div class="top-header"><i></i><div class="app-title">LEDGER SHARE</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><div id="ledgerKeyDisplay" style="background:#000; color:#10b981; font-family:monospace; padding:15px; border-radius:8px; font-size:0.8rem; text-align:center; cursor:pointer;" onclick="copyKey()">Loading...</div><input type="text" id="joinKeyInput" placeholder="Join Key..."><button class="btn-elite" onclick="joinLedger()" style="background:var(--secondary)">Link Ledger</button></div></div>
-        <div id="profileManager"><div class="top-header"><i></i><div class="app-title">PROFILE SETTINGS</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">CHOOSE AVATAR</label><div class="icon-grid"><div class="prof-icon-opt" id="icon_fa-user" onclick="setProfileIcon('fa-user')"><i class="fa-solid fa-user"></i></div><div class="prof-icon-opt" id="icon_fa-gamepad" onclick="setProfileIcon('fa-gamepad')"><i class="fa-solid fa-gamepad"></i></div><div class="prof-icon-opt" id="icon_fa-futbol" onclick="setProfileIcon('fa-futbol')"><i class="fa-solid fa-futbol"></i></div><div class="prof-icon-opt" id="icon_fa-dog" onclick="setProfileIcon('fa-dog')"><i class="fa-solid fa-dog"></i></div><div class="prof-icon-opt" id="icon_fa-cat" onclick="setProfileIcon('fa-cat')"><i class="fa-solid fa-cat"></i></div></div><input type="password" id="newPasswordInput" placeholder="New Password..."><button class="btn-elite" onclick="updatePassword()">Update Profile</button></div></div>
+        <div id="memberBreakdownManager"><div class="top-header"><div></div><div class="app-title" id="memberBreakdownTitle">SPEND</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><div style="height:250px; position:relative;"><canvas id="memberDonutChart"></canvas></div></div><h4 style="color:#94a3b8; font-size:0.75rem; text-transform:uppercase; margin-left: 10px;">Recent Transactions</h4><div id="memberHistoryList"></div></div>
+
+        <div id="subManager"><div class="top-header"><div></div><div class="app-title">BILLS & SUBS</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><input type="text" id="subName" placeholder="Bill Name"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="subAmt" placeholder="Amount"><input type="number" id="subDay" placeholder="Day (1-31)"></div><button class="btn-elite" onclick="addSub()" style="margin-bottom:0;">Add Bill</button></div><div id="subList"></div></div>
+        
+        <div id="notesManager"><div class="top-header"><div></div><div class="app-title">FAMILY NOTES</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><textarea id="noteMessage" placeholder="Type a message..." style="height:100px;"></textarea><button class="btn-elite" onclick="addNote()" style="margin-bottom:0;">Post Note</button></div><div id="notesList"></div></div>
+        
+        <div id="analyticsModal"><div class="top-header"><div></div><div class="app-title">CYCLE ANALYTICS</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span style="color:#94a3b8;">Cycle Spend:</span><span id="cycleTotal" style="font-weight:700;">$0.00</span></div><div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;"><span style="color:#c4b5fd; font-weight:700;">Left in Budget:</span><span id="creepTotal" style="font-weight:700;">$0.00</span></div></div><div style="height:300px; position:relative;"><canvas id="categoryDonutChart"></canvas></div><button class="btn-elite" onclick="exportCSV()" style="margin-top:20px;">Export Cycle to CSV</button></div>
+        
+        <div id="configManager"><div class="top-header"><div></div><div class="app-title">LEDGER CONFIG</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET</label><input type="number" id="conf_income"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><div><label style="font-size:0.7rem; font-weight:700;">MORTGAGE BAL</label><input type="number" id="conf_mbal"></div><div><label style="font-size:0.7rem; font-weight:700;">CAR LOAN BAL</label><input type="number" id="conf_cbal"></div></div><label style="font-size:0.7rem; font-weight:700; margin-top: 15px; display:block;">ORIGINAL LOAN AMOUNTS</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="conf_morig" placeholder="Mortgage Orig"><input type="number" id="conf_corig" placeholder="Car Orig"></div><button class="btn-elite" onclick="saveConfig()">Save Settings</button></div></div>
+        
+        <div id="shareManager"><div class="top-header"><div></div><div class="app-title">LEDGER SHARE</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><div id="ledgerKeyDisplay" style="background:#000; color:#10b981; font-family:monospace; padding:15px; border-radius:8px; font-size:0.8rem; text-align:center; cursor:pointer;" onclick="copyKey()">Loading...</div><input type="text" id="joinKeyInput" placeholder="Paste Join Key..."><button class="btn-elite" onclick="joinLedger()" style="background:var(--secondary)">Link Ledger</button></div></div>
+        
+        <div id="profileManager"><div class="top-header"><div></div><div class="app-title">PROFILE SETTINGS</div><div class="header-icons"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">CHOOSE YOUR AVATAR</label><div class="icon-grid"><div class="prof-icon-opt" id="icon_fa-user" onclick="setProfileIcon('fa-user')"><i class="fa-solid fa-user"></i></div><div class="prof-icon-opt" id="icon_fa-gamepad" onclick="setProfileIcon('fa-gamepad')"><i class="fa-solid fa-gamepad"></i></div><div class="prof-icon-opt" id="icon_fa-futbol" onclick="setProfileIcon('fa-futbol')"><i class="fa-solid fa-futbol"></i></div><div class="prof-icon-opt" id="icon_fa-dog" onclick="setProfileIcon('fa-dog')"><i class="fa-solid fa-dog"></i></div><div class="prof-icon-opt" id="icon_fa-cat" onclick="setProfileIcon('fa-cat')"><i class="fa-solid fa-cat"></i></div></div><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">UPDATE PASSWORD</label><input type="password" id="newPasswordInput" placeholder="New password..."><button class="btn-elite" onclick="updatePassword()">Update Password</button></div></div>
     </div>
 
 <script>
@@ -210,10 +223,10 @@
     const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
     const CYCLE_START_DAY = 16;
     
-    let history = [], recurring = [], notes = [], currentType = 'Need', currentGroup = null, currentUser = null;
+    let history = [], recurring = [], notes = [], currentType = 'Need', currentGroup = null, currentUser = null, editingId = null;
     let config = { budget: 7400, m_balance: 0, c_balance: 0, m_orig: 500000, c_orig: 45000 };
     let currentViewDate = new Date();
-    let _supabase, catChart;
+    let _supabase, catChart, memberChart, isSignUpMode = false;
     let celebratedMilestones = { car: false, mortgage: false };
 
     const catColors = { Groceries: "#10b981", Dining: "#f59e0b", Utilities: "#06b6d4", Mortgage: "#6366f1", Car: "#3b82f6", CreditCard: "#ef4444", Subscription: "#c084fc", Beauty: "#ec4899", Goal: "#a855f7", Misc: "#94a3b8" };
@@ -230,13 +243,30 @@
     } catch (e) { console.error(e); }
 
     function switchView(viewId) {
-        ['app','subManager','notesManager','analyticsModal','configManager','shareManager','profileManager'].forEach(v => {
+        ['app','subManager','notesManager','analyticsModal','configManager','shareManager','profileManager','memberBreakdownManager'].forEach(v => {
             document.getElementById(v).style.display = 'none';
         });
         document.getElementById(viewId).style.display = 'block';
         window.scrollTo(0,0);
         if (viewId === 'app' || viewId === 'analyticsModal') fetchData();
         if (document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
+    }
+
+    async function setProfileIcon(iconClass) {
+        localStorage.setItem('montoya_profile_icon', iconClass);
+        loadProfileIcon();
+        showToast("Avatar Updated!");
+    }
+
+    function loadProfileIcon() {
+        const savedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
+        const finalIcon = `<i class="fa-solid ${savedIcon}"></i>`;
+        document.getElementById('sidebarAvatar').innerHTML = finalIcon;
+        document.getElementById('topAvatarBadge').innerHTML = finalIcon;
+        document.querySelectorAll('.prof-icon-opt').forEach(el => el.classList.remove('selected'));
+        const opt = document.getElementById('icon_' + savedIcon);
+        if(opt) opt.classList.add('selected');
+        updateUI(); 
     }
 
     async function loadAppEngine() {
@@ -268,39 +298,70 @@
     function updateUI() {
         let totalS = 0, bS = 0, gS = 0;
         const list = document.getElementById('historyList'); list.innerHTML = '';
-        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
         const mPerc = Math.min(100, ((config.m_orig - config.m_balance) / config.m_orig) * 100);
         document.getElementById('mortgagePayoffBar').style.width = mPerc + "%";
         document.getElementById('mortgagePayoffPerc').innerText = Math.round(mPerc) + "%";
-        document.getElementById('mortgagePaidAmount').innerText = "Paid: $" + Math.max(0, config.m_orig - config.m_balance).toLocaleString();
-        document.getElementById('mortgageRemainingAmount').innerText = "Rem: $" + (config.m_balance || 0).toLocaleString();
+        document.getElementById('mortgagePaidAmount').innerText = "Paid: $" + Math.max(0, config.m_orig - config.m_balance).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('mortgageRemainingAmount').innerText = "Rem: $" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
         const cPerc = Math.min(100, ((config.c_orig - config.c_balance) / config.c_orig) * 100);
         document.getElementById('carPayoffBar').style.width = cPerc + "%";
         document.getElementById('carPayoffPerc').innerText = Math.round(cPerc) + "%";
-        document.getElementById('carPaidAmount').innerText = "Paid: $" + Math.max(0, config.c_orig - config.c_balance).toLocaleString();
-        document.getElementById('carRemainingAmount').innerText = "Rem: $" + (config.c_balance || 0).toLocaleString();
+        document.getElementById('carPaidAmount').innerText = "Paid: $" + Math.max(0, config.c_orig - config.c_balance).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('carRemainingAmount').innerText = "Rem: $" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
         if(mPerc >= 100 && !celebratedMilestones.mortgage) triggerCelebration('mortgage');
         if(cPerc >= 100 && !celebratedMilestones.car) triggerCelebration('car');
 
         const myIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
+        
         history.forEach(item => {
             totalS += item.amount;
-            if (item.member === 'Brandon') bS += item.amount; else if (item.member === 'Gina') gS += item.amount; else if (item.member === 'Split') { bS += item.amount/2; gS += item.amount/2; }
+            
+            if (!['Mortgage','Car','Utilities'].includes(item.category)) {
+                if (item.member === 'Brandon') bS += item.amount;
+                else if (item.member === 'Gina') gS += item.amount;
+                else if (item.member === 'Split') { bS += item.amount/2; gS += item.amount/2; }
+            }
+
             let isMe = item.user_id === currentUser;
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="display:flex; align-items:center; gap:8px; margin-top:6px;"><div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div><div style="font-size:0.6rem; color:#64748b;"><i class="fa-solid ${isMe ? myIcon.replace('fa-','') : 'fa-user-group'}"></i> ${isMe ? 'You' : 'Partner'}</div></div></div><div style="text-align:right;"><div style="font-weight:700;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
+            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="display:flex; align-items:center; gap:8px; margin-top:6px;"><div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div><div style="font-size:0.6rem; color:#64748b;"><i class="fa-solid ${isMe ? myIcon : 'fa-user-group'}"></i> ${isMe ? 'You' : 'Partner'}</div></div></div><div style="text-align:right;"><div style="font-weight:700;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
         });
+
         const INCOME = config.budget || 7400;
-        document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         document.getElementById('paceDisplay').innerText = `Pace: $${((INCOME - totalS) / 30).toFixed(2)} / day`;
-        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS).toLocaleString();
+        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    function openMemberAnalytics(memberName) {
+        switchView('memberBreakdownManager');
+        document.getElementById('memberBreakdownTitle').innerText = memberName.toUpperCase() + "'S SPEND";
+        
+        const memHistory = history.filter(h => (h.member === memberName || h.member === 'Split') && !['Mortgage','Car','Utilities'].includes(h.category));
+        
+        let totals = {};
+        memHistory.forEach(i => { let amt = i.member === 'Split' ? i.amount/2 : i.amount; totals[i.category] = (totals[i.category] || 0) + amt; });
+        
+        const ctx = document.getElementById('memberDonutChart').getContext('2d');
+        if(memberChart) memberChart.destroy();
+        memberChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(totals), datasets: [{ data: Object.values(totals), backgroundColor: Object.keys(totals).map(l => catColors[l] || "#94a3b8"), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } } });
+        
+        const list = document.getElementById('memberHistoryList'); list.innerHTML = '';
+        memHistory.forEach(item => {
+            let amt = item.member === 'Split' ? item.amount/2 : item.amount;
+            let dateStr = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const div = document.createElement('div'); div.className = 'history-item';
+            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="font-size:0.6rem; color:#64748b; margin-top:6px;">${dateStr}</div></div><div style="text-align:right;"><div style="font-weight:700;">-$${amt.toFixed(2)}</div></div>`;
+            list.appendChild(div);
+        });
     }
 
     function updateNotificationsUI() {
@@ -346,16 +407,7 @@
 
     async function addNote() { const msg = document.getElementById('noteMessage').value; if(!msg) return; await _supabase.from('app_notes').insert([{ author: (currentUser === 'Brandon' ? 'Brandon' : 'Gina'), message: msg, group_id: currentGroup, user_id: currentUser }]); document.getElementById('noteMessage').value = ''; fetchData(); }
     async function addSub() { const n = document.getElementById('subName').value, a = parseFloat(document.getElementById('subAmt').value), d = parseInt(document.getElementById('subDay').value); if(!n || !a || !d) return; await _supabase.from('recurring_expenses').insert([{ name: n, amount: a, billing_day: d, group_id: currentGroup, user_id: currentUser }]); document.getElementById('subName').value = ''; document.getElementById('subAmt').value = ''; document.getElementById('subDay').value = ''; fetchData(); }
-    async function setProfileIcon(iconClass) { localStorage.setItem('montoya_profile_icon', iconClass); loadProfileIcon(); showToast("Avatar Updated!"); fetchData(); }
-    function loadProfileIcon() {
-        const savedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
-        const iconName = savedIcon.startsWith('fa-') ? savedIcon.replace('fa-', '') : savedIcon;
-        const html = `<i class="fa-solid fa-${iconName}"></i>`;
-        document.getElementById('sidebarAvatar').innerHTML = html;
-        document.getElementById('topAvatarBadge').innerHTML = html;
-        document.querySelectorAll('.prof-icon-opt').forEach(el => el.classList.remove('selected'));
-        if(document.getElementById('icon_'+savedIcon)) document.getElementById('icon_'+savedIcon).classList.add('selected');
-    }
+    
     function calculateMilestones() {
         const combined = [...history, ...notes].map(x => new Date(x.created_at).toDateString());
         const unique = [...new Set(combined)]; let streak = 0; let check = new Date();
