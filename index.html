@@ -364,6 +364,201 @@
         .verdict-go   { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,.25); }
         .verdict-warn { background: rgba(251,191,36,.1); color: var(--amber); border: 1px solid rgba(251,191,36,.25); }
         .verdict-skip { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(251,113,133,.25); }
+
+        /* ─── FAB Button ─── */
+        .fab-add {
+            position: fixed; bottom: 28px; right: 28px;
+            width: 62px; height: 62px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%);
+            border: none; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--ink); font-weight: 900;
+            box-shadow: 0 8px 28px rgba(232,194,82,.45), 0 2px 8px rgba(0,0,0,.3);
+            z-index: 3000; transition: all .22s cubic-bezier(.34,1.56,.64,1);
+            font-family: 'DM Sans', sans-serif;
+        }
+        .fab-add:hover { transform: scale(1.08); box-shadow: 0 12px 36px rgba(232,194,82,.55); }
+        .fab-add.open { transform: rotate(45deg); }
+
+        /* ─── Sheet overlay ─── */
+        .sheet-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(4,10,22,.6);
+            backdrop-filter: blur(6px);
+            z-index: 3001;
+        }
+        .sheet-overlay.active { display: block; }
+
+        /* ─── Bottom Sheet ─── */
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #ffffff;
+            border-radius: 28px 28px 0 0;
+            padding: 12px 22px 36px;
+            z-index: 3002;
+            transform: translateY(110%);
+            transition: transform .38s cubic-bezier(.4,0,.2,1);
+            max-height: 92vh; overflow-y: auto;
+            box-shadow: 0 -8px 48px rgba(0,0,0,.35);
+        }
+        .bottom-sheet.open { transform: translateY(0); }
+
+        .sheet-handle {
+            width: 44px; height: 5px;
+            background: #e2e8f0; border-radius: 100px;
+            margin: 0 auto 20px; cursor: grab;
+        }
+
+        /* ─── Amount display ─── */
+        .sheet-amount-wrap {
+            text-align: center; margin-bottom: 20px;
+            padding: 20px 0 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .sheet-amount-label {
+            font-size: .62rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
+            color: #94a3b8; margin-bottom: 8px;
+        }
+        .sheet-amount-display {
+            display: flex; align-items: center;
+            justify-content: center; gap: 4px;
+        }
+        .sheet-currency {
+            font-family: 'Instrument Serif', serif;
+            font-size: 2.4rem; color: #64748b;
+            line-height: 1; padding-top: 6px;
+        }
+        .sheet-amount-input {
+            font-family: 'Instrument Serif', serif;
+            font-size: 3.8rem; font-weight: 600;
+            color: #0f172a; border: none; outline: none;
+            width: 220px; text-align: center;
+            background: transparent; padding: 0;
+            margin: 0 !important;
+            caret-color: var(--gold-dim);
+        }
+        .sheet-amount-input::placeholder { color: #cbd5e1; }
+
+        /* ─── Need/Want toggle ─── */
+        .sheet-type-row {
+            display: flex; gap: 10px; margin-bottom: 20px;
+        }
+        .sheet-type-btn {
+            flex: 1; padding: 12px; border-radius: 14px;
+            border: 2px solid #e2e8f0;
+            background: #f8fafc; cursor: pointer;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 4px;
+            transition: all .22s; font-family: 'DM Sans', sans-serif;
+        }
+        .stb-icon { font-size: 1.2rem; }
+        .stb-label { font-size: .68rem; font-weight: 800; letter-spacing: 1.5px; color: #94a3b8; }
+        .sheet-need.active { border-color: #10b981; background: rgba(16,185,129,.08); }
+        .sheet-need.active .stb-label { color: #059669; }
+        .sheet-want.active { border-color: #f59e0b; background: rgba(245,158,11,.08); }
+        .sheet-want.active .stb-label { color: #d97706; }
+
+        /* ─── Section label ─── */
+        .sheet-section-label {
+            font-size: .6rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
+            color: #94a3b8; margin-bottom: 10px; padding-left: 2px;
+        }
+
+        /* ─── Member chips ─── */
+        .member-chip-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .member-chip {
+            flex: 1; padding: 12px 8px;
+            border-radius: 16px; border: 2px solid #e2e8f0;
+            background: #f8fafc; cursor: pointer;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 6px;
+            transition: all .2s; font-size: .72rem;
+            font-weight: 700; color: #64748b;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .chip-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .9rem; font-weight: 800;
+        }
+        .brandon-av { background: rgba(59,130,246,.15); color: #3b82f6; }
+        .gina-av    { background: rgba(236,72,153,.15);  color: #ec4899; }
+        .split-av   { background: rgba(20,184,166,.15);  color: #14b8a6; }
+        .brandon-chip.active-chip { border-color: #3b82f6; background: rgba(59,130,246,.06); color: #2563eb; }
+        .gina-chip.active-chip    { border-color: #ec4899; background: rgba(236,72,153,.06); color: #db2777; }
+        .split-chip.active-chip   { border-color: #14b8a6; background: rgba(20,184,166,.06); color: #0d9488; }
+
+        /* ─── Smart chips ─── */
+        .smart-chips-row {
+            display: flex; gap: 8px; overflow-x: auto;
+            padding-bottom: 8px; margin-bottom: 18px;
+            scrollbar-width: none;
+        }
+        .smart-chip {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 4px;
+            padding: 10px 14px; border-radius: 14px;
+            border: 1.5px solid #e2e8f0; background: #f8fafc;
+            font-size: .68rem; font-weight: 700; color: #475569;
+            white-space: nowrap; cursor: pointer;
+            transition: all .18s; flex-shrink: 0;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .smart-chip span { font-size: 1.1rem; }
+        .smart-chip:hover { border-color: #cbd5e1; background: #f1f5f9; transform: translateY(-1px); }
+        .smart-chip:active { transform: scale(.97); }
+
+        /* ─── Sheet form ─── */
+        .sheet-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .sheet-select, .sheet-input {
+            width: 100%; padding: 12px 14px;
+            border: 1.5px solid #e2e8f0; border-radius: 12px;
+            background: #f8fafc; color: #1e293b;
+            font-size: .85rem; font-family: 'DM Sans', sans-serif;
+            outline: none; transition: border-color .2s;
+            margin: 0 !important; box-sizing: border-box;
+        }
+        .sheet-select:focus, .sheet-input:focus { border-color: var(--gold-dim); }
+
+        .recur-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f8f5ff; border: 1px solid rgba(139,92,246,.2);
+            padding: 11px 15px; border-radius: 12px;
+            font-size: .78rem; font-weight: 600; color: #7c3aed;
+        }
+
+        /* ─── Action buttons ─── */
+        .sheet-actions { display: flex; gap: 10px; }
+        .sheet-sync-btn {
+            flex: 1; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%);
+            color: var(--ink); border: none; padding: 16px;
+            border-radius: 16px; font-weight: 800; font-size: .9rem;
+            cursor: pointer; font-family: 'DM Sans', sans-serif;
+            box-shadow: 0 4px 16px rgba(232,194,82,.3);
+            transition: all .2s;
+        }
+        .sheet-sync-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+        .sheet-ai-btn {
+            flex-shrink: 0; padding: 16px 18px;
+            background: #f3f0ff; border: 1.5px solid rgba(139,92,246,.3);
+            color: #7c3aed; border-radius: 16px;
+            font-weight: 700; font-size: .82rem; cursor: pointer;
+            font-family: 'DM Sans', sans-serif; transition: all .2s;
+            white-space: nowrap;
+        }
+        .sheet-ai-btn:hover { background: #ede9fe; }
+
+        /* Light theme overrides for AI panel inside sheet */
+        #aiAdvicePanel { background: #f3f0ff !important; border-color: rgba(139,92,246,.2) !important; }
+        #aiAdviceText { color: #1e293b !important; }
+
+        @media (min-width: 1100px) {
+            .fab-add { right: calc(50% - 260px + 28px); }
+            .bottom-sheet { max-width: 500px; left: 50%; right: auto; transform: translateX(-50%) translateY(110%); border-radius: 28px 28px 0 0; }
+            .bottom-sheet.open { transform: translateX(-50%) translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -497,8 +692,7 @@
                     <div id="wantBar2" style="height:100%;background:linear-gradient(90deg,var(--amber),rgba(251,191,36,.7));border-radius:100px;transition:width .8s ease;width:0%;margin-left:2px;"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--text-dim);margin-top:5px;font-family:'DM Mono',monospace;">
-                    <span id="needPct2">Needs: 0%</span>
-                    <span id="wantPct2">Wants: 0%</span>
+                    <span id="needPct2">Needs: 0%</span><span id="wantPct2">Wants: 0%</span>
                 </div>
                 <div id="wantCapBar" style="display:none;margin-top:8px;">
                     <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--text-dim);margin-bottom:4px;"><span>Want budget used</span><span id="wantCapPct">0%</span></div>
@@ -508,34 +702,103 @@
                 </div>
             </div>
 
-            <!-- Input -->
-            <div class="input-card">
-                <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
-                <div class="quick-row">
-                    <div class="chip" onclick="quickFill(15,'Dining','McDonalds','Want')">🍔 McDonalds</div>
-                    <div class="chip" onclick="quickFill(40,'Car','Gas','Need')">⛽ Gas</div>
-                    <div class="chip" onclick="quickFill(100,'Groceries','Publix','Need')">🛒 Publix</div>
-                    <div class="chip" onclick="quickFill(6,'Subscription','Netflix','Want')">📺 Netflix</div>
-                    <div class="chip" onclick="quickFill(50,'Beauty','Haircut','Want')">✂️ Haircut</div>
-                    <div class="chip" onclick="switchView('receiptScanner')" style="border-color:rgba(45,212,191,.3);color:var(--teal);">📸 Scan Receipt</div>
+            <!-- ++ FLOATING ADD BUTTON ++ -->
+            <button class="fab-add" onclick="openSheet()" id="fabBtn">
+                <span style="font-size:1.6rem;line-height:1;">+</span>
+            </button>
+
+            <!-- ++ BOTTOM SHEET OVERLAY ++ -->
+            <div id="sheetOverlay" class="sheet-overlay" onclick="closeSheet()"></div>
+
+            <!-- ++ BOTTOM SHEET ++ -->
+            <div id="bottomSheet" class="bottom-sheet">
+                <div class="sheet-handle"></div>
+
+                <!-- Amount display -->
+                <div class="sheet-amount-wrap">
+                    <div class="sheet-amount-label">Amount</div>
+                    <div class="sheet-amount-display">
+                        <span class="sheet-currency">$</span>
+                        <input type="number" id="amount" class="sheet-amount-input" placeholder="0.00" inputmode="decimal">
+                    </div>
                 </div>
-                <div class="recur-row" id="recurRow"><span>Set as Recurring Bill?</span><input type="checkbox" id="isRecur" style="width:18px;height:18px;cursor:pointer;margin:0;accent-color:var(--violet);"></div>
-                <div class="g2"><select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option><option value="Split">Split</option></select><input type="number" id="amount" placeholder="0.00" inputmode="decimal"></div>
-                <select id="category" onchange="autoSuggest(this.value)">
-                    <option value="Groceries">🛒 Groceries</option><option value="Dining">🍔 Dining</option><option value="Utilities">💡 Utilities</option><option value="Mortgage">🏠 Mortgage</option><option value="Car">🚗 Car Payment</option><option value="CreditCard">💳 Credit Card</option><option value="Subscription">📺 Subscription</option><option value="Beauty">✂️ Beauty</option><option value="Goal">🎯 Vault / Goal</option><option value="Misc">📦 Misc</option>
-                </select>
-                <input type="text" id="noteInput" placeholder="Note or #tags">
-                <div id="aiAdvicePanel" style="display:none;background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(96,165,250,.06));border:1px solid rgba(167,139,250,.25);border-radius:16px;padding:14px 16px;margin-bottom:10px;">
+
+                <!-- Need / Want toggle -->
+                <div class="sheet-type-row">
+                    <button id="needBtn" class="sheet-type-btn sheet-need active" onclick="setType('Need')">
+                        <span class="stb-icon">🏠</span><span class="stb-label">NEED</span>
+                    </button>
+                    <button id="wantBtn" class="sheet-type-btn sheet-want" onclick="setType('Want')">
+                        <span class="stb-icon">✨</span><span class="stb-label">WANT</span>
+                    </button>
+                </div>
+
+                <!-- Member avatar chips -->
+                <div class="sheet-section-label">Who spent it?</div>
+                <div class="member-chip-row">
+                    <div class="member-chip brandon-chip active-chip" id="chip_Brandon" onclick="selectMember('Brandon')">
+                        <div class="chip-avatar brandon-av">B</div>
+                        <span>Brandon</span>
+                    </div>
+                    <div class="member-chip gina-chip" id="chip_Gina" onclick="selectMember('Gina')">
+                        <div class="chip-avatar gina-av">G</div>
+                        <span>Gina</span>
+                    </div>
+                    <div class="member-chip split-chip" id="chip_Split" onclick="selectMember('Split')">
+                        <div class="chip-avatar split-av">↕</div>
+                        <span>Split</span>
+                    </div>
+                </div>
+                <input type="hidden" id="memberSelect" value="Brandon">
+
+                <!-- Smart quick chips -->
+                <div class="sheet-section-label">Quick add</div>
+                <div class="smart-chips-row">
+                    <div class="smart-chip" onclick="sheetQuick(15,'Dining','McDonalds','Want')"><span>🍔</span>McDonalds</div>
+                    <div class="smart-chip" onclick="sheetQuick(40,'Car','Gas','Need')"><span>⛽</span>Gas</div>
+                    <div class="smart-chip" onclick="sheetQuick(100,'Groceries','Publix','Need')"><span>🛒</span>Publix</div>
+                    <div class="smart-chip" onclick="sheetQuick(6,'Subscription','Netflix','Want')"><span>📺</span>Netflix</div>
+                    <div class="smart-chip" onclick="sheetQuick(50,'Beauty','Haircut','Want')"><span>✂️</span>Haircut</div>
+                    <div class="smart-chip" onclick="switchView('receiptScanner');closeSheet();" style="border-color:rgba(45,212,191,.35);color:var(--teal);"><span>📸</span>Scan</div>
+                </div>
+
+                <!-- Category + Note -->
+                <div class="sheet-row-2">
+                    <select id="category" class="sheet-select" onchange="autoSuggest(this.value)">
+                        <option value="Groceries">🛒 Groceries</option>
+                        <option value="Dining">🍔 Dining</option>
+                        <option value="Utilities">💡 Utilities</option>
+                        <option value="Mortgage">🏠 Mortgage</option>
+                        <option value="Car">🚗 Car</option>
+                        <option value="CreditCard">💳 Credit Card</option>
+                        <option value="Subscription">📺 Subscription</option>
+                        <option value="Beauty">✂️ Beauty</option>
+                        <option value="Goal">🎯 Goal</option>
+                        <option value="Misc">📦 Misc</option>
+                    </select>
+                    <input type="text" id="noteInput" class="sheet-input" placeholder="Note or #tags">
+                </div>
+
+                <!-- Recurring row -->
+                <div class="recur-row" id="recurRow" style="margin-bottom:14px;">
+                    <span>Set as Recurring Bill?</span>
+                    <input type="checkbox" id="isRecur" style="width:18px;height:18px;cursor:pointer;margin:0;accent-color:var(--violet);">
+                </div>
+
+                <!-- AI verdict panel -->
+                <div id="aiAdvicePanel" style="display:none;background:rgba(255,255,255,.06);border:1px solid rgba(167,139,250,.2);border-radius:16px;padding:14px 16px;margin-bottom:14px;animation:fadeUp .3s ease;">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                         <div style="width:7px;height:7px;background:var(--violet);border-radius:50%;box-shadow:0 0 8px var(--violet);animation:pulse 2s infinite;"></div>
                         <span style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--violet);">AI Purchase Coach</span>
                     </div>
-                    <div id="aiAdviceText" style="font-size:.88rem;color:var(--text-soft);line-height:1.6;">Analyzing your spending…</div>
-                    <div id="aiVerdict" style="display:none;margin-top:10px;padding:8px 14px;border-radius:10px;font-size:.8rem;font-weight:700;text-align:center;"></div>
+                    <div id="aiAdviceText" style="font-size:.88rem;color:#1a2744;line-height:1.6;">Analyzing your spending…</div>
+                    <div id="aiVerdict" style="display:none;margin-top:10px;padding:9px 14px;border-radius:10px;font-size:.82rem;font-weight:700;text-align:center;"></div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:10px;" id="syncBtnRow">
-                    <button class="btn btn-gold" id="syncBtn" onclick="addEntry()">Sync Transaction</button>
-                    <button class="btn" id="askAiBtn" onclick="askPurchaseAI()" style="width:auto;padding:15px 14px;background:var(--violet-dim);border:1px solid rgba(167,139,250,.3);color:var(--violet);border-radius:14px;font-size:.75rem;font-weight:700;white-space:nowrap;" title="Ask AI if you should buy this">🤖 Ask AI</button>
+
+                <!-- Action buttons -->
+                <div class="sheet-actions">
+                    <button class="sheet-ai-btn" id="askAiBtn" onclick="askPurchaseAI()" style="display:none;">🤖 Ask AI</button>
+                    <button class="sheet-sync-btn" id="syncBtn" onclick="addEntry()">Sync Transaction</button>
                 </div>
             </div>
 
@@ -1216,6 +1479,9 @@ async function addEntry() {
     else{await _sb.from('transactions').insert([payload]);if(isRecur) await _sb.from('recurring_expenses').insert([{name:payload.note||cat,amount:amt,group_id:currentGroup,user_id:currentUser,billing_day:new Date().getDate()}]);}
     await _sb.from('app_settings').update({m_balance:config.m_balance,c_balance:config.c_balance}).eq('group_id',currentGroup);
     document.getElementById('amount').value=''; document.getElementById('noteInput').value=''; document.getElementById('isRecur').checked=false;
+    closeSheet();
+    selectMember('Brandon');
+    setType('Need');
     fetchData();
 }
 
@@ -1615,13 +1881,51 @@ function exportCSV() {
 }
 
 function setType(t){ 
-    currentType=t; 
-    document.getElementById('needBtn').classList.toggle('active',t==='Need'); 
-    document.getElementById('wantBtn').classList.toggle('active',t==='Want');
+    currentType=t;
+    // Need button
+    const nb=document.getElementById('needBtn');
+    const wb=document.getElementById('wantBtn');
+    if(nb){ nb.classList.toggle('active',t==='Need'); nb.classList.toggle('sheet-need',true); }
+    if(wb){ wb.classList.toggle('active',t==='Want'); wb.classList.toggle('sheet-want',true); }
     const aiPanel=document.getElementById('aiAdvicePanel');
     const askBtn=document.getElementById('askAiBtn');
+    if(aiPanel && t==='Need') aiPanel.style.display='none';
+    if(askBtn) askBtn.style.display=t==='Want'?'flex':'none';
+}
+
+// Bottom sheet controls
+function openSheet() {
+    document.getElementById('bottomSheet').classList.add('open');
+    document.getElementById('sheetOverlay').classList.add('active');
+    document.getElementById('fabBtn').classList.add('open');
+    document.body.style.overflow='hidden';
+    setTimeout(()=>document.getElementById('amount').focus(),400);
+}
+
+function closeSheet() {
+    document.getElementById('bottomSheet').classList.remove('open');
+    document.getElementById('sheetOverlay').classList.remove('active');
+    document.getElementById('fabBtn').classList.remove('open');
+    document.body.style.overflow='';
+    const aiPanel=document.getElementById('aiAdvicePanel');
     if(aiPanel) aiPanel.style.display='none';
-    if(askBtn) askBtn.style.display=t==='Want'?'block':'none';
+}
+
+function selectMember(name) {
+    document.getElementById('memberSelect').value=name;
+    ['Brandon','Gina','Split'].forEach(m=>{
+        const chip=document.getElementById('chip_'+m);
+        if(chip) chip.classList.remove('active-chip');
+    });
+    const active=document.getElementById('chip_'+name);
+    if(active) active.classList.add('active-chip');
+}
+
+function sheetQuick(amt, cat, note, type) {
+    document.getElementById('amount').value=amt;
+    document.getElementById('category').value=cat;
+    document.getElementById('noteInput').value=note;
+    setType(type);
 }
 function quickFill(a,c,n,t){ document.getElementById('amount').value=a; document.getElementById('category').value=c; document.getElementById('noteInput').value=n; setType(t); window.scrollTo(0,document.querySelector('.type-toggle').offsetTop-20); }
 function autoSuggest(c){ if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
