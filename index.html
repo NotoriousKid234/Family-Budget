@@ -584,6 +584,132 @@
         }
         .sheet-ai-btn:hover { background: rgba(167,139,250,.2); border-color: rgba(167,139,250,.5); }
 
+        /* ─── Family Notes Chat ─── */
+        .chat-compose-card {
+            background: var(--ink-3);
+            border: 1px solid var(--border-hi);
+            border-radius: 22px;
+            padding: 14px 16px;
+            position: sticky; bottom: 0;
+        }
+        .cat-pill-row {
+            display: flex; gap: 7px; overflow-x: auto;
+            padding-bottom: 10px; margin-bottom: 10px;
+            scrollbar-width: none;
+        }
+        .note-cat-pill {
+            padding: 6px 14px; border-radius: 100px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,.04);
+            font-size: .7rem; font-weight: 700;
+            color: var(--text-soft); white-space: nowrap;
+            cursor: pointer; transition: all .2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .note-cat-pill.active { background: rgba(232,194,82,.15); border-color: rgba(232,194,82,.4); color: var(--gold); }
+        .note-cat-pill:hover { border-color: var(--border-hi); color: var(--text); }
+
+        .chat-input-row { display: flex; gap: 10px; align-items: flex-end; }
+        .chat-textarea {
+            flex: 1; padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: rgba(0,0,0,.3);
+            color: var(--text); font-family: 'DM Sans', sans-serif;
+            font-size: .9rem; resize: none; outline: none;
+            max-height: 120px; overflow-y: auto;
+            transition: border-color .2s;
+            margin: 0 !important;
+        }
+        .chat-textarea:focus { border-color: rgba(232,194,82,.4); }
+        .chat-textarea::placeholder { color: var(--text-dim); }
+        .chat-send-btn {
+            width: 44px; height: 44px; flex-shrink: 0;
+            border-radius: 50%; border: none;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+            color: var(--ink); cursor: pointer; font-size: .9rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .2s; box-shadow: 0 4px 12px rgba(232,194,82,.3);
+        }
+        .chat-send-btn:hover { filter: brightness(1.1); transform: scale(1.05); }
+
+        /* ─── Chat Bubbles ─── */
+        .bubble-wrap { display: flex; flex-direction: column; max-width: 78%; }
+        .bubble-wrap.mine { align-self: flex-end; align-items: flex-end; }
+        .bubble-wrap.theirs { align-self: flex-start; align-items: flex-start; }
+
+        .bubble-author { font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; padding: 0 4px; }
+        .bubble-wrap.mine .bubble-author { color: var(--gold); }
+        .bubble-wrap.theirs .bubble-author { color: var(--text-muted, #4a5a7a); }
+
+        .bubble {
+            padding: 11px 15px; border-radius: 20px;
+            font-size: .88rem; line-height: 1.55;
+            color: var(--text); position: relative;
+            word-break: break-word;
+        }
+        .bubble-wrap.mine .bubble {
+            background: linear-gradient(135deg, rgba(232,194,82,.22), rgba(184,148,28,.15));
+            border: 1px solid rgba(232,194,82,.25);
+            border-bottom-right-radius: 6px;
+        }
+        .bubble-wrap.theirs .bubble {
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 6px;
+        }
+
+        /* Pinned bubble */
+        .bubble-wrap.pinned .bubble {
+            background: rgba(232,194,82,.1);
+            border-color: rgba(232,194,82,.3);
+        }
+
+        .bubble-cat-tag {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: .58rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .8px;
+            padding: 2px 8px; border-radius: 100px;
+            margin-bottom: 5px; width: fit-content;
+        }
+        .cat-General  { background: rgba(96,165,250,.15); color: var(--blue); }
+        .cat-Money    { background: rgba(232,194,82,.15); color: var(--gold); }
+        .cat-Reminder { background: rgba(45,212,191,.15); color: var(--teal); }
+        .cat-Urgent   { background: rgba(251,113,133,.15); color: var(--rose); }
+
+        .bubble-meta {
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 5px; padding: 0 4px;
+            font-size: .6rem; color: var(--text-dim);
+            font-family: 'DM Mono', monospace;
+        }
+
+        .bubble-reactions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; padding: 0 2px; }
+        .bubble-reaction-btn {
+            background: rgba(255,255,255,.06); border: 1px solid var(--border);
+            padding: 3px 9px; border-radius: 100px;
+            font-size: .75rem; cursor: pointer;
+            transition: all .18s; display: flex; align-items: center; gap: 3px;
+        }
+        .bubble-reaction-btn.reacted { background: rgba(232,194,82,.15); border-color: rgba(232,194,82,.3); }
+        .bubble-reaction-btn .r-count { font-size: .62rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+
+        .bubble-actions { display: flex; gap: 6px; margin-top: 4px; }
+        .bubble-action { background: none; border: none; font-size: .7rem; color: var(--text-dim); cursor: pointer; padding: 2px 6px; border-radius: 6px; transition: all .18s; font-family: 'DM Sans', sans-serif; }
+        .bubble-action:hover { color: var(--text-soft); background: rgba(255,255,255,.06); }
+        .bubble-action.pin-active { color: var(--gold); }
+
+        /* ─── Pinned card ─── */
+        .pinned-card {
+            background: rgba(232,194,82,.06);
+            border: 1px solid rgba(232,194,82,.2);
+            border-radius: 14px; padding: 12px 14px;
+            margin-bottom: 8px; display: flex;
+            justify-content: space-between; align-items: flex-start;
+        }
+        .pinned-card-body { font-size: .85rem; color: var(--text-soft); flex: 1; }
+        .pinned-card-author { font-size: .62rem; font-weight: 700; color: var(--gold); margin-bottom: 3px; }
+
         /* ─── Pinned Add Button ─── */
         .add-txn-btn {
             width: 100%; padding: 16px;
@@ -957,9 +1083,38 @@
 
         <!-- ══ FAMILY NOTES ══ -->
         <div id="notesManager" class="app-panel">
-            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">FAMILY NOTES</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
-            <div class="input-card"><textarea id="noteMessage" placeholder="Post a message to the family…" style="height:90px;resize:none;"></textarea><button class="btn btn-gold" onclick="addNote()">Post Note</button></div>
-            <div id="notesList"></div>
+            <div class="top-bar">
+                <div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div>
+                <div class="page-title">FAMILY NOTES <span id="noteUnreadBadge" style="display:none;background:var(--rose);color:white;font-size:.55rem;padding:2px 7px;border-radius:100px;margin-left:6px;vertical-align:middle;">NEW</span></div>
+                <div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div>
+            </div>
+
+            <!-- Pinned notes -->
+            <div id="pinnedNotesArea" style="display:none;margin-bottom:14px;">
+                <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-thumbtack"></i> Pinned</div>
+                <div id="pinnedNotesList"></div>
+            </div>
+
+            <!-- Chat area -->
+            <div id="chatArea" style="min-height:300px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;"></div>
+
+            <!-- Compose area -->
+            <div class="chat-compose-card">
+                <!-- Category pills -->
+                <div class="cat-pill-row">
+                    <div class="note-cat-pill active" id="cat_General" onclick="selectNoteCat('General')">💬 General</div>
+                    <div class="note-cat-pill" id="cat_Money" onclick="selectNoteCat('Money')">💰 Money</div>
+                    <div class="note-cat-pill" id="cat_Reminder" onclick="selectNoteCat('Reminder')">⏰ Reminder</div>
+                    <div class="note-cat-pill" id="cat_Urgent" onclick="selectNoteCat('Urgent')">🚨 Urgent</div>
+                </div>
+                <input type="hidden" id="noteCategory" value="General">
+                <div class="chat-input-row">
+                    <textarea id="noteMessage" class="chat-textarea" placeholder="Message the family…" rows="1"
+                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
+                        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addNote();}"></textarea>
+                    <button class="chat-send-btn" onclick="addNote()"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
         </div>
 
         <!-- ══ ANALYTICS ══ -->
@@ -1469,14 +1624,111 @@ function renderAnalytics() {
     else document.getElementById('carFC').innerText='Awaiting Sync';
 }
 
-// ── Notes ──
+// ── Notes Chat ──
+let selectedNoteCat = 'General';
+let notePins = JSON.parse(localStorage.getItem('montoya_note_pins') || '[]');
+let noteReactions = JSON.parse(localStorage.getItem('montoya_note_reactions') || '{}');
+let myNoteReactions = JSON.parse(localStorage.getItem('montoya_my_note_reactions') || '{}');
+let lastSeenNoteTime = parseInt(localStorage.getItem('montoya_notes_seen') || '0');
+
+function selectNoteCat(cat) {
+    selectedNoteCat = cat;
+    document.querySelectorAll('.note-cat-pill').forEach(p => p.classList.remove('active'));
+    const el = document.getElementById('cat_' + cat);
+    if (el) el.classList.add('active');
+    document.getElementById('noteCategory').value = cat;
+}
+
 function renderNotes() {
-    const list=document.getElementById('notesList'); list.innerHTML='';
-    notes.forEach(n=>{
-        const div=document.createElement('div'); div.className='hist-item';
-        div.innerHTML=`<div style="flex:1;min-width:0;"><b style="color:${n.author==='Gina'?'var(--gina)':'var(--brandon)'}">${n.author}</b><span style="color:var(--text-dim);margin:0 6px;">·</span><span style="color:var(--text-soft);font-size:.88rem;">${n.message}</span></div><button class="act-btn act-del" onclick="deleteNote('${n.id}')"><i class="fa-solid fa-trash-can"></i></button>`;
-        list.appendChild(div);
+    const chatArea = document.getElementById('chatArea');
+    const pinnedArea = document.getElementById('pinnedNotesArea');
+    const pinnedList = document.getElementById('pinnedNotesList');
+    if (!chatArea) return;
+
+    chatArea.innerHTML = '';
+    if (pinnedList) pinnedList.innerHTML = '';
+
+    // Check for unread
+    const unread = notes.filter(n => n.user_id !== currentUser && new Date(n.created_at).getTime() > lastSeenNoteTime);
+    const badge = document.getElementById('noteUnreadBadge');
+    if (badge) badge.style.display = unread.length > 0 ? 'inline' : 'none';
+
+    // Pinned notes
+    const pinned = notes.filter(n => notePins.includes(n.id));
+    if (pinnedArea) pinnedArea.style.display = pinned.length > 0 ? 'block' : 'none';
+    pinned.forEach(n => {
+        const div = document.createElement('div'); div.className = 'pinned-card';
+        const d = new Date(n.created_at).toLocaleDateString('en-US', {month:'short', day:'numeric'});
+        div.innerHTML = `<div class="pinned-card-body"><div class="pinned-card-author">📌 ${n.author}</div>${n.message}</div><button class="bubble-action pin-active" onclick="togglePin('${n.id}')" title="Unpin">📌</button>`;
+        if (pinnedList) pinnedList.appendChild(div);
     });
+
+    // Chat bubbles
+    const catEmojis = { General:'💬', Money:'💰', Reminder:'⏰', Urgent:'🚨' };
+    [...notes].reverse().forEach(n => {
+        const isMe = n.user_id === currentUser;
+        const wrap = document.createElement('div');
+        wrap.className = 'bubble-wrap ' + (isMe ? 'mine' : 'theirs') + (notePins.includes(n.id) ? ' pinned' : '');
+
+        const d = new Date(n.created_at);
+        const timeStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' + d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+        const cat = n.category || 'General';
+        const rData = noteReactions[n.id] || {};
+        const isPinned = notePins.includes(n.id);
+
+        const reactionsHTML = ['👍','❤️','😂','😮','🙏'].map(emoji => {
+            const count = rData[emoji] || 0;
+            const reacted = myNoteReactions[n.id] === emoji;
+            return `<button class="bubble-reaction-btn${reacted?' reacted':''}" onclick="reactNote('${n.id}','${emoji}')">${emoji}${count>0?`<span class="r-count">${count}</span>`:''}</button>`;
+        }).join('');
+
+        wrap.innerHTML = `
+            <div class="bubble-author">${n.author}</div>
+            <div class="bubble">
+                <div class="bubble-cat-tag cat-${cat}">${catEmojis[cat]||'💬'} ${cat}</div>
+                ${n.message}
+            </div>
+            <div class="bubble-reactions">${reactionsHTML}</div>
+            <div class="bubble-meta">
+                <span>${timeStr}</span>
+                <button class="bubble-action ${isPinned?'pin-active':''}" onclick="togglePin('${n.id}')">${isPinned?'📌 Pinned':'📌 Pin'}</button>
+                ${isMe ? `<button class="bubble-action" onclick="deleteNote('${n.id}')" style="color:var(--rose);">Delete</button>` : ''}
+            </div>`;
+        chatArea.appendChild(wrap);
+    });
+
+    if (!notes.length) {
+        chatArea.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:40px 20px;font-size:.88rem;">No messages yet.<br><span style="font-size:.78rem;opacity:.6;">Send the first note to your family!</span></div>';
+    }
+
+    // Scroll to bottom
+    setTimeout(() => { chatArea.scrollTop = chatArea.scrollHeight; }, 50);
+}
+
+function togglePin(noteId) {
+    if (notePins.includes(noteId)) {
+        notePins = notePins.filter(id => id !== noteId);
+    } else {
+        notePins.push(noteId);
+    }
+    localStorage.setItem('montoya_note_pins', JSON.stringify(notePins));
+    renderNotes();
+}
+
+function reactNote(noteId, emoji) {
+    if (!noteReactions[noteId]) noteReactions[noteId] = {};
+    const prev = myNoteReactions[noteId];
+    if (prev === emoji) {
+        noteReactions[noteId][emoji] = Math.max(0, (noteReactions[noteId][emoji]||1) - 1);
+        delete myNoteReactions[noteId];
+    } else {
+        if (prev) noteReactions[noteId][prev] = Math.max(0, (noteReactions[noteId][prev]||1) - 1);
+        noteReactions[noteId][emoji] = (noteReactions[noteId][emoji]||0) + 1;
+        myNoteReactions[noteId] = emoji;
+    }
+    localStorage.setItem('montoya_note_reactions', JSON.stringify(noteReactions));
+    localStorage.setItem('montoya_my_note_reactions', JSON.stringify(myNoteReactions));
+    renderNotes();
 }
 
 // ── Subs ──
@@ -1503,6 +1755,10 @@ function renderNotifs() {
     const lastV=parseInt(localStorage.getItem('montoya_notifs')||'0');
     const pingEl=document.getElementById('ping');
     if(pingEl) pingEl.style.display=(acts.length>0&&acts[0].time.getTime()>lastV)?'block':'none';
+    // Update notes unread badge
+    const unreadNotes = notes.filter(n => n.user_id !== currentUser && new Date(n.created_at).getTime() > lastSeenNoteTime);
+    const nb = document.getElementById('noteUnreadBadge');
+    if(nb) nb.style.display = unreadNotes.length > 0 ? 'inline' : 'none';
 }
 
 function calcMilestones() {
@@ -2000,6 +2256,7 @@ function switchView(id) {
     const nav=document.getElementById('nav-'+id); if(nav) nav.classList.add('active');
     window.scrollTo(0,0);
     if(id==='app'||id==='analyticsModal') fetchData();
+    if(id==='notesManager') { lastSeenNoteTime=Date.now(); localStorage.setItem('montoya_notes_seen', lastSeenNoteTime); const b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none'; renderNotes(); }
     if(id==='networth') renderNetWorth();
     if(id==='vaults') renderVaults();
     if(id==='bills') renderBills();
