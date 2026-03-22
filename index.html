@@ -52,6 +52,7 @@
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
+        .wrap, #app, #app > * { max-width: 100%; box-sizing: border-box; }
 
         /* ─── Background ─── */
         .scene {
@@ -105,9 +106,10 @@
         .dashboard-wrapper { display: none; }
         body.logged-in .dashboard-wrapper { display: block; }
         body.logged-in #loginScreen { display: none !important; }
-        .app-panel { display: none; }
-        #app { display: block; }
-        .wrap { width: 100%; max-width: 500px; margin: 0 auto; padding: 16px; }
+        .app-panel { display: none !important; }
+        #app { display: block !important; }
+        .wrap { width: 100%; max-width: 500px; margin: 0 auto; padding: 16px; display: block; }
+        .wrap > * { box-sizing: border-box; }
 
         /* ─── Login ─── */
         #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
@@ -321,7 +323,9 @@
         @media (min-width: 1100px) {
             body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 32px; padding: 40px; }
             body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 260px; height: max-content; border-radius: 22px; flex-shrink: 0; box-shadow: 0 24px 48px rgba(0,0,0,.4); }
-            .wrap { margin: 0; width: 520px; max-width: 520px; padding: 0; }
+            .wrap { margin: 0; width: 520px; max-width: 520px; padding: 0; display: block; }
+            .wrap > * { display: revert; }
+            #app { display: block !important; flex-direction: unset; }
             .hamburger { display: none !important; }
         }
 
