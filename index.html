@@ -365,20 +365,7 @@
         .verdict-warn { background: rgba(251,191,36,.1); color: var(--amber); border: 1px solid rgba(251,191,36,.25); }
         .verdict-skip { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(251,113,133,.25); }
 
-        /* ─── FAB Button ─── */
-        .fab-add {
-            position: fixed; bottom: 32px; right: 32px;
-            width: 60px; height: 60px;
-            background: linear-gradient(135deg, #e8c252 0%, #b8941c 100%);
-            border: none; border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            color: #08101f; font-weight: 900; font-size: 1.8rem; line-height: 1;
-            box-shadow: 0 6px 24px rgba(232,194,82,.5), 0 2px 8px rgba(0,0,0,.4);
-            z-index: 3000; transition: all .3s cubic-bezier(.34,1.56,.64,1);
-            font-family: 'DM Sans', sans-serif;
-        }
-        .fab-add:hover { transform: scale(1.1); }
-        .fab-add.open { transform: rotate(45deg) scale(1.05); }
+        /* FAB removed — replaced with pinned button */
 
         /* ─── Sheet overlay ─── */
         .sheet-overlay {
@@ -597,9 +584,32 @@
         }
         .sheet-ai-btn:hover { background: rgba(167,139,250,.2); border-color: rgba(167,139,250,.5); }
 
+        /* ─── Pinned Add Button ─── */
+        .add-txn-btn {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, #e8c252 0%, #b8941c 100%);
+            border: none; border-radius: 18px;
+            color: #08101f; font-weight: 800; font-size: .9rem;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer; margin-bottom: 14px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 4px 20px rgba(232,194,82,.3);
+            transition: all .22s; letter-spacing: .3px;
+        }
+        .add-txn-btn:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 8px 28px rgba(232,194,82,.4); }
+        .add-txn-btn:active { transform: scale(.98); }
+
         @media (min-width: 1100px) {
-            .fab-add { right: calc(50% - 260px + 28px); }
-            .bottom-sheet { max-width: 500px; left: 50%; right: auto; transform: translateX(-50%) translateY(110%); border-radius: 32px 32px 0 0; }
+            /* On desktop the sheet should appear centered over the content area, not the whole screen */
+            .sheet-overlay { background: rgba(4,8,20,.6); }
+            .bottom-sheet {
+                max-width: 520px;
+                left: 50%;
+                right: auto;
+                margin-left: 130px; /* offset for sidebar width */
+                transform: translateX(-50%) translateY(110%);
+                border-radius: 32px 32px 0 0;
+            }
             .bottom-sheet.open { transform: translateX(-50%) translateY(0); }
         }
     </style>
@@ -745,11 +755,6 @@
                 </div>
             </div>
 
-            <!-- ++ FLOATING ADD BUTTON ++ -->
-            <button class="fab-add" onclick="openSheet()" id="fabBtn">
-                <span style="font-size:1.6rem;line-height:1;">+</span>
-            </button>
-
             <!-- ++ BOTTOM SHEET OVERLAY ++ -->
             <div id="sheetOverlay" class="sheet-overlay" onclick="closeSheet()"></div>
 
@@ -844,6 +849,12 @@
                     <button class="sheet-sync-btn" id="syncBtn" onclick="addEntry()">Sync Transaction</button>
                 </div>
             </div>
+
+            <!-- Pinned Add Transaction Button -->
+            <button class="add-txn-btn" onclick="openSheet()" id="addTxnBtn">
+                <i class="fa-solid fa-plus" style="font-size:.85rem;"></i>
+                <span>Add Transaction</span>
+            </button>
 
             <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="searchBar" placeholder="Search transactions…" onkeyup="filterHistory()"></div>
             <div id="historyList"></div>
@@ -1940,7 +1951,6 @@ function setType(t){
 function openSheet() {
     document.getElementById('bottomSheet').classList.add('open');
     document.getElementById('sheetOverlay').classList.add('active');
-    document.getElementById('fabBtn').classList.add('open');
     document.body.style.overflow='hidden';
     setTimeout(()=>document.getElementById('amount').focus(),400);
 }
@@ -1948,7 +1958,6 @@ function openSheet() {
 function closeSheet() {
     document.getElementById('bottomSheet').classList.remove('open');
     document.getElementById('sheetOverlay').classList.remove('active');
-    document.getElementById('fabBtn').classList.remove('open');
     document.body.style.overflow='';
     const aiPanel=document.getElementById('aiAdvicePanel');
     if(aiPanel) aiPanel.style.display='none';
