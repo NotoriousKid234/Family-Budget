@@ -741,55 +741,16 @@
         }
 
         /* ─── Chat Container Layout ─── */
-
-        /* The notes panel itself becomes a full-screen chat */
-        #notesManager {
-            display: none;
-            position: fixed !important;
-            inset: 0 !important;
-            z-index: 100;
-            padding: 0 !important;
-            border-radius: 0 !important;
-            border: none !important;
-            background: var(--ink) !important;
-            flex-direction: column;
-            margin: 0 !important;
-        }
-        #notesManager.app-panel[style*="block"] {
-            display: flex !important;
-        }
-
-        /* On desktop inside dashboard layout, constrain it */
-        @media (min-width: 1100px) {
-            #notesManager {
-                position: relative !important;
-                inset: auto !important;
-                border-radius: 20px !important;
-                border: 1px solid var(--border) !important;
-                background: var(--card-bg) !important;
-                padding: 0 !important;
-                display: none;
-                height: calc(100vh - 80px);
-            }
-            #notesManager.app-panel[style*="block"] {
-                display: flex !important;
-            }
-        }
-
         .chat-container {
             display: flex;
             flex-direction: column;
-            flex: 1;
+            min-height: 520px;
+            height: calc(100vh - 160px);
+            max-height: 800px;
+            background: var(--ink-2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
             overflow: hidden;
-            height: 100%;
-        }
-
-        /* Top bar inside notes — needs padding */
-        #notesManager .top-bar {
-            padding: 16px 18px 12px;
-            flex-shrink: 0;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 0;
         }
 
         .chat-messages {
@@ -798,7 +759,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            padding: 16px 16px 16px;
+            padding: 16px;
             scrollbar-width: thin;
             scrollbar-color: rgba(255,255,255,.08) transparent;
         }
@@ -807,25 +768,22 @@
         .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 100px; }
 
         .chat-compose-card {
-            background: var(--ink-2);
+            background: var(--ink-3);
             border-top: 1px solid var(--border);
-            border-radius: 0;
-            padding: 12px 16px 28px;
+            border-radius: 0 0 20px 20px;
+            padding: 12px 16px 20px;
             flex-shrink: 0;
-        }
-
-        /* Safe area for phones with home bar */
-        @supports (padding-bottom: env(safe-area-inset-bottom)) {
-            .chat-compose-card {
-                padding-bottom: calc(16px + env(safe-area-inset-bottom));
-            }
         }
 
         .bubble-wrap { max-width: 78%; }
 
         @media (min-width: 768px) {
             .bubble-wrap { max-width: 65%; }
-            .chat-compose-card { padding: 12px 16px 20px; }
+        }
+
+        @media (max-width: 600px) {
+            .chat-container { height: calc(100vh - 200px); min-height: 400px; }
+            .bubble-wrap { max-width: 85%; }
         }
 
         /* ─── Pinned Add Button ─── */
@@ -2387,7 +2345,7 @@ function switchView(id) {
     const nav=document.getElementById('nav-'+id); if(nav) nav.classList.add('active');
     window.scrollTo(0,0);
     if(id==='app'||id==='analyticsModal') fetchData();
-    if(id==='notesManager') { lastSeenNoteTime=Date.now(); localStorage.setItem('montoya_notes_seen', lastSeenNoteTime); const b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none'; renderNotes(); document.getElementById('notesManager').style.display='flex'; return; }
+    if(id==='notesManager') { lastSeenNoteTime=Date.now(); localStorage.setItem('montoya_notes_seen', lastSeenNoteTime); const b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none'; }
     if(id==='networth') renderNetWorth();
     if(id==='vaults') renderVaults();
     if(id==='bills') renderBills();
