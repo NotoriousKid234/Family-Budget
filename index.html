@@ -1415,7 +1415,6 @@ async function checkAutoSync() {
 }
 
 async function updatePassword() {
-async function updatePassword() {
     const p=document.getElementById('newPass').value; if(p.length<6){showToast('Min 6 chars');return;}
     try{await _sb.auth.updateUser({password:p});showToast('Password updated!');}catch(e){alert(e.message);}
 }
@@ -1434,7 +1433,6 @@ function quickFill(a,c,n,t){ document.getElementById('amount').value=a; document
 function autoSuggest(c){ if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
 function copyKey(){ navigator.clipboard.writeText(currentGroup); showToast('Key copied!'); }
 async function joinLedger(){ const k=document.getElementById('joinKey').value.trim(); if(k.length>20){await _sb.from('app_settings').update({group_id:k}).eq('user_id',currentUser);location.reload();} }
-function cycleDates(base){ let d=new Date(base),start=new Date(d.getFullYear(),d.getMonth(),CYCLE_START); if(d.getDate()<CYCLE_START) start.setMonth(start.getMonth()-1); let end=new Date(start); end.setMonth(end.getMonth()+1); return {start,end}; }
 function initCycles(){ const s=document.getElementById('cycleSelect'); s.innerHTML=''; let now=new Date(); for(let i=0;i<6;i++){let d=new Date(now.getFullYear(),now.getMonth()-i,16);let o=document.createElement('option');o.value=d.toISOString();o.text=d.toLocaleString('default',{month:'long',year:'numeric'})+' Cycle';s.appendChild(o);} }
 async function changeCycle(){ currentViewDate=new Date(document.getElementById('cycleSelect').value); await fetchData(); }
 async function logoutApp(){ await _sb.auth.signOut(); location.reload(); }
