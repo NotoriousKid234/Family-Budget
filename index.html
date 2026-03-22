@@ -328,6 +328,37 @@
         /* ─── Fade-in ─── */
         @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
         .card, .input-card, .loan-tile, .member-card, .ms-card, .prog-card, .hist-item, .vault-item, .bill-item, .ai-panel, .nw-tile { animation: fadeUp .38s ease both; }
+
+        /* ─── Challenges ─── */
+        .challenge-item { background: var(--ink-2); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; transition: all .2s; }
+        .challenge-item.complete { border-color: rgba(52,211,153,.3); background: rgba(52,211,153,.05); }
+        .ch-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .ch-name { font-size: .88rem; font-weight: 600; }
+        .ch-status { font-size: .65rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; }
+        .ch-active { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,.2); }
+        .ch-done { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,.2); }
+        .ch-fail { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(251,113,133,.2); }
+        .badge { width: 56px; height: 56px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.4rem; background: var(--gold-glow); border: 1px solid rgba(232,194,82,.3); cursor: default; }
+        .badge-lbl { font-size: .45rem; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+
+        /* ─── Feed ─── */
+        .feed-item { background: rgba(6,12,28,.4); border: 1px solid var(--border); border-radius: 15px; padding: 13px 15px; margin-bottom: 8px; }
+        .feed-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+        .feed-avatar { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; flex-shrink: 0; }
+        .feed-av-brandon { background: rgba(96,165,250,.2); color: var(--brandon); }
+        .feed-av-gina { background: rgba(244,114,182,.2); color: var(--gina); }
+        .feed-name { font-size: .72rem; font-weight: 700; }
+        .feed-time { font-size: .6rem; color: var(--text-dim); font-family: 'DM Mono',monospace; }
+        .feed-body { font-size: .85rem; color: var(--text-soft); margin-bottom: 8px; }
+        .feed-amt { font-family: 'DM Mono',monospace; font-weight: 600; color: var(--rose); }
+        .reaction-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        .reaction-btn { background: rgba(255,255,255,.04); border: 1px solid var(--border); padding: 4px 10px; border-radius: 100px; font-size: .78rem; cursor: pointer; transition: all .18s; display: flex; align-items: center; gap: 4px; }
+        .reaction-btn:hover { background: rgba(255,255,255,.08); border-color: var(--border-hi); }
+        .reaction-btn.reacted { background: var(--gold-glow); border-color: rgba(232,194,82,.3); }
+        .reaction-count { font-size: .65rem; color: var(--text-dim); font-family: 'DM Mono',monospace; }
+
+        /* ─── Auto-sync badge ─── */
+        .auto-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--violet-dim); border: 1px solid rgba(167,139,250,.25); color: var(--violet); padding: 4px 10px; border-radius: 100px; font-size: .65rem; font-weight: 700; margin-bottom: 12px; }
     </style>
 </head>
 <body>
@@ -371,6 +402,9 @@
         <div class="nav-item" onclick="switchView('vaults')" id="nav-vaults"><i class="fa-solid fa-piggy-bank"></i> Savings Vaults</div>
         <div class="nav-item" onclick="switchView('bills')" id="nav-bills"><i class="fa-solid fa-calendar-check"></i> Bill Reminders</div>
         <div class="nav-item" onclick="switchView('aiInsights')" id="nav-aiInsights"><i class="fa-solid fa-robot"></i> AI Insights</div>
+        <div class="nav-item" onclick="switchView('receiptScanner')" id="nav-receiptScanner"><i class="fa-solid fa-camera"></i> Receipt Scanner</div>
+        <div class="nav-item" onclick="switchView('challenges')" id="nav-challenges"><i class="fa-solid fa-trophy"></i> Challenges</div>
+        <div class="nav-item" onclick="switchView('familyFeed')" id="nav-familyFeed"><i class="fa-solid fa-people-group"></i> Family Feed</div>
         <div class="nav-item" onclick="switchView('subManager')" id="nav-subManager"><i class="fa-solid fa-clock-rotate-left"></i> Subscriptions</div>
         <div class="nav-item" onclick="switchView('notesManager')" id="nav-notesManager"><i class="fa-solid fa-comment-dots"></i> Family Notes</div>
         <div class="nav-item" onclick="switchView('analyticsModal')" id="nav-analyticsModal"><i class="fa-solid fa-chart-line"></i> Analytics</div>
@@ -442,6 +476,7 @@
                     <div class="chip" onclick="quickFill(100,'Groceries','Publix','Need')">🛒 Publix</div>
                     <div class="chip" onclick="quickFill(6,'Subscription','Netflix','Want')">📺 Netflix</div>
                     <div class="chip" onclick="quickFill(50,'Beauty','Haircut','Want')">✂️ Haircut</div>
+                    <div class="chip" onclick="switchView('receiptScanner')" style="border-color:rgba(45,212,191,.3);color:var(--teal);">📸 Scan Receipt</div>
                 </div>
                 <div class="recur-row" id="recurRow"><span>Set as Recurring Bill?</span><input type="checkbox" id="isRecur" style="width:18px;height:18px;cursor:pointer;margin:0;accent-color:var(--violet);"></div>
                 <div class="g2"><select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option><option value="Split">Split</option></select><input type="number" id="amount" placeholder="0.00" inputmode="decimal"></div>
@@ -619,6 +654,74 @@
             </div>
         </div>
 
+
+        <!-- ══ RECEIPT SCANNER ══ -->
+        <div id="receiptScanner" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">RECEIPT SCANNER</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="ai-panel" style="margin-bottom:14px;">
+                <div class="ai-header"><div class="ai-dot"></div><div class="ai-title">AI · Receipt Reader</div></div>
+                <div class="ai-body" id="scanStatus">Take a photo of any receipt and AI will automatically fill in the amount, store name, and category for you.</div>
+            </div>
+            <div class="input-card" style="text-align:center;">
+                <label for="receiptInput" style="display:block;background:var(--teal-dim);border:2px dashed rgba(45,212,191,.4);border-radius:16px;padding:30px 20px;cursor:pointer;margin-bottom:14px;">
+                    <div style="font-size:2.5rem;margin-bottom:10px;">📸</div>
+                    <div style="font-weight:700;color:var(--teal);margin-bottom:4px;">Tap to take photo or upload</div>
+                    <div style="font-size:.75rem;color:var(--text-dim);">Supports JPG, PNG</div>
+                </label>
+                <input type="file" id="receiptInput" accept="image/*" capture="environment" style="display:none;" onchange="scanReceipt(this)">
+                <div id="receiptPreview" style="display:none;margin-bottom:14px;"><img id="receiptImg" style="max-width:100%;border-radius:12px;border:1px solid var(--border);"></div>
+                <div id="receiptResult" style="display:none;">
+                    <div class="g2"><select id="scan_member"><option value="Brandon">Brandon</option><option value="Gina">Gina</option><option value="Split">Split</option></select><input type="number" id="scan_amount" placeholder="Amount"></div>
+                    <select id="scan_category"><option value="Groceries">Groceries</option><option value="Dining">Dining</option><option value="Utilities">Utilities</option><option value="Car">Car</option><option value="Beauty">Beauty</option><option value="Misc">Misc</option></select>
+                    <input type="text" id="scan_note" placeholder="Store / Note">
+                    <button class="btn btn-gold" onclick="addScannedEntry()">Confirm and Sync</button>
+                    <button class="btn btn-ghost" onclick="resetScanner()" style="margin-top:8px;">Scan Another</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ CHALLENGES ══ -->
+        <div id="challenges" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">BUDGET CHALLENGES</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="card card-hi" style="margin-bottom:14px;padding:18px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                    <div style="font-size:1.5rem;">🏆</div>
+                    <div><div style="font-weight:700;font-size:.95rem;">This Cycle's Challenges</div><div style="font-size:.72rem;color:var(--text-dim);">Complete challenges to earn badges</div></div>
+                </div>
+                <div id="challengeList"></div>
+            </div>
+            <div class="sec-head">Create Custom Challenge</div>
+            <div class="input-card">
+                <input type="text" id="chName" placeholder="Challenge name">
+                <div class="g2"><input type="number" id="chTarget" placeholder="Target ($)"><select id="chType" onchange="document.getElementById('chCat').style.display=this.value==='nocat'?'block':'none'"><option value="under">Spend under $</option><option value="save">Save $</option><option value="nocat">Avoid category</option></select></div>
+                <select id="chCat" style="display:none;"><option value="Dining">Dining</option><option value="Beauty">Beauty</option><option value="Subscription">Subscriptions</option><option value="Misc">Misc</option></select>
+                <button class="btn btn-gold" onclick="addChallenge()">Add Challenge</button>
+            </div>
+            <div class="sec-head" style="margin-top:4px;">Earned Badges</div>
+            <div id="badgeList" style="display:flex;flex-wrap:wrap;gap:10px;padding:4px;min-height:60px;"></div>
+        </div>
+
+        <!-- ══ FAMILY FEED ══ -->
+        <div id="familyFeed" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">FAMILY FEED</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="card" style="padding:14px;margin-bottom:14px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div style="text-align:center;padding:12px;background:rgba(96,165,250,.08);border-radius:14px;border:1px solid rgba(96,165,250,.15);">
+                        <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--brandon);margin-bottom:4px;">Brandon</div>
+                        <div id="feedBSpend" style="font-family:'DM Mono',monospace;font-size:1.1rem;">$0.00</div>
+                        <div id="feedBCount" style="font-size:.65rem;color:var(--text-dim);margin-top:2px;">0 transactions</div>
+                    </div>
+                    <div style="text-align:center;padding:12px;background:rgba(244,114,182,.08);border-radius:14px;border:1px solid rgba(244,114,182,.15);">
+                        <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gina);margin-bottom:4px;">Gina</div>
+                        <div id="feedGSpend" style="font-family:'DM Mono',monospace;font-size:1.1rem;">$0.00</div>
+                        <div id="feedGCount" style="font-size:.65rem;color:var(--text-dim);margin-top:2px;">0 transactions</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sec-head">Live Activity</div>
+            <div id="feedList"></div>
+        </div>
+
     </div><!-- end wrap -->
 </div><!-- end dashboard -->
 
@@ -702,7 +805,7 @@ async function fetchData() {
         _sb.from('app_notes').select('*').eq('group_id',currentGroup).order('created_at',{ascending:false})
     ]);
     history=tRes.data||[]; recurring=rRes.data||[]; notes=nRes.data||[];
-    renderDashboard(); renderNotes(); renderSubs(); renderAnalytics(); renderNetWorth(); renderVaults(); renderBills(); renderNotifs(); calcMilestones();
+    renderDashboard(); renderNotes(); renderSubs(); renderAnalytics(); renderNetWorth(); renderVaults(); renderBills(); renderNotifs(); calcMilestones(); checkAutoSync(); renderFamilyFeed(); renderChallenges();
 }
 
 // ── Helpers ──
@@ -1080,6 +1183,238 @@ function loadIcon() {
     const opt=document.getElementById('icon_'+safe); if(opt) opt.classList.add('selected');
 }
 
+
+// ── Receipt Scanner ──
+async function scanReceipt(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    if (file.size > 5 * 1024 * 1024) { showToast('Image too large. Max 5MB.'); return; }
+
+    const preview = document.getElementById('receiptPreview');
+    const img = document.getElementById('receiptImg');
+    const status = document.getElementById('scanStatus');
+    const result = document.getElementById('receiptResult');
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        img.src = e.target.result;
+        preview.style.display = 'block';
+        status.innerHTML = '<div class="ai-body loading"><div class="ai-spinner"></div>Reading receipt…</div>';
+        result.style.display = 'none';
+
+        try {
+            const base64 = e.target.result.split(',')[1];
+            const mediaType = file.type || 'image/jpeg';
+            const res = await fetch('/.netlify/functions/ai-proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    system: 'You are a receipt scanner. Extract data from receipt images and respond ONLY with a JSON object with these exact keys: amount (number, total amount paid), store (string, store/restaurant name), category (one of: Groceries, Dining, Utilities, Car, CreditCard, Subscription, Beauty, Misc). No markdown, no explanation, just the JSON object.',
+                    prompt: 'Extract the total amount, store name, and category from this receipt.',
+                    image: base64,
+                    mediaType: mediaType
+                })
+            });
+            const data = await res.json();
+            const text = data.content?.[0]?.text || '{}';
+            const clean = text.replace(/```json|```/g, '').trim();
+            const parsed = JSON.parse(clean);
+            document.getElementById('scan_amount').value = parsed.amount || '';
+            document.getElementById('scan_note').value = parsed.store || '';
+            const catEl = document.getElementById('scan_category');
+            if (parsed.category) {
+                for (let opt of catEl.options) { if (opt.value === parsed.category) { catEl.value = parsed.category; break; } }
+            }
+            status.innerText = `Found: ${parsed.store || 'Unknown store'} · $${parsed.amount || '?'}`;
+            result.style.display = 'block';
+        } catch(e) {
+            status.innerText = 'Could not read receipt. Please fill in manually below.';
+            result.style.display = 'block';
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+async function addScannedEntry() {
+    const amt = parseFloat(document.getElementById('scan_amount').value); if (!amt) return;
+    const payload = { amount: amt, member: document.getElementById('scan_member').value, category: document.getElementById('scan_category').value, note: document.getElementById('scan_note').value, intent: 'Need', user_id: currentUser, group_id: currentGroup };
+    await _sb.from('transactions').insert([payload]);
+    showToast('Receipt synced! ✓');
+    resetScanner();
+    fetchData();
+}
+
+function resetScanner() {
+    document.getElementById('receiptInput').value = '';
+    document.getElementById('receiptPreview').style.display = 'none';
+    document.getElementById('receiptResult').style.display = 'none';
+    document.getElementById('scanStatus').innerText = 'Take a photo of any receipt and AI will automatically fill in the amount, store name, and category for you.';
+    document.getElementById('scan_amount').value = '';
+    document.getElementById('scan_note').value = '';
+}
+
+// ── Challenges ──
+let challenges = [];
+function loadChallenges() {
+    const saved = localStorage.getItem('montoya_challenges');
+    if (saved) challenges = JSON.parse(saved);
+    renderChallenges();
+}
+
+function renderChallenges() {
+    const list = document.getElementById('challengeList');
+    const badges = document.getElementById('badgeList');
+    if (!list) return;
+    list.innerHTML = ''; badges.innerHTML = '';
+
+    const DEFAULT_CHALLENGES = [
+        { id: 'dc1', name: 'No dining out this week', type: 'nocat', cat: 'Dining', target: 0, emoji: '🥗' },
+        { id: 'dc2', name: 'Keep dining under $150', type: 'under_cat', cat: 'Dining', target: 150, emoji: '🍽️' },
+        { id: 'dc3', name: 'Save 20% of budget', type: 'save_pct', target: 20, emoji: '💰' },
+        { id: 'dc4', name: 'No impulse buys (Wants < $50)', type: 'under_want', target: 50, emoji: '🛑' }
+    ];
+
+    const allChallenges = [...DEFAULT_CHALLENGES, ...challenges];
+    let spent = 0, diningSpent = 0, wantSpent = 0;
+    history.forEach(i => {
+        spent += i.amount;
+        if (i.category === 'Dining') diningSpent += i.amount;
+        if (i.intent === 'Want') wantSpent += i.amount;
+    });
+    const savePct = config.budget > 0 ? ((config.budget - spent) / config.budget) * 100 : 0;
+
+    allChallenges.forEach(ch => {
+        let progress = 0, complete = false, label = '';
+        if (ch.type === 'nocat') { complete = diningSpent === 0; label = complete ? 'No dining! 🎉' : `$${diningSpent.toFixed(0)} spent on dining`; progress = complete ? 100 : Math.min(100, diningSpent * 10); }
+        else if (ch.type === 'under_cat') { complete = diningSpent <= ch.target; label = `$${diningSpent.toFixed(0)} / $${ch.target}`; progress = Math.min(100, (diningSpent / ch.target) * 100); }
+        else if (ch.type === 'save_pct') { complete = savePct >= ch.target; label = `${Math.round(savePct)}% saved`; progress = Math.min(100, savePct / ch.target * 100); }
+        else if (ch.type === 'under_want') { complete = wantSpent <= ch.target; label = `$${wantSpent.toFixed(0)} on wants`; progress = Math.min(100, (wantSpent / ch.target) * 100); }
+        else if (ch.type === 'under') { complete = spent <= ch.target; label = `$${spent.toFixed(0)} / $${ch.target}`; progress = Math.min(100, (spent / ch.target) * 100); }
+        else if (ch.type === 'save') { const saved = config.budget - spent; complete = saved >= ch.target; label = `$${saved.toFixed(0)} saved`; progress = Math.min(100, (saved / ch.target) * 100); }
+
+        if (complete) {
+            const b = document.createElement('div'); b.className = 'badge';
+            b.innerHTML = `<span>${ch.emoji || '🏅'}</span><span class="badge-lbl">${ch.name.substring(0,8)}</span>`;
+            badges.appendChild(b);
+        }
+
+        const div = document.createElement('div'); div.className = 'challenge-item' + (complete ? ' complete' : '');
+        div.innerHTML = `<div class="ch-head"><div><div class="ch-name">${ch.emoji || '🎯'} ${ch.name}</div><div style="font-size:.7rem;color:var(--text-dim);margin-top:3px;">${label}</div></div><span class="ch-status ${complete ? 'ch-done' : 'ch-active'}">${complete ? '✓ Done' : 'Active'}</span></div><div class="prog-bar"><div class="prog-fill ${complete ? 'fill-goal' : 'fill-car'}" style="width:${complete ? 100 : (ch.type.includes('under') || ch.type==='nocat' ? 100 - progress : progress)}%"></div></div>`;
+        if (!complete && ch.id && ch.id.startsWith('c_')) {
+            const del = document.createElement('button'); del.className = 'act-btn act-del'; del.style.marginTop = '6px'; del.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+            del.onclick = () => { challenges = challenges.filter(c => c.id !== ch.id); localStorage.setItem('montoya_challenges', JSON.stringify(challenges)); renderChallenges(); };
+            div.appendChild(del);
+        }
+        list.appendChild(div);
+    });
+
+    if (!allChallenges.length) list.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:.85rem;">No challenges yet.</div>';
+    document.getElementById('chCat').style.display = document.getElementById('chType')?.value === 'nocat' ? 'block' : 'none';
+}
+
+function addChallenge() {
+    const name = document.getElementById('chName').value, target = parseFloat(document.getElementById('chTarget').value) || 0, type = document.getElementById('chType').value;
+    if (!name) return;
+    const emojis = { under:'💸', save:'💰', nocat:'🚫' };
+    challenges.push({ id: 'c_' + Date.now(), name, type, target, cat: document.getElementById('chCat').value, emoji: emojis[type] || '🎯' });
+    localStorage.setItem('montoya_challenges', JSON.stringify(challenges));
+    document.getElementById('chName').value = ''; document.getElementById('chTarget').value = '';
+    renderChallenges(); showToast('Challenge added!');
+}
+
+// ── Family Feed ──
+function renderFamilyFeed() {
+    const list = document.getElementById('feedList'); if (!list) return;
+    list.innerHTML = '';
+    let bS = 0, gS = 0, bCount = 0, gCount = 0;
+    const reactions = JSON.parse(localStorage.getItem('montoya_reactions') || '{}');
+
+    const combined = [...history].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    combined.forEach(item => {
+        const isBrandon = item.user_id === USERS.Brandon || item.member === 'Brandon';
+        const isGina = item.user_id === USERS.Gina || item.member === 'Gina';
+        if (!['Mortgage','Car','Utilities'].includes(item.category)) {
+            if (item.member === 'Brandon') { bS += item.amount; bCount++; }
+            else if (item.member === 'Gina') { gS += item.amount; gCount++; }
+            else if (item.member === 'Split') { bS += item.amount/2; gS += item.amount/2; bCount++; gCount++; }
+        }
+
+        const who = item.member === 'Gina' ? 'Gina' : 'Brandon';
+        const d = new Date(item.created_at);
+        const timeStr = d.toLocaleDateString('en-US', {month:'short',day:'numeric'}) + ' · ' + d.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+        const itemReactions = reactions[item.id] || {};
+        const myReactions = JSON.parse(localStorage.getItem('montoya_my_reactions') || '{}');
+
+        const div = document.createElement('div'); div.className = 'feed-item';
+        div.innerHTML = `
+            <div class="feed-top">
+                <div class="feed-avatar feed-av-${who.toLowerCase()}">${who[0]}</div>
+                <div><div class="feed-name" style="color:var(--${who.toLowerCase()})">${who}</div><div class="feed-time">${timeStr}</div></div>
+                <div style="margin-left:auto;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${item.category}</span></div>
+            </div>
+            <div class="feed-body">${item.note || item.category} <span class="feed-amt">-$${item.amount.toFixed(2)}</span></div>
+            <div class="reaction-row">
+                ${['👍','❤️','😮','😅','🔥'].map(emoji => {
+                    const count = itemReactions[emoji] || 0;
+                    const reacted = myReactions[item.id] === emoji;
+                    return `<div class="reaction-btn${reacted?' reacted':''}" onclick="reactTo('${item.id}','${emoji}')">${emoji}${count > 0 ? `<span class="reaction-count">${count}</span>` : ''}</div>`;
+                }).join('')}
+            </div>`;
+        list.appendChild(div);
+    });
+
+    if (!combined.length) list.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:.85rem;">No transactions this cycle yet.</div>';
+
+    const feedBSpend = document.getElementById('feedBSpend'); if (feedBSpend) feedBSpend.innerText = '$' + fmt(bS);
+    const feedGSpend = document.getElementById('feedGSpend'); if (feedGSpend) feedGSpend.innerText = '$' + fmt(gS);
+    const feedBCount = document.getElementById('feedBCount'); if (feedBCount) feedBCount.innerText = bCount + ' transactions';
+    const feedGCount = document.getElementById('feedGCount'); if (feedGCount) feedGCount.innerText = gCount + ' transactions';
+}
+
+function reactTo(itemId, emoji) {
+    const reactions = JSON.parse(localStorage.getItem('montoya_reactions') || '{}');
+    const myReactions = JSON.parse(localStorage.getItem('montoya_my_reactions') || '{}');
+    if (!reactions[itemId]) reactions[itemId] = {};
+    const prev = myReactions[itemId];
+    if (prev === emoji) {
+        reactions[itemId][emoji] = Math.max(0, (reactions[itemId][emoji] || 1) - 1);
+        delete myReactions[itemId];
+    } else {
+        if (prev) reactions[itemId][prev] = Math.max(0, (reactions[itemId][prev] || 1) - 1);
+        reactions[itemId][emoji] = (reactions[itemId][emoji] || 0) + 1;
+        myReactions[itemId] = emoji;
+    }
+    localStorage.setItem('montoya_reactions', JSON.stringify(reactions));
+    localStorage.setItem('montoya_my_reactions', JSON.stringify(myReactions));
+    renderFamilyFeed();
+}
+
+// ── Recurring Auto-Sync ──
+async function checkAutoSync() {
+    if (!currentGroup || !billReminders.length) return;
+    const today = new Date().getDate();
+    const synced = JSON.parse(localStorage.getItem('montoya_autosynced') || '{}');
+    const monthKey = new Date().getFullYear() + '-' + new Date().getMonth();
+    if (!synced[monthKey]) synced[monthKey] = [];
+
+    for (const bill of billReminders) {
+        const billKey = bill.name + '_' + bill.day;
+        if (bill.day === today && !synced[monthKey].includes(billKey)) {
+            await _sb.from('transactions').insert([{
+                amount: bill.amount, member: 'Split', category: 'Utilities',
+                note: '🔄 Auto: ' + bill.name, intent: 'Need',
+                user_id: currentUser, group_id: currentGroup
+            }]);
+            synced[monthKey].push(billKey);
+            showToast('🔄 Auto-synced: ' + bill.name);
+        }
+    }
+    localStorage.setItem('montoya_autosynced', JSON.stringify(synced));
+}
+
+async function updatePassword() {
 async function updatePassword() {
     const p=document.getElementById('newPass').value; if(p.length<6){showToast('Min 6 chars');return;}
     try{await _sb.auth.updateUser({password:p});showToast('Password updated!');}catch(e){alert(e.message);}
@@ -1110,7 +1445,7 @@ function toggleMenu(){ if(window.innerWidth>=1100)return; const m=document.getEl
 function toggleAuthMode(){ isSignUpMode=!isSignUpMode; document.getElementById('authBtn').innerText=isSignUpMode?'Sign Up':'Secure Login'; }
 
 function switchView(id) {
-    const panels=['app','memberBreakdown','networth','vaults','bills','aiInsights','subManager','notesManager','analyticsModal','configManager','shareManager','profileManager'];
+    const panels=['app','memberBreakdown','networth','vaults','bills','aiInsights','receiptScanner','challenges','familyFeed','subManager','notesManager','analyticsModal','configManager','shareManager','profileManager'];
     panels.forEach(p=>{ const el=document.getElementById(p); if(el) el.style.display='none'; });
     const target=document.getElementById(id); if(target) target.style.display='block';
     document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
@@ -1120,6 +1455,8 @@ function switchView(id) {
     if(id==='networth') renderNetWorth();
     if(id==='vaults') renderVaults();
     if(id==='bills') renderBills();
+    if(id==='challenges') { loadChallenges(); renderChallenges(); }
+    if(id==='familyFeed') renderFamilyFeed();
     if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
 }
 </script>
