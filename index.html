@@ -710,6 +710,36 @@
         .pinned-card-body { font-size: .85rem; color: var(--text-soft); flex: 1; }
         .pinned-card-author { font-size: .62rem; font-weight: 700; color: var(--gold); margin-bottom: 3px; }
 
+        /* ─── Dashboard Header ─── */
+        .dash-header {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px; gap: 10px;
+        }
+        .dash-header-left {
+            display: flex; align-items: center; flex: 1; min-width: 0;
+        }
+        .dash-header-right {
+            display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+        }
+        .dash-welcome { min-width: 0; }
+        .dash-greeting {
+            font-size: .72rem; font-weight: 500;
+            color: var(--text-soft); margin-bottom: 2px;
+            letter-spacing: .3px;
+        }
+        .dash-name {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.45rem; font-weight: 400;
+            background: linear-gradient(135deg, #e8c252 0%, #f0d97a 40%, #b8941c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+            white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         /* ─── Chat Container Layout ─── */
 
         /* The notes panel itself becomes a full-screen chat */
@@ -887,10 +917,19 @@
         <!-- ══ DASHBOARD ══ -->
         <div id="app" class="app-panel">
             <div class="top-bar">
-                <div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div>
-                <div class="page-title" id="welcomeTitle">YOUR LEDGER</div>
-                <div class="top-right">
-                    <div class="notif-btn" onclick="toggleNotif()"><i class="fa-solid fa-bell"></i><div id="ping" class="ping"></div></div>
+                <div class="dash-header">
+                <div class="dash-header-left">
+                    <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()" style="margin-right:12px;flex-shrink:0;"></i>
+                    <div class="dash-welcome">
+                        <div class="dash-greeting">Good <span id="timeOfDay">morning</span> 👋</div>
+                        <div class="dash-name" id="welcomeTitle">Welcome Back</div>
+                    </div>
+                </div>
+                <div class="dash-header-right">
+                    <div class="notif-btn" onclick="toggleNotif()">
+                        <i class="fa-solid fa-bell" style="font-size:1rem;color:var(--text-soft);"></i>
+                        <div id="ping" class="ping"></div>
+                    </div>
                     <div id="topAvatar" class="avatar" onclick="switchView('profileManager')"><i class="fa-solid fa-user"></i></div>
                 </div>
             </div>
@@ -1375,7 +1414,10 @@ try {
         let name = 'PARTNER';
         if (currentUser===USERS.Brandon||currentEmail.toLowerCase().includes('brandon')) name='BRANDON';
         else if (currentUser===USERS.Gina||currentEmail.toLowerCase().includes('gina'))  name='GINA';
-        document.getElementById('welcomeTitle').innerText = `WELCOME BACK, ${name}`;
+        const wEl = document.getElementById('welcomeTitle');
+                if (wEl) wEl.innerText = name === 'PARTNER' ? 'Welcome Back' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+                const greetEl = document.getElementById('timeOfDay');
+                if (greetEl) { const h = new Date().getHours(); greetEl.innerText = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'; }
         loadApp();
     });
 } catch(e){ console.error(e); }
