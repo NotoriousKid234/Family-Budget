@@ -4,596 +4,1128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Montoya Ledger Elite</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { 
-            --primary: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
-            --secondary: linear-gradient(135deg, #4f46e5 0%, #7e22ce 100%);
-            --brandon: #3b82f6; --gina: #ec4899; 
-            --need: #10b981; --want: #f59e0b; --goal: #8b5cf6;
-            --bg: #0f172a; --card: rgba(30, 41, 59, 0.75); 
-            --text: #f8fafc; --border: rgba(255, 255, 255, 0.1);
+        :root {
+            --ink:       #08101f;
+            --ink-2:     #0d1a30;
+            --ink-3:     #132240;
+            --ink-4:     #1a2d52;
+            --slate:     #8ca0bf;
+            --slate-dim: #3d5070;
+            --text:      #eef2ff;
+            --text-soft: #96aac8;
+            --text-dim:  #445570;
+            --border:    rgba(100,150,230,.1);
+            --border-hi: rgba(100,150,230,.2);
+            --gold:      #e8c252;
+            --gold-dim:  #b8941c;
+            --gold-glow: rgba(232,194,82,.15);
+            --teal:      #2dd4bf;
+            --teal-dim:  rgba(45,212,191,.12);
+            --rose:      #fb7185;
+            --rose-dim:  rgba(251,113,133,.12);
+            --green:     #34d399;
+            --green-dim: rgba(52,211,153,.12);
+            --blue:      #60a5fa;
+            --blue-dim:  rgba(96,165,250,.12);
+            --violet:    #a78bfa;
+            --violet-dim:rgba(167,139,250,.12);
+            --amber:     #fbbf24;
+            --brandon:   #60a5fa;
+            --gina:      #f472b6;
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; min-height: 100vh; color: var(--text); overflow-x: hidden; }
-        
-        .bg-orb { position: fixed; border-radius: 50%; filter: blur(120px); z-index: -1; opacity: 0.35; pointer-events: none; }
-        .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; }
-        .orb-2 { width: 600px; height: 600px; background: #ec4899; bottom: -200px; right: -150px; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 80%; pointer-events: none; }
-        .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 100px; color: white; font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        html { scroll-behavior: smooth; }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 4000; }
-        #sideMenuOverlay { z-index: 9998 !important; } 
-        .side-menu { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--bg); border-right: 1px solid var(--border); z-index: 9999 !important; transition: left 0.3s ease; display: flex; flex-direction: column; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--ink);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── Background ─── */
+        .scene {
+            position: fixed; inset: 0; z-index: -1; overflow: hidden;
+            background: radial-gradient(ellipse 120% 80% at 10% 0%, rgba(30,60,120,.35) 0%, transparent 60%),
+                        radial-gradient(ellipse 80% 60% at 90% 100%, rgba(100,50,20,.2) 0%, transparent 55%);
+        }
+        .scene-grid {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(80,120,200,.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(80,120,200,.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+        .scene-noise {
+            position: absolute; inset: 0; opacity: .025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+        }
+
+        /* ─── Toast ─── */
+        #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+        .toast { background: var(--ink-3); border: 1px solid var(--gold); color: var(--gold); padding: 10px 24px; border-radius: 100px; font-size: .78rem; font-weight: 600; letter-spacing: .4px; box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 20px var(--gold-glow); animation: toastPop .3s cubic-bezier(.34,1.56,.64,1); }
+        @keyframes toastPop { from { opacity:0; transform:translateY(-8px) scale(.95); } to { opacity:1; transform:none; } }
+
+        /* ─── Overlay / Modal ─── */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(4,10,22,.75); backdrop-filter: blur(10px); z-index: 4000; }
+        #sideOverlay { z-index: 9000; }
+
+        /* ─── Side Menu ─── */
+        .side-menu {
+            position: fixed; top: 0; left: -310px; width: 288px; height: 100%;
+            background: var(--ink-2); border-right: 1px solid var(--border-hi);
+            z-index: 9001; transition: left .32s cubic-bezier(.4,0,.2,1);
+            display: flex; flex-direction: column;
+        }
         .side-menu.open { left: 0; }
-        
-        .custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); backdrop-filter: blur(25px); border: 1px solid var(--border); padding: 30px 20px; border-radius: 32px; width: 90%; max-width: 400px; z-index: 4100; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
+        .menu-logo { padding: 28px 22px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .logo-mark { width: 36px; height: 36px; background: linear-gradient(135deg, rgba(232,194,82,.25), rgba(96,165,250,.15)); border: 1px solid rgba(232,194,82,.35); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: .9rem; flex-shrink: 0; }
+        .logo-text { font-family: 'Instrument Serif', serif; font-size: 1.15rem; color: var(--text); line-height: 1.2; }
+        .logo-text span { color: var(--gold); }
+        .nav-item { padding: 14px 22px; font-size: .875rem; font-weight: 500; color: var(--text-soft); cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 14px; transition: all .2s; letter-spacing: .1px; }
+        .nav-item i { width: 16px; text-align: center; font-size: .85rem; }
+        .nav-item:hover { color: var(--text); background: rgba(255,255,255,.03); padding-left: 26px; }
+        .nav-item.active { color: var(--gold); border-left: 2px solid var(--gold); padding-left: 20px; }
+        .nav-spacer { flex: 1; }
+        .nav-logout { color: var(--rose) !important; border-top: 1px solid var(--border); }
 
-        .content-container { width: 100%; max-width: 480px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
+        /* ─── Notification modal ─── */
+        .float-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: var(--ink-3); border: 1px solid var(--border-hi); border-radius: 24px; padding: 26px 22px; width: 92%; max-width: 420px; z-index: 4100; box-shadow: 0 32px 64px rgba(0,0,0,.6); max-height: 88vh; overflow-y: auto; }
 
-        #loginScreen, #app, #subManager, #notesManager, #analyticsModal, #configManager, #shareManager, #profileManager, #memberBreakdownManager { 
-            background: var(--card); backdrop-filter: blur(25px); padding: 25px; 
-            border-radius: 32px; width: 100%; 
-            border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
-            margin-bottom: 25px; box-sizing: border-box;
-        }
-
+        /* ─── Layout ─── */
         .dashboard-wrapper { display: none; }
         body.logged-in .dashboard-wrapper { display: block; }
         body.logged-in #loginScreen { display: none !important; }
-        
         .app-panel { display: none; }
         #app { display: block; }
+        .wrap { width: 100%; max-width: 500px; margin: 0 auto; padding: 16px; }
 
-        .menu-header { padding: 30px 20px; font-size: 1.5rem; font-weight: 800; border-bottom: 1px solid var(--border); background: var(--card); color: #fff; display: flex; align-items: center; gap: 12px; }
-        .menu-item { padding: 20px; font-size: 1.1rem; font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; color: var(--text); transition: background 0.2s; }
-        .menu-item:hover { background: rgba(255,255,255,0.05); }
+        /* ─── Login ─── */
+        #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .login-box { background: var(--ink-2); border: 1px solid var(--border-hi); border-radius: 28px; padding: 40px 30px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 32px 80px rgba(0,0,0,.5); }
+        .login-icon { width: 62px; height: 62px; background: linear-gradient(135deg, rgba(232,194,82,.18), rgba(96,165,250,.12)); border: 1px solid rgba(232,194,82,.3); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; font-size: 1.4rem; color: var(--gold); }
+        .login-title { font-family: 'Instrument Serif', serif; font-size: 2rem; color: var(--text); margin-bottom: 4px; }
+        .login-sub { font-size: .72rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 28px; }
 
-        /* HEADER FIX - Flexbox prevents hard cutoffs and overlapping */
-        .top-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; width: 100%; gap: 10px; }
-        .header-left { display: flex; align-items: center; min-width: 60px; }
-        .header-right { display: flex; align-items: center; gap: 15px; min-width: 60px; justify-content: flex-end; }
-        .hamburger { font-size: 1.5rem; color: #94a3b8; cursor: pointer; }
-        .app-title { font-weight: 800; font-size: 0.8rem; letter-spacing: 1px; color: #fff; text-transform: uppercase; text-align: center; flex: 1; line-height: 1.3; margin: 0; }
+        /* ─── Top header ─── */
+        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 10px; }
+        .top-left { display: flex; align-items: center; min-width: 36px; }
+        .top-right { display: flex; align-items: center; gap: 12px; min-width: 36px; justify-content: flex-end; }
+        .hamburger { font-size: 1rem; color: var(--text-soft); cursor: pointer; padding: 8px; border-radius: 10px; transition: all .2s; }
+        .hamburger:hover { color: var(--text); background: rgba(255,255,255,.05); }
+        .page-title { font-size: .6rem; font-weight: 700; letter-spacing: 2.5px; color: var(--text-dim); text-transform: uppercase; text-align: center; flex: 1; }
+        .avatar { width: 34px; height: 34px; background: linear-gradient(135deg, rgba(232,194,82,.2), rgba(96,165,250,.15)); border: 1px solid rgba(232,194,82,.35); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: .8rem; color: var(--gold); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+        .avatar:hover { box-shadow: 0 0 14px var(--gold-glow); }
+        .notif-btn { position: relative; cursor: pointer; padding: 6px; }
+        .notif-btn i { font-size: .95rem; color: var(--text-soft); }
+        .ping { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--rose); border-radius: 50%; border: 2px solid var(--ink); display: none; }
 
-        .cycle-selector { background: var(--primary); border: none; color: #fff; padding: 10px 20px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; width: fit-content; margin: 0 auto 15px auto; display: block; cursor: pointer; outline: none; }
-        
-        .balance-amount { font-size: 3rem; font-weight: 700; text-align: center; margin-bottom: 5px; }
-        .pill-container { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
-        .pace-pill { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 8px 14px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; }
-        .safe-pill { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+        /* ─── Cycle selector ─── */
+        .cycle-pill { display: block; width: fit-content; margin: 0 auto 16px; background: var(--ink-3); border: 1px solid var(--border-hi); color: var(--text); padding: 8px 20px; border-radius: 100px; font-size: .72rem; font-weight: 600; letter-spacing: .5px; cursor: pointer; outline: none; font-family: 'DM Sans', sans-serif; appearance: none; transition: border-color .2s; }
+        .cycle-pill:hover { border-color: var(--gold-dim); }
 
-        .vault-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-        .mortgage-vault { background: rgba(99, 102, 241, 0.1); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 20px; padding: 15px; text-align: center; }
-        .clock-time { font-size: 1.3rem; font-weight: 700; color: #fff; margin-top: 5px; }
+        /* ─── Cards ─── */
+        .card { background: var(--ink-2); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 12px; transition: border-color .2s; }
+        .card:hover { border-color: var(--border-hi); }
+        .card-hi { border-color: var(--border-hi); background: var(--ink-3); box-shadow: 0 8px 32px rgba(0,0,0,.25); }
 
-        .payoff-tracker { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 15px; }
-        .tracker-bar-bg { height: 10px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; margin-top: 8px; display: flex; }
-        .tracker-bar-fill { background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* ─── Loan grid ─── */
+        .loan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .loan-tile { background: var(--ink-2); border: 1px solid var(--border); border-radius: 18px; padding: 15px; text-align: center; position: relative; overflow: hidden; }
+        .loan-tile::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+        .loan-tile.mortgage::after { background: linear-gradient(90deg, var(--violet), var(--blue)); }
+        .loan-tile.car::after { background: linear-gradient(90deg, var(--blue), var(--teal)); }
+        .loan-lbl { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; }
+        .loan-lbl.mortgage { color: var(--violet); }
+        .loan-lbl.car { color: var(--blue); }
+        .loan-val { font-family: 'DM Mono', monospace; font-size: 1.1rem; color: var(--text); }
 
-        .milestone-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .milestone-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 20px; padding: 12px; text-align: center; }
-        .streak-fire { color: #f97316; font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.5)); }
-        .goal-trophy { color: #eab308; font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(234, 179, 8, 0.5)); }
+        /* ─── Progress ─── */
+        .prog-wrap { margin-bottom: 12px; }
+        .prog-card { background: var(--ink-2); border: 1px solid var(--border); border-radius: 18px; padding: 15px 17px; margin-bottom: 10px; }
+        .prog-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
+        .prog-name { font-size: .8rem; font-weight: 600; }
+        .prog-pct { font-family: 'DM Mono', monospace; font-size: .8rem; font-weight: 500; }
+        .prog-bar { height: 5px; background: rgba(255,255,255,.05); border-radius: 100px; overflow: hidden; margin-bottom: 7px; }
+        .prog-fill { height: 100%; border-radius: 100px; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+        .fill-mortgage { background: linear-gradient(90deg, var(--violet), var(--blue)); }
+        .fill-car { background: linear-gradient(90deg, var(--blue), var(--teal)); }
+        .fill-goal { background: linear-gradient(90deg, var(--gold-dim), var(--gold)); }
+        .prog-meta { display: flex; justify-content: space-between; font-size: .62rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
 
-        .member-spend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .member-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 20px; text-align: center; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
-        .member-box:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+        /* ─── Milestones ─── */
+        .milestone-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .ms-card { background: var(--ink-2); border: 1px solid var(--border); border-radius: 18px; padding: 15px 12px; text-align: center; }
+        .ms-icon { font-size: 1.3rem; margin-bottom: 5px; }
+        .ms-val { font-family: 'DM Mono', monospace; font-size: 1.15rem; font-weight: 500; }
+        .ms-lbl { font-size: .55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); margin-top: 2px; }
 
-        .history-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; margin-bottom: 10px; }
-        .cat-pill { font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; width: fit-content; background: rgba(255,255,255,0.1); color: #fff; }
-        .item-note-text { font-size: 1rem; font-weight: 700; color: #fff; display: block; margin-top: 4px; }
-        .member-pill { display: flex; align-items: center; gap: 4px; font-size: 0.6rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; width: fit-content; }
-        .pill-brandon { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-        .pill-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
-        .pill-split { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
+        /* ─── Balance hero ─── */
+        .balance-hero { text-align: center; margin-bottom: 16px; padding: 4px 0; }
+        .bal-eyebrow { font-size: .58rem; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+        .bal-number { font-family: 'Instrument Serif', serif; font-size: 3.4rem; color: var(--text); line-height: 1; margin-bottom: 12px; }
+        .pills { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        .pill { padding: 6px 14px; border-radius: 100px; font-size: .68rem; font-weight: 600; font-family: 'DM Mono', monospace; letter-spacing: .2px; }
+        .pill-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,.2); }
+        .pill-blue  { background: var(--blue-dim);  color: var(--blue);  border: 1px solid rgba(96,165,250,.2); }
 
-        .edit-icon { color: #60a5fa; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
-        .trash-icon { color: #ef4444; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
+        /* ─── Member cards ─── */
+        .member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .member-card { background: var(--ink-2); border: 1px solid var(--border); border-radius: 18px; padding: 15px; text-align: center; cursor: pointer; transition: all .22s; position: relative; overflow: hidden; }
+        .member-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+        .member-card.brandon::after { background: var(--brandon); }
+        .member-card.gina::after { background: var(--gina); }
+        .member-card:hover { border-color: var(--border-hi); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.3); }
+        .member-name { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; }
+        .member-name.brandon { color: var(--brandon); }
+        .member-name.gina { color: var(--gina); }
+        .member-amt { font-family: 'DM Mono', monospace; font-size: 1.05rem; }
 
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; transition: opacity 0.2s; }
-        .quick-sync-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
-        .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 6px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        /* ─── Input card ─── */
+        .input-card { background: var(--ink-2); border: 1px solid var(--border); border-radius: 22px; padding: 20px; margin-bottom: 12px; }
+        .type-toggle { display: flex; background: rgba(0,0,0,.35); padding: 4px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border); }
+        .type-btn { flex: 1; border: none; padding: 9px; border-radius: 8px; cursor: pointer; background: transparent !important; color: var(--text-dim) !important; font-weight: 700; font-size: .72rem; letter-spacing: 1px; font-family: 'DM Sans', sans-serif; transition: all .22s; }
+        .type-btn.active { background: var(--text) !important; color: var(--ink) !important; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+        .quick-row { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 12px; scrollbar-width: none; }
+        .chip { background: rgba(255,255,255,.04); border: 1px solid var(--border); padding: 7px 13px; border-radius: 100px; font-size: .68rem; font-weight: 600; color: var(--text-soft); white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .18s; font-family: 'DM Sans', sans-serif; }
+        .chip:hover { border-color: var(--border-hi); color: var(--text); background: rgba(255,255,255,.07); }
+        .recur-row { display: flex; justify-content: space-between; align-items: center; background: var(--violet-dim); border: 1px solid rgba(167,139,250,.2); padding: 11px 15px; border-radius: 12px; margin-bottom: 12px; font-size: .76rem; font-weight: 600; color: #c4b5fd; }
 
-        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
-        
-        .user-badge { width: 38px; height: 38px; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.4); }
+        /* ─── Form ─── */
+        input, select, textarea { width: 100%; padding: 13px 15px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(6,12,28,.55); color: var(--text); font-size: .88rem; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color .2s, box-shadow .2s; }
+        input:focus, select:focus, textarea:focus { border-color: var(--gold-dim); box-shadow: 0 0 0 3px var(--gold-glow); }
+        input::placeholder, textarea::placeholder { color: var(--text-dim); }
+        select option { background: var(--ink-2); }
+        .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        label.lbl { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); display: block; margin-bottom: 6px; margin-top: 4px; }
 
-        .icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-        .prof-icon-opt { aspect-ratio: 1; background: rgba(0,0,0,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; border: 2px solid transparent; color: #94a3b8; transition: 0.2s; }
-        .prof-icon-opt.selected { border-color: #fff; background: var(--primary); color: white; }
+        /* ─── Buttons ─── */
+        .btn { border: none; border-radius: 14px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s; width: 100%; padding: 15px; font-size: .85rem; letter-spacing: .3px; }
+        .btn-gold { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%); color: var(--ink); box-shadow: 0 4px 18px rgba(232,194,82,.28); }
+        .btn-gold:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 8px 28px rgba(232,194,82,.38); }
+        .btn-ghost { background: var(--ink-3); color: var(--text-soft); border: 1px solid var(--border-hi); }
+        .btn-ghost:hover { color: var(--text); border-color: var(--gold-dim); }
+        .btn-teal { background: linear-gradient(135deg, rgba(45,212,191,.25), rgba(45,212,191,.15)); color: var(--teal); border: 1px solid rgba(45,212,191,.3); }
+        .btn-teal:hover { background: linear-gradient(135deg, rgba(45,212,191,.35), rgba(45,212,191,.25)); }
 
-        /* OVERRIDE FOR NEED/WANT BUTTONS */
-        .type-toggle { display: flex; background: rgba(0,0,0,0.3) !important; padding: 4px; border-radius: 14px; margin-bottom: 15px; border: 1px solid var(--border); }
-        .type-btn { flex: 1; border: none; padding: 10px; border-radius: 10px; cursor: pointer; background: transparent !important; color: #94a3b8 !important; font-weight: 700; transition: 0.3s; font-size: 0.8rem; }
-        .type-btn.active { background: white !important; color: #0f172a !important; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        /* ─── History ─── */
+        .search-wrap { position: relative; margin-bottom: 12px; }
+        .search-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: .8rem; pointer-events: none; }
+        .search-wrap input { padding-left: 38px; margin: 0; }
+        .hist-item { background: rgba(6,12,28,.4); border: 1px solid var(--border); border-radius: 15px; display: flex; align-items: center; justify-content: space-between; padding: 13px 15px; margin-bottom: 8px; transition: all .18s; gap: 10px; }
+        .hist-item:hover { border-color: var(--border-hi); background: rgba(17,31,56,.55); }
+        .cat-badge { font-size: .56rem; font-weight: 700; padding: 3px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: .8px; width: fit-content; }
+        .hist-note { font-size: .9rem; font-weight: 600; color: var(--text); display: block; margin: 4px 0 4px; }
+        .hist-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+        .mpill { font-size: .56rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: .4px; }
+        .mp-brandon { background: rgba(96,165,250,.15); color: var(--brandon); }
+        .mp-gina { background: rgba(244,114,182,.15); color: var(--gina); }
+        .mp-split { background: var(--teal-dim); color: var(--teal); }
+        .hist-date { font-size: .58rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+        .hist-right { text-align: right; flex-shrink: 0; }
+        .hist-amt { font-family: 'DM Mono', monospace; font-size: .9rem; font-weight: 500; }
+        .hist-actions { display: flex; gap: 2px; justify-content: flex-end; margin-top: 4px; }
+        .act-btn { background: none; border: none; cursor: pointer; padding: 5px 6px; border-radius: 8px; font-size: .75rem; transition: all .18s; }
+        .act-edit { color: var(--blue); opacity: .7; }
+        .act-del { color: var(--rose); opacity: .7; }
+        .act-btn:hover { opacity: 1; background: rgba(255,255,255,.06); }
 
-        .recur-row { display: flex; justify-content: space-between; align-items: center; background: rgba(168, 85, 247, 0.05); padding: 12px 16px; border-radius: 14px; margin-bottom: 15px; border: 1px solid rgba(168, 85, 247, 0.2); font-size: 0.8rem; font-weight: 700; color: #e0e7ff; }
+        /* ─── Section heading ─── */
+        .sec-head { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 10px; padding-left: 2px; }
 
+        /* ─── NET WORTH ─── */
+        .nw-hero { text-align: center; padding: 20px 0 16px; }
+        .nw-eyebrow { font-size: .58rem; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+        .nw-number { font-family: 'Instrument Serif', serif; font-size: 2.8rem; line-height: 1; margin-bottom: 4px; }
+        .nw-trend { font-size: .72rem; color: var(--text-dim); }
+        .nw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .nw-tile { border-radius: 18px; padding: 16px; text-align: center; }
+        .nw-tile.assets { background: var(--green-dim); border: 1px solid rgba(52,211,153,.2); }
+        .nw-tile.debts  { background: var(--rose-dim);  border: 1px solid rgba(251,113,133,.2); }
+        .nw-tile-lbl { font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+        .nw-tile.assets .nw-tile-lbl { color: var(--green); }
+        .nw-tile.debts  .nw-tile-lbl { color: var(--rose); }
+        .nw-tile-val { font-family: 'DM Mono', monospace; font-size: 1.1rem; }
+        .asset-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: .82rem; }
+        .asset-row:last-child { border-bottom: none; }
+        .asset-name { color: var(--text-soft); }
+        .asset-val { font-family: 'DM Mono', monospace; font-weight: 500; }
+
+        /* ─── SAVINGS VAULTS ─── */
+        .vault-item { background: var(--ink-2); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 10px; transition: all .2s; }
+        .vault-item:hover { border-color: var(--border-hi); }
+        .vault-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .vault-name { font-size: .9rem; font-weight: 600; }
+        .vault-emoji { font-size: 1.2rem; }
+        .vault-amounts { text-align: right; }
+        .vault-saved { font-family: 'DM Mono', monospace; font-size: 1rem; color: var(--gold); }
+        .vault-target { font-size: .65rem; color: var(--text-dim); margin-top: 2px; font-family: 'DM Mono', monospace; }
+        .vault-contrib { display: flex; gap: 8px; margin-top: 10px; }
+        .vault-contrib input { margin: 0; flex: 1; padding: 10px 13px; font-size: .82rem; }
+        .vault-contrib button { flex-shrink: 0; width: auto; padding: 10px 16px; font-size: .78rem; border-radius: 10px; }
+
+        /* ─── BILLS ─── */
+        .bill-item { background: var(--ink-2); border: 1px solid var(--border); border-radius: 16px; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; margin-bottom: 8px; transition: all .2s; }
+        .bill-item:hover { border-color: var(--border-hi); }
+        .bill-left { display: flex; align-items: center; gap: 12px; }
+        .bill-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: .9rem; flex-shrink: 0; }
+        .bill-name { font-size: .88rem; font-weight: 600; }
+        .bill-due { font-size: .65rem; color: var(--text-dim); margin-top: 2px; font-family: 'DM Mono', monospace; }
+        .bill-right { text-align: right; }
+        .bill-amt { font-family: 'DM Mono', monospace; font-size: .95rem; font-weight: 500; }
+        .bill-countdown { font-size: .62rem; font-weight: 700; margin-top: 3px; padding: 2px 8px; border-radius: 100px; width: fit-content; margin-left: auto; }
+        .due-urgent { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(251,113,133,.2); }
+        .due-soon   { background: rgba(251,191,36,.12); color: var(--amber); border: 1px solid rgba(251,191,36,.2); }
+        .due-ok     { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,.2); }
+
+        /* ─── AI INSIGHTS ─── */
+        .ai-panel { background: linear-gradient(135deg, rgba(96,165,250,.06), rgba(167,139,250,.06)); border: 1px solid rgba(167,139,250,.2); border-radius: 22px; padding: 20px; margin-bottom: 12px; }
+        .ai-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .ai-dot { width: 8px; height: 8px; background: var(--violet); border-radius: 50%; box-shadow: 0 0 8px var(--violet); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+        .ai-title { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--violet); }
+        .ai-body { font-size: .88rem; color: var(--text-soft); line-height: 1.65; min-height: 60px; }
+        .ai-body.loading { display: flex; align-items: center; gap: 8px; color: var(--text-dim); font-size: .82rem; }
+        .ai-spinner { width: 16px; height: 16px; border: 2px solid var(--border-hi); border-top-color: var(--violet); border-radius: 50%; animation: spin .8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .insight-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
+        .insight-chip { background: rgba(255,255,255,.05); border: 1px solid var(--border-hi); padding: 6px 12px; border-radius: 100px; font-size: .68rem; font-weight: 600; color: var(--text-soft); cursor: pointer; transition: all .18s; }
+        .insight-chip:hover { color: var(--text); border-color: var(--violet); background: var(--violet-dim); }
+
+        /* ─── Analytics ─── */
+        .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-key { font-size: .82rem; color: var(--text-soft); }
+        .stat-val { font-family: 'DM Mono', monospace; font-size: .88rem; font-weight: 500; }
+
+        /* ─── Profile icons ─── */
+        .icon-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 18px; }
+        .prof-opt { aspect-ratio: 1; background: rgba(0,0,0,.3); border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; border: 2px solid transparent; color: var(--text-dim); transition: all .2s; }
+        .prof-opt:hover { border-color: var(--border-hi); color: var(--text-soft); }
+        .prof-opt.selected { border-color: var(--gold); background: var(--gold-glow); color: var(--gold); }
+
+        /* ─── Share key ─── */
+        .key-box { background: rgba(0,0,0,.5); border: 1px solid rgba(45,212,191,.3); border-radius: 12px; padding: 15px; font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--teal); text-align: center; cursor: pointer; letter-spacing: .5px; margin-bottom: 12px; transition: border-color .2s; }
+        .key-box:hover { border-color: var(--teal); }
+
+        /* ─── Responsive desktop ─── */
         @media (min-width: 1100px) {
-            body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 40px; padding: 40px; }
-            body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-            .content-container { margin: 0; width: 550px; max-width: 550px; padding: 0; }
+            body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 32px; padding: 40px; }
+            body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 260px; height: max-content; border-radius: 22px; flex-shrink: 0; box-shadow: 0 24px 48px rgba(0,0,0,.4); }
+            .wrap { margin: 0; width: 520px; max-width: 520px; padding: 0; }
             .hamburger { display: none !important; }
         }
+
+        /* ─── Fade-in ─── */
+        @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+        .card, .input-card, .loan-tile, .member-card, .ms-card, .prog-card, .hist-item, .vault-item, .bill-item, .ai-panel, .nw-tile { animation: fadeUp .38s ease both; }
     </style>
 </head>
 <body>
 
-    <div class="bg-orb orb-1"></div>
-    <div class="bg-orb orb-2"></div>
-    <div id="toastContainer"></div>
+<div class="scene"><div class="scene-grid"></div><div class="scene-noise"></div></div>
+<div id="toastContainer"></div>
 
-    <div id="notifOverlay" class="modal-overlay" onclick="toggleNotifications()"></div>
-    <div id="notifModal" class="custom-modal">
-        <h3 style="text-align:center; margin-top:0; color:#fff;">Recent Activity</h3>
-        <div id="notifList" style="max-height:400px; overflow-y:auto; margin-bottom: 15px;"></div>
-        <button class="btn-elite" onclick="toggleNotifications(); switchView('notesManager');">View All Notes</button>
+<!-- Notifications -->
+<div id="notifOverlay" class="overlay" onclick="toggleNotif()"></div>
+<div id="notifModal" class="float-modal">
+    <h3 style="font-family:'Instrument Serif',serif; font-size:1.25rem; margin-bottom:18px; color:var(--text);">Recent Activity</h3>
+    <div id="notifList" style="max-height:360px;overflow-y:auto;margin-bottom:14px;"></div>
+    <button class="btn btn-gold" onclick="toggleNotif();switchView('notesManager')">View All Notes</button>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+    <div class="login-box">
+        <div class="login-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="login-title">Montoya Ledger</div>
+        <div class="login-sub">Elite · Family Finance</div>
+        <input type="email" id="emailField" placeholder="Email address">
+        <input type="password" id="passwordField" placeholder="Password">
+        <button class="btn btn-gold" id="authBtn" onclick="authenticateUser()" style="margin-bottom:14px;">Secure Login</button>
+        <div><span id="authToggleText" style="color:var(--text-dim);font-size:.82rem;cursor:pointer;" onclick="toggleAuthMode()">New user? <b style="color:var(--gold);">Sign Up</b></span></div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardWrapper" class="dashboard-wrapper">
+    <div id="sideOverlay" class="overlay" onclick="toggleMenu()"></div>
+
+    <!-- Side Nav -->
+    <div id="sideMenu" class="side-menu">
+        <div class="menu-logo">
+            <div id="sideAvatar" class="logo-mark"><i class="fa-solid fa-user"></i></div>
+            <div class="logo-text">Montoya <span>Ledger</span></div>
+        </div>
+        <div class="nav-item active" onclick="switchView('app')" id="nav-app"><i class="fa-solid fa-house"></i> Dashboard</div>
+        <div class="nav-item" onclick="switchView('networth')" id="nav-networth"><i class="fa-solid fa-chart-pie"></i> Net Worth</div>
+        <div class="nav-item" onclick="switchView('vaults')" id="nav-vaults"><i class="fa-solid fa-piggy-bank"></i> Savings Vaults</div>
+        <div class="nav-item" onclick="switchView('bills')" id="nav-bills"><i class="fa-solid fa-calendar-check"></i> Bill Reminders</div>
+        <div class="nav-item" onclick="switchView('aiInsights')" id="nav-aiInsights"><i class="fa-solid fa-robot"></i> AI Insights</div>
+        <div class="nav-item" onclick="switchView('subManager')" id="nav-subManager"><i class="fa-solid fa-clock-rotate-left"></i> Subscriptions</div>
+        <div class="nav-item" onclick="switchView('notesManager')" id="nav-notesManager"><i class="fa-solid fa-comment-dots"></i> Family Notes</div>
+        <div class="nav-item" onclick="switchView('analyticsModal')" id="nav-analyticsModal"><i class="fa-solid fa-chart-line"></i> Analytics</div>
+        <div class="nav-item" onclick="switchView('configManager')" id="nav-configManager"><i class="fa-solid fa-gear"></i> Config</div>
+        <div class="nav-item" onclick="switchView('shareManager')" id="nav-shareManager"><i class="fa-solid fa-cloud"></i> Share Ledger</div>
+        <div class="nav-item" onclick="switchView('profileManager')" id="nav-profileManager"><i class="fa-solid fa-user-astronaut"></i> Profile</div>
+        <div class="nav-spacer"></div>
+        <div class="nav-item nav-logout" onclick="logoutApp()"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
     </div>
 
-    <div id="loginScreen" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
-        <div style="background: var(--card); padding: 30px; border-radius: 32px; width: 90%; max-width: 400px; border: 1px solid var(--border); text-align: center;">
-            <div class="logo-glow" style="margin:0 auto 15px auto; width:60px; height:60px; background:rgba(99,102,241,0.1); border-radius:16px; display:flex; align-items:center; justify-content:center; color:#818cf8;"><svg width="30" height="30" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg></div>
-            <h2 id="authTitle">Montoya Ledger</h2>
-            <input type="email" id="emailField" placeholder="Email"><input type="password" id="passwordField" placeholder="Password"><button class="btn-elite" onclick="authenticateUser()">Secure Login</button>
-            <div style="text-align:center; margin-top:20px;"><span id="authToggleText" style="color:#94a3b8; font-size:0.85rem; cursor:pointer;" onclick="toggleAuthMode()">New user? <b style="color:#c084fc;">Sign Up</b></span></div>
-        </div>
-    </div>
+    <div class="wrap">
 
-    <div id="dashboardWrapper" class="dashboard-wrapper">
-        <div id="sideMenuOverlay" class="modal-overlay" onclick="toggleMenu()"></div>
-        <div id="sideMenu" class="side-menu">
-            <div class="menu-header"><div id="sidebarAvatar" class="user-badge"><i class="fa-solid fa-user"></i></div><span>Elite Ledger</span></div>
-            <div class="menu-item" onclick="switchView('app');"><i class="fa-solid fa-house"></i> Dashboard</div>
-            <div class="menu-item" onclick="switchView('subManager');"><i class="fa-solid fa-clock-rotate-left"></i> Bills & Subs</div>
-            <div class="menu-item" onclick="switchView('notesManager');"><i class="fa-solid fa-comment-dots"></i> Family Notes</div>
-            <div class="menu-item" onclick="switchView('analyticsModal');"><i class="fa-solid fa-chart-line"></i> Cycle Analytics</div>
-            <div class="menu-item" onclick="switchView('configManager');"><i class="fa-solid fa-gear"></i> Ledger Config</div>
-            <div class="menu-item" onclick="switchView('shareManager');"><i class="fa-solid fa-cloud"></i> Ledger Share</div>
-            <div class="menu-item" onclick="switchView('profileManager');"><i class="fa-solid fa-user-astronaut"></i> Profile Settings</div>
-            <div style="flex-grow: 1;"></div>
-            <div class="menu-item" onclick="logoutApp();" style="color:#ef4444; border-top:1px solid var(--border);"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
-        </div>
-
-        <div class="content-container">
-            <div id="app" class="app-panel">
-                <div class="top-header">
-                    <div class="header-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div>
-                    <div class="app-title" id="welcomeTitle">WELCOME TO YOUR LEDGER</div>
-                    <div class="header-right">
-                        <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()"><i class="fa-solid fa-bell" style="font-size:1.2rem; color:#94a3b8;"></i><div id="headerPing" class="note-ping" style="display:none; position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:#ef4444; border-radius:50%; border:2px solid var(--bg);"></div></div>
-                        <div id="topAvatarBadge" class="user-badge" onclick="switchView('profileManager')"><i class="fa-solid fa-user"></i></div>
-                    </div>
+        <!-- ══ DASHBOARD ══ -->
+        <div id="app" class="app-panel">
+            <div class="top-bar">
+                <div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div>
+                <div class="page-title" id="welcomeTitle">YOUR LEDGER</div>
+                <div class="top-right">
+                    <div class="notif-btn" onclick="toggleNotif()"><i class="fa-solid fa-bell"></i><div id="ping" class="ping"></div></div>
+                    <div id="topAvatar" class="avatar" onclick="switchView('profileManager')"><i class="fa-solid fa-user"></i></div>
                 </div>
-                <select id="cycleSelect" class="cycle-selector" onchange="changeCycle()"></select>
-                <div class="vault-grid">
-                    <div class="mortgage-vault"><div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Mortgage</div><div id="mortgageBalanceText" class="clock-time">$0.00</div></div>
-                    <div class="mortgage-vault"><div style="font-size:0.6rem; font-weight:800; color:#818cf8; text-transform:uppercase;">Car Loan</div><div id="carBalanceText" class="clock-time">$0.00</div></div>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;">
-                    <div class="payoff-tracker"><div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-weight:700; font-size:0.85rem; color:#f8fafc;">Mortgage Payoff</span><span id="mortgagePayoffPerc" style="font-weight:800; color:#818cf8; font-size:0.85rem;">0%</span></div><div class="tracker-bar-bg"><div id="mortgagePayoffBar" class="tracker-bar-fill" style="width:0%;"></div></div><div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#94a3b8; margin-top:8px;"> <span id="mortgagePaidAmount">Paid: $0.00</span><span id="mortgageRemainingAmount">Rem: $0.00</span></div></div>
-                    <div class="payoff-tracker"><div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-weight:700; font-size:0.85rem; color:#f8fafc;">Car Payoff</span><span id="carPayoffPerc" style="font-weight:800; color:#60a5fa; font-size:0.85rem;">0%</span></div><div class="tracker-bar-bg"><div id="carPayoffBar" class="tracker-bar-fill" style="width:0%;"></div></div><div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#94a3b8; margin-top:8px;"> <span id="carPaidAmount">Paid: $0.00</span><span id="carRemainingAmount">Rem: $0.00</span></div></div>
-                </div>
-                <div class="milestone-row">
-                    <div class="milestone-card"><i class="fa-solid fa-fire streak-fire"></i><div style="font-size:1.1rem; font-weight:800; margin-top:5px;" id="streakDisplay">0</div><div style="font-size:0.55rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">Streak</div></div>
-                    <div class="milestone-card"><i class="fa-solid fa-trophy goal-trophy"></i><div style="font-size:1.1rem; font-weight:800; margin-top:5px;" id="savingsPowerDisplay">0%</div><div style="font-size:0.55rem; font-weight:700; color:#94a3b8; text-transform:uppercase;">Power</div></div>
-                </div>
-                <div id="balance" class="balance-amount">$0.00</div>
-                <div class="pill-container"><div id="paceDisplay" class="pace-pill">Pace: $0.00 / day</div><div id="safeToSpend" class="pace-pill safe-pill">Safe: $0.00</div></div>
-                <div class="member-spend-grid">
-                    <div class="member-box" onclick="openMemberAnalytics('Brandon')"><div style="color:var(--brandon); font-size:0.6rem; font-weight:700; text-transform:uppercase;">Brandon</div><div id="brandonSpend" style="font-weight:700; font-size:1.1rem; color:#fff;">$0.00</div></div>
-                    <div class="member-box" onclick="openMemberAnalytics('Gina')"><div style="color:var(--gina); font-size:0.6rem; font-weight:700; text-transform:uppercase;">Gina</div><div id="ginaSpend" style="font-weight:700; font-size:1.1rem; color:#fff;">$0.00</div></div>
-                </div>
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:15px;">
-                    <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
-                    <div class="quick-sync-row">
-                        <div class="quick-chip" onclick="quickFill(15, 'Dining', 'McDonalds', 'Want')"><i class="fa-solid fa-burger" style="color:#f59e0b"></i> McDonalds</div>
-                        <div class="quick-chip" onclick="quickFill(40, 'Car', 'Gas', 'Need')"><i class="fa-solid fa-gas-pump" style="color:#3b82f6"></i> Gas</div>
-                        <div class="quick-chip" onclick="quickFill(100, 'Groceries', 'Publix', 'Need')"><i class="fa-solid fa-basket-shopping" style="color:#10b981"></i> Publix</div>
-                    </div>
-                    <div class="recur-row" id="recurToggleRow"><span>Set as Recurring Bill?</span><input type="checkbox" id="isRecurring" style="width:18px; height:18px; cursor:pointer;"></div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option><option value="Split">Split</option></select><input type="number" id="amount" placeholder="0.00" inputmode="decimal"></div>
-                    <select id="category" onchange="autoSuggest(this.value)">
-                        <option value="Groceries">🛒 Groceries</option><option value="Dining">🍔 Dining</option><option value="Utilities">💡 Utilities</option><option value="Mortgage">🏠 Mortgage</option><option value="Car">🚗 Car Payment</option><option value="CreditCard">💳 Credit Card</option><option value="Subscription">📺 Subscription</option><option value="Beauty">✂️ Beauty</option><option value="Goal">🎯 Vault / Goal</option><option value="Misc">📦 Misc</option>
-                    </select>
-                    <input type="text" id="noteInput" placeholder="Note or #tags"><button class="btn-elite" id="syncBtn" onclick="addEntry()">Sync Transaction</button>
-                </div>
-                <input type="text" id="searchBar" placeholder="🔍 Search history..." onkeyup="filterHistory()">
-                <div id="historyList" style="margin-top:15px;"></div>
             </div>
 
-            <div id="memberBreakdownManager" class="app-panel">
-                <div class="top-header"><div class="header-left"></div><div class="app-title" id="memberBreakdownTitle">SPEND</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div>
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><div style="height:250px; position:relative;"><canvas id="memberDonutChart"></canvas></div></div>
-                <h4 style="color:#94a3b8; font-size:0.75rem; text-transform:uppercase; margin-left: 10px;">Recent Transactions</h4>
-                <div id="memberHistoryList"></div>
+            <select id="cycleSelect" class="cycle-pill" onchange="changeCycle()"></select>
+
+            <div class="loan-grid">
+                <div class="loan-tile mortgage"><div class="loan-lbl mortgage">Mortgage</div><div id="mortgageBalText" class="loan-val">$0.00</div></div>
+                <div class="loan-tile car"><div class="loan-lbl car">Car Loan</div><div id="carBalText" class="loan-val">$0.00</div></div>
             </div>
 
-            <div id="subManager" class="app-panel"><div class="top-header"><div class="header-left"></div><div class="app-title">BILLS & SUBSCRIPTIONS</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><input type="text" id="subName" placeholder="Bill Name"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="subAmt" placeholder="Amount"><input type="number" id="subDay" placeholder="Day (1-31)"></div><button class="btn-elite" onclick="addSub()" style="margin-bottom:0;">Add New Bill</button></div><div id="subList"></div></div>
-            
-            <div id="notesManager" class="app-panel"><div class="top-header"><div class="header-left"></div><div class="app-title">FAMILY NOTES</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><textarea id="noteMessage" placeholder="Type a message..." style="height:100px;"></textarea><button class="btn-elite" onclick="addNote()" style="margin-bottom:0;">Post Note</button></div><div id="notesList"></div></div>
-            
-            <div id="analyticsModal" class="app-panel">
-                <div class="top-header"><div class="header-left"></div><div class="app-title">CYCLE ANALYTICS</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div>
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span style="color:#94a3b8;">Cycle Spend:</span><span id="cycleTotal" style="font-weight:700;">$0.00</span></div>
-                    <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;"><span style="color:#c4b5fd; font-weight:700;">Left in Budget:</span><span id="creepTotal" style="font-weight:700;">$0.00</span></div>
+            <div class="prog-wrap">
+                <div class="prog-card">
+                    <div class="prog-head"><span class="prog-name">Mortgage Payoff</span><span id="mortgPct" class="prog-pct" style="color:var(--violet)">0%</span></div>
+                    <div class="prog-bar"><div id="mortgBar" class="prog-fill fill-mortgage" style="width:0%"></div></div>
+                    <div class="prog-meta"><span id="mortgPaid">Paid: $0</span><span id="mortgRem">Rem: $0</span></div>
                 </div>
-                <div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;">
-                    <h4 style="margin:0 0 10px 0; color:#fff; font-size:0.85rem; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-calendar-check" style="color:var(--need);"></i> Payoff Forecaster</h4>
-                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:8px;"><span style="color:#94a3b8;">Mortgage Free By:</span><span id="mortgageForecastDate" style="font-weight:700; color:#818cf8;">Awaiting Sync</span></div>
-                    <div style="display:flex; justify-content:space-between; font-size:0.8rem;"><span style="color:#94a3b8;">Car Free By:</span><span id="carForecastDate" style="font-weight:700; color:#60a5fa;">Awaiting Sync</span></div>
+                <div class="prog-card">
+                    <div class="prog-head"><span class="prog-name">Car Payoff</span><span id="carPct" class="prog-pct" style="color:var(--blue)">0%</span></div>
+                    <div class="prog-bar"><div id="carBar" class="prog-fill fill-car" style="width:0%"></div></div>
+                    <div class="prog-meta"><span id="carPaid">Paid: $0</span><span id="carRem">Rem: $0</span></div>
                 </div>
-                <div style="height:300px; position:relative;"><canvas id="categoryDonutChart"></canvas></div>
-                <button class="btn-elite" onclick="exportCSV()" style="margin-top:20px;">Export Cycle to CSV</button>
             </div>
-            
-            <div id="configManager" class="app-panel"><div class="top-header"><div class="header-left"></div><div class="app-title">LEDGER CONFIG</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET</label><input type="number" id="conf_income"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><div><label style="font-size:0.7rem; font-weight:700;">MORTGAGE BAL</label><input type="number" id="conf_mbal"></div><div><label style="font-size:0.7rem; font-weight:700;">CAR LOAN BAL</label><input type="number" id="conf_cbal"></div></div><label style="font-size:0.7rem; font-weight:700; margin-top: 15px; display:block;">ORIGINAL LOAN AMOUNTS</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="conf_morig" placeholder="Mortgage Orig"><input type="number" id="conf_corig" placeholder="Car Orig"></div><button class="btn-elite" onclick="saveConfig()">Save Settings</button></div></div>
-            
-            <div id="shareManager" class="app-panel"><div class="top-header"><div class="header-left"></div><div class="app-title">LEDGER SHARE</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><div id="ledgerKeyDisplay" style="background:#000; color:#10b981; font-family:monospace; padding:15px; border-radius:8px; font-size:0.8rem; text-align:center; cursor:pointer;" onclick="copyKey()">Loading...</div><input type="text" id="joinKeyInput" placeholder="Paste Join Key..."><button class="btn-elite" onclick="joinLedger()" style="background:var(--secondary)">Link Ledger</button></div></div>
-            
-            <div id="profileManager" class="app-panel"><div class="top-header"><div class="header-left"></div><div class="app-title">PROFILE SETTINGS</div><div class="header-right"><i class="fa-solid fa-house" style="cursor:pointer; color:#94a3b8;" onclick="switchView('app')"></i></div></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">CHOOSE YOUR AVATAR</label><div class="icon-grid"><div class="prof-icon-opt" id="icon_fa-user" onclick="setProfileIcon('fa-user')"><i class="fa-solid fa-user"></i></div><div class="prof-icon-opt" id="icon_fa-gamepad" onclick="setProfileIcon('fa-gamepad')"><i class="fa-solid fa-gamepad"></i></div><div class="prof-icon-opt" id="icon_fa-futbol" onclick="setProfileIcon('fa-futbol')"><i class="fa-solid fa-futbol"></i></div><div class="prof-icon-opt" id="icon_fa-dog" onclick="setProfileIcon('fa-dog')"><i class="fa-solid fa-dog"></i></div><div class="prof-icon-opt" id="icon_fa-cat" onclick="setProfileIcon('fa-cat')"><i class="fa-solid fa-cat"></i></div><div class="prof-icon-opt" id="icon_fa-hat-wizard" onclick="setProfileIcon('fa-hat-wizard')"><i class="fa-solid fa-hat-wizard"></i></div><div class="prof-icon-opt" id="icon_fa-car" onclick="setProfileIcon('fa-car')"><i class="fa-solid fa-car"></i></div><div class="prof-icon-opt" id="icon_fa-motorcycle" onclick="setProfileIcon('fa-motorcycle')"><i class="fa-solid fa-motorcycle"></i></div></div><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">UPDATE PASSWORD</label><input type="password" id="newPasswordInput" placeholder="New password..."><button class="btn-elite" onclick="updatePassword()">Update Password</button></div></div>
+
+            <div class="milestone-row">
+                <div class="ms-card"><div class="ms-icon">🔥</div><div id="streakVal" class="ms-val">0</div><div class="ms-lbl">Day Streak</div></div>
+                <div class="ms-card"><div class="ms-icon">🏆</div><div id="powerVal" class="ms-val">0%</div><div class="ms-lbl">Savings Power</div></div>
+            </div>
+
+            <div class="balance-hero">
+                <div class="bal-eyebrow">Remaining This Cycle</div>
+                <div id="balanceNum" class="bal-number">$0.00</div>
+                <div class="pills">
+                    <div id="paceChip" class="pill pill-green">Pace: $0/day</div>
+                    <div id="safeChip" class="pill pill-blue">Safe: $0</div>
+                </div>
+            </div>
+
+            <div class="member-grid">
+                <div class="member-card brandon" onclick="openMemberView('Brandon')"><div class="member-name brandon">Brandon</div><div id="bSpend" class="member-amt">$0.00</div></div>
+                <div class="member-card gina"    onclick="openMemberView('Gina')">   <div class="member-name gina">Gina</div>    <div id="gSpend" class="member-amt">$0.00</div></div>
+            </div>
+
+            <!-- Input -->
+            <div class="input-card">
+                <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
+                <div class="quick-row">
+                    <div class="chip" onclick="quickFill(15,'Dining','McDonalds','Want')">🍔 McDonalds</div>
+                    <div class="chip" onclick="quickFill(40,'Car','Gas','Need')">⛽ Gas</div>
+                    <div class="chip" onclick="quickFill(100,'Groceries','Publix','Need')">🛒 Publix</div>
+                    <div class="chip" onclick="quickFill(6,'Subscription','Netflix','Want')">📺 Netflix</div>
+                    <div class="chip" onclick="quickFill(50,'Beauty','Haircut','Want')">✂️ Haircut</div>
+                </div>
+                <div class="recur-row" id="recurRow"><span>Set as Recurring Bill?</span><input type="checkbox" id="isRecur" style="width:18px;height:18px;cursor:pointer;margin:0;accent-color:var(--violet);"></div>
+                <div class="g2"><select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option><option value="Split">Split</option></select><input type="number" id="amount" placeholder="0.00" inputmode="decimal"></div>
+                <select id="category" onchange="autoSuggest(this.value)">
+                    <option value="Groceries">🛒 Groceries</option><option value="Dining">🍔 Dining</option><option value="Utilities">💡 Utilities</option><option value="Mortgage">🏠 Mortgage</option><option value="Car">🚗 Car Payment</option><option value="CreditCard">💳 Credit Card</option><option value="Subscription">📺 Subscription</option><option value="Beauty">✂️ Beauty</option><option value="Goal">🎯 Vault / Goal</option><option value="Misc">📦 Misc</option>
+                </select>
+                <input type="text" id="noteInput" placeholder="Note or #tags">
+                <button class="btn btn-gold" id="syncBtn" onclick="addEntry()">Sync Transaction</button>
+            </div>
+
+            <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="searchBar" placeholder="Search transactions…" onkeyup="filterHistory()"></div>
+            <div id="historyList"></div>
         </div>
-    </div>
+
+        <!-- ══ MEMBER BREAKDOWN ══ -->
+        <div id="memberBreakdown" class="app-panel">
+            <div class="top-bar"><div class="top-left"></div><div class="page-title" id="memberTitle">SPEND</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="card card-hi" style="padding:20px;margin-bottom:14px;"><div style="height:240px;position:relative;"><canvas id="memberChart"></canvas></div></div>
+            <div class="sec-head">Transactions</div>
+            <div id="memberList"></div>
+        </div>
+
+        <!-- ══ NET WORTH ══ -->
+        <div id="networth" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">NET WORTH</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="card card-hi" style="margin-bottom:12px;">
+                <div class="nw-hero">
+                    <div class="nw-eyebrow">Total Net Worth</div>
+                    <div id="nwNumber" class="nw-number" style="color:var(--green);">$0</div>
+                    <div class="nw-trend" id="nwTrend">Assets minus all debts</div>
+                </div>
+                <div class="nw-grid">
+                    <div class="nw-tile assets"><div class="nw-tile-lbl">Total Assets</div><div id="nwAssets" class="nw-tile-val" style="color:var(--green);">$0</div></div>
+                    <div class="nw-tile debts" ><div class="nw-tile-lbl">Total Debts</div> <div id="nwDebts"  class="nw-tile-val" style="color:var(--rose);">$0</div></div>
+                </div>
+            </div>
+            <div class="sec-head">Asset Breakdown</div>
+            <div class="card" id="assetBreakdown"></div>
+            <div class="sec-head" style="margin-top:14px;">Update Assets</div>
+            <div class="input-card">
+                <label class="lbl">Home Value</label><input type="number" id="nw_home" placeholder="Estimated home value">
+                <label class="lbl">Checking / Savings</label><input type="number" id="nw_cash" placeholder="Bank balances">
+                <label class="lbl">Investments / 401k</label><input type="number" id="nw_invest" placeholder="Investment accounts">
+                <label class="lbl">Other Assets</label><input type="number" id="nw_other" placeholder="Other assets">
+                <button class="btn btn-gold" onclick="saveNetWorth()">Save Net Worth</button>
+            </div>
+        </div>
+
+        <!-- ══ SAVINGS VAULTS ══ -->
+        <div id="vaults" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">SAVINGS VAULTS</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="input-card">
+                <div class="g2">
+                    <input type="text" id="vaultName" placeholder="Goal name">
+                    <input type="number" id="vaultTarget" placeholder="Target ($)">
+                </div>
+                <div class="g2">
+                    <input type="text" id="vaultEmoji" placeholder="Emoji (e.g. 🏖️)" maxlength="2">
+                    <input type="number" id="vaultSaved" placeholder="Already saved ($)">
+                </div>
+                <button class="btn btn-gold" onclick="addVault()">Create Vault</button>
+            </div>
+            <div id="vaultList"></div>
+        </div>
+
+        <!-- ══ BILL REMINDERS ══ -->
+        <div id="bills" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">BILL REMINDERS</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="card card-hi" style="margin-bottom:14px;padding:16px 18px;">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--rose);margin-bottom:12px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-triangle-exclamation"></i> Coming Up</div>
+                <div id="upcomingBills"></div>
+            </div>
+            <div class="sec-head">All Bills</div>
+            <div id="billsList"></div>
+            <div class="input-card" style="margin-top:14px;">
+                <div class="g2"><input type="text" id="billName" placeholder="Bill name"><input type="number" id="billAmt" placeholder="Amount"></div>
+                <div class="g2"><input type="number" id="billDay" placeholder="Due day (1–31)"><input type="text" id="billIcon" placeholder="Emoji icon" maxlength="2"></div>
+                <button class="btn btn-gold" onclick="addBill()">Add Bill</button>
+            </div>
+        </div>
+
+        <!-- ══ AI INSIGHTS ══ -->
+        <div id="aiInsights" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">AI INSIGHTS</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="ai-panel" id="aiPanel">
+                <div class="ai-header"><div class="ai-dot"></div><div class="ai-title">Ledger AI · Spending Coach</div></div>
+                <div class="ai-body" id="aiBody">Ask me anything about your spending, or tap a prompt below.</div>
+                <div class="insight-chips">
+                    <div class="insight-chip" onclick="runInsight('overview')">📊 Cycle overview</div>
+                    <div class="insight-chip" onclick="runInsight('overspend')">🚨 Where am I overspending?</div>
+                    <div class="insight-chip" onclick="runInsight('tips')">💡 Money-saving tips</div>
+                    <div class="insight-chip" onclick="runInsight('forecast')">🔭 Payoff forecast</div>
+                    <div class="insight-chip" onclick="runInsight('compare')">👥 Brandon vs Gina</div>
+                </div>
+            </div>
+            <div class="input-card">
+                <input type="text" id="aiQuestion" placeholder="Ask your AI financial coach…">
+                <button class="btn btn-teal" onclick="askAI()"><i class="fa-solid fa-paper-plane" style="margin-right:8px;"></i>Ask AI Coach</button>
+            </div>
+            <div id="aiHistory" style="margin-top:4px;"></div>
+        </div>
+
+        <!-- ══ SUBSCRIPTIONS ══ -->
+        <div id="subManager" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">SUBSCRIPTIONS</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="input-card"><input type="text" id="subName" placeholder="Bill name"><div class="g2"><input type="number" id="subAmt" placeholder="Amount"><input type="number" id="subDay" placeholder="Day (1–31)"></div><button class="btn btn-gold" onclick="addSub()">Add Bill</button></div>
+            <div id="subList"></div>
+        </div>
+
+        <!-- ══ FAMILY NOTES ══ -->
+        <div id="notesManager" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">FAMILY NOTES</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="input-card"><textarea id="noteMessage" placeholder="Post a message to the family…" style="height:90px;resize:none;"></textarea><button class="btn btn-gold" onclick="addNote()">Post Note</button></div>
+            <div id="notesList"></div>
+        </div>
+
+        <!-- ══ ANALYTICS ══ -->
+        <div id="analyticsModal" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">CYCLE ANALYTICS</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="card card-hi" style="margin-bottom:12px;">
+                <div class="stat-row"><span class="stat-key">Cycle Spend</span><span id="cycleTotal" class="stat-val" style="color:var(--rose);">$0.00</span></div>
+                <div class="stat-row"><span class="stat-key" style="color:var(--gold);">Left in Budget</span><span id="creepTotal" class="stat-val" style="color:var(--gold);">$0.00</span></div>
+            </div>
+            <div class="card card-hi" style="margin-bottom:12px;">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);margin-bottom:14px;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-calendar-check"></i> Payoff Forecaster</div>
+                <div class="stat-row"><span class="stat-key">Mortgage Free By</span><span id="mortgFC" class="stat-val" style="color:var(--violet);">Awaiting Sync</span></div>
+                <div class="stat-row"><span class="stat-key">Car Free By</span><span id="carFC" class="stat-val" style="color:var(--blue);">Awaiting Sync</span></div>
+            </div>
+            <div class="card" style="padding:20px;"><div style="height:270px;position:relative;"><canvas id="catChart"></canvas></div></div>
+            <button class="btn btn-ghost" onclick="exportCSV()" style="margin-top:14px;"><i class="fa-solid fa-download" style="margin-right:8px;"></i>Export Cycle CSV</button>
+        </div>
+
+        <!-- ══ CONFIG ══ -->
+        <div id="configManager" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">LEDGER CONFIG</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="input-card">
+                <label class="lbl">Monthly Budget</label><input type="number" id="conf_income">
+                <div class="g2"><div><label class="lbl">Mortgage Balance</label><input type="number" id="conf_mbal"></div><div><label class="lbl">Car Loan Balance</label><input type="number" id="conf_cbal"></div></div>
+                <label class="lbl" style="margin-top:8px;">Original Loan Amounts</label>
+                <div class="g2"><input type="number" id="conf_morig" placeholder="Mortgage original"><input type="number" id="conf_corig" placeholder="Car original"></div>
+                <button class="btn btn-gold" onclick="saveConfig()">Save Settings</button>
+            </div>
+        </div>
+
+        <!-- ══ SHARE ══ -->
+        <div id="shareManager" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">SHARE LEDGER</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="input-card">
+                <label class="lbl">Your Ledger Key</label>
+                <div id="keyDisplay" class="key-box" onclick="copyKey()">Loading…</div>
+                <label class="lbl">Link to Existing Ledger</label>
+                <input type="text" id="joinKey" placeholder="Paste join key…">
+                <button class="btn btn-gold" onclick="joinLedger()">Link Ledger</button>
+            </div>
+        </div>
+
+        <!-- ══ PROFILE ══ -->
+        <div id="profileManager" class="app-panel">
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">PROFILE</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="input-card">
+                <label class="lbl">Choose Avatar</label>
+                <div class="icon-grid">
+                    <div class="prof-opt" id="icon_fa-user"       onclick="setIcon('fa-user')"><i class="fa-solid fa-user"></i></div>
+                    <div class="prof-opt" id="icon_fa-gamepad"    onclick="setIcon('fa-gamepad')"><i class="fa-solid fa-gamepad"></i></div>
+                    <div class="prof-opt" id="icon_fa-futbol"     onclick="setIcon('fa-futbol')"><i class="fa-solid fa-futbol"></i></div>
+                    <div class="prof-opt" id="icon_fa-dog"        onclick="setIcon('fa-dog')"><i class="fa-solid fa-dog"></i></div>
+                    <div class="prof-opt" id="icon_fa-cat"        onclick="setIcon('fa-cat')"><i class="fa-solid fa-cat"></i></div>
+                    <div class="prof-opt" id="icon_fa-hat-wizard" onclick="setIcon('fa-hat-wizard')"><i class="fa-solid fa-hat-wizard"></i></div>
+                    <div class="prof-opt" id="icon_fa-car"        onclick="setIcon('fa-car')"><i class="fa-solid fa-car"></i></div>
+                    <div class="prof-opt" id="icon_fa-motorcycle" onclick="setIcon('fa-motorcycle')"><i class="fa-solid fa-motorcycle"></i></div>
+                </div>
+                <label class="lbl">Update Password</label>
+                <input type="password" id="newPass" placeholder="New password (min 6 chars)">
+                <button class="btn btn-gold" onclick="updatePassword()">Update Password</button>
+            </div>
+        </div>
+
+    </div><!-- end wrap -->
+</div><!-- end dashboard -->
 
 <script>
-    // UPDATE THESE WITH YOUR ACTUAL SUPABASE USER IDs TO ENABLE NAME RECOGNITION
-    const SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co'; 
-    const SUPABASE_KEY = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX'; 
-    const CYCLE_START_DAY = 16;
-    const USERS = { 'Brandon': 'e8a86782-b34e-4e94-878d-19e5d487214c', 'Gina': '4f7e2d7d-2b4a-4d7a-8f7e-2e2d7d7d7d7d' };
-    
-    let history = [], recurring = [], notes = [], currentType = 'Need', currentGroup = null, currentUser = null, editingId = null, currentEmail = '';
-    let config = { budget: 7400, m_balance: 0, c_balance: 0, m_orig: 500000, c_orig: 45000 };
-    let currentViewDate = new Date();
-    let _supabase, catChart, memberChart, isSignUpMode = false;
-    let celebratedMilestones = { car: false, mortgage: false };
+// ══════════════════════════════════════════════
+//  CONFIG — update with your actual values
+// ══════════════════════════════════════════════
+const SUPABASE_URL  = 'https://hieqohmhrpjvhotutwls.supabase.co';
+const SUPABASE_KEY  = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX';
+const ANTHROPIC_KEY = ''; // Add your Anthropic key here for AI features
+const CYCLE_START   = 16;
+const USERS = {
+    Brandon: 'e8a86782-b34e-4e94-878d-19e5d487214c',
+    Gina:    '4f7e2d7d-2b4a-4d7a-8f7e-2e2d7d7d7d7d'
+};
 
-    const catColors = { Groceries: "#10b981", Dining: "#f59e0b", Utilities: "#06b6d4", Mortgage: "#6366f1", Car: "#3b82f6", CreditCard: "#ef4444", Subscription: "#c084fc", Beauty: "#ec4899", Goal: "#a855f7", Misc: "#94a3b8" };
+const CAT_COLORS = { Groceries:'#34d399', Dining:'#fbbf24', Utilities:'#06b6d4', Mortgage:'#a78bfa', Car:'#60a5fa', CreditCard:'#fb7185', Subscription:'#c084fc', Beauty:'#f472b6', Goal:'#e8c252', Misc:'#64748b' };
+
+let _sb, catChartInst, memberChartInst;
+let history=[], recurring=[], notes=[], vaults=[], billReminders=[];
+let currentType='Need', currentGroup=null, currentUser=null, currentEmail='', editingId=null;
+let config={ budget:7400, m_balance:0, c_balance:0, m_orig:500000, c_orig:45000 };
+let netWorth={ home:0, cash:0, invest:0, other:0 };
+let currentViewDate=new Date(), isSignUpMode=false;
+let celebratedMilestones={ car:false, mortgage:false };
+
+// ── Init ──
+try {
+    _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    _sb.auth.getSession().then(({ data:{ session } }) => {
+        if (!session) return;
+        currentUser  = session.user.id;
+        currentEmail = session.user.email || '';
+        document.body.classList.add('logged-in');
+        let name = 'PARTNER';
+        if (currentUser===USERS.Brandon||currentEmail.toLowerCase().includes('brandon')) name='BRANDON';
+        else if (currentUser===USERS.Gina||currentEmail.toLowerCase().includes('gina'))  name='GINA';
+        document.getElementById('welcomeTitle').innerText = `WELCOME BACK, ${name}`;
+        loadApp();
+    });
+} catch(e){ console.error(e); }
+
+// ── Load ──
+async function loadApp() {
+    const { data } = await _sb.from('app_settings').select('*').limit(1);
+    if (data?.length) {
+        config = data[0];
+        currentGroup = config.group_id;
+        document.getElementById('keyDisplay').innerText = currentGroup;
+        document.getElementById('conf_income').value = config.budget;
+        document.getElementById('conf_mbal').value   = config.m_balance||0;
+        document.getElementById('conf_cbal').value   = config.c_balance||0;
+        document.getElementById('conf_morig').value  = config.m_orig||500000;
+        document.getElementById('conf_corig').value  = config.c_orig||45000;
+    }
+    config.m_orig = config.m_orig||500000;
+    config.c_orig = config.c_orig||45000;
+    loadStoredData();
+    loadIcon();
+    initCycles();
+    fetchData();
+}
+
+function loadStoredData() {
+    const v = localStorage.getItem('montoya_vaults');
+    if (v) vaults = JSON.parse(v);
+    const b = localStorage.getItem('montoya_bills');
+    if (b) billReminders = JSON.parse(b);
+    const nw = localStorage.getItem('montoya_networth');
+    if (nw) netWorth = JSON.parse(nw);
+    const nwInputs = ['home','cash','invest','other'];
+    nwInputs.forEach(k => { const el = document.getElementById('nw_'+k); if(el) el.value = netWorth[k]||''; });
+}
+
+async function fetchData() {
+    if (!currentGroup) return;
+    const { start, end } = cycleDates(currentViewDate);
+    const [tRes, rRes, nRes] = await Promise.all([
+        _sb.from('transactions').select('*').eq('group_id',currentGroup).gte('created_at',start.toISOString()).lt('created_at',end.toISOString()).order('created_at',{ascending:false}),
+        _sb.from('recurring_expenses').select('*').eq('group_id',currentGroup),
+        _sb.from('app_notes').select('*').eq('group_id',currentGroup).order('created_at',{ascending:false})
+    ]);
+    history=tRes.data||[]; recurring=rRes.data||[]; notes=nRes.data||[];
+    renderDashboard(); renderNotes(); renderSubs(); renderAnalytics(); renderNetWorth(); renderVaults(); renderBills(); renderNotifs(); calcMilestones();
+}
+
+// ── Helpers ──
+const fmt  = n => n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt0 = n => n.toLocaleString(undefined,{maximumFractionDigits:0});
+
+function cycleDates(base) {
+    let d=new Date(base), start=new Date(d.getFullYear(),d.getMonth(),CYCLE_START);
+    if(d.getDate()<CYCLE_START) start.setMonth(start.getMonth()-1);
+    let end=new Date(start); end.setMonth(end.getMonth()+1);
+    return {start,end};
+}
+
+function daysUntil(day) {
+    const now=new Date(), target=new Date(now.getFullYear(),now.getMonth(),day);
+    if(target<now) target.setMonth(target.getMonth()+1);
+    return Math.ceil((target-now)/(1000*60*60*24));
+}
+
+// ── Dashboard ──
+function renderDashboard() {
+    let total=0, bS=0, gS=0;
+    const list=document.getElementById('historyList'); list.innerHTML='';
+    const savedIcon=(localStorage.getItem('montoya_icon')||'fa-user');
+
+    // Loan progress
+    document.getElementById('mortgageBalText').innerText='$'+fmt(config.m_balance||0);
+    document.getElementById('carBalText').innerText='$'+fmt(config.c_balance||0);
+    const mO=config.m_orig||500000, mB=config.m_balance||0, mPaid=Math.max(0,mO-mB), mPct=mO>0?Math.min(100,mPaid/mO*100):0;
+    document.getElementById('mortgBar').style.width=mPct+'%';
+    document.getElementById('mortgPct').innerText=Math.round(mPct)+'%';
+    document.getElementById('mortgPaid').innerText='Paid: $'+fmt0(mPaid);
+    document.getElementById('mortgRem').innerText='Rem: $'+fmt0(mB);
+    const cO=config.c_orig||45000, cB=config.c_balance||0, cPaid=Math.max(0,cO-cB), cPct=cO>0?Math.min(100,cPaid/cO*100):0;
+    document.getElementById('carBar').style.width=cPct+'%';
+    document.getElementById('carPct').innerText=Math.round(cPct)+'%';
+    document.getElementById('carPaid').innerText='Paid: $'+fmt0(cPaid);
+    document.getElementById('carRem').innerText='Rem: $'+fmt0(cB);
+    if(mB<=0&&mPct>=100&&!celebratedMilestones.mortgage&&mO>0) triggerCelebration('mortgage');
+    if(cB<=0&&cPct>=100&&!celebratedMilestones.car&&cO>0) triggerCelebration('car');
+
+    history.forEach(item => {
+        total += item.amount;
+        if(!['Mortgage','Car','Utilities'].includes(item.category)) {
+            if(item.member==='Brandon') bS+=item.amount;
+            else if(item.member==='Gina') gS+=item.amount;
+            else if(item.member==='Split'){bS+=item.amount/2;gS+=item.amount/2;}
+        }
+        const isMe=item.user_id===currentUser;
+        let submitter='Partner';
+        if(item.user_id===USERS.Brandon) submitter='Brandon';
+        else if(item.user_id===USERS.Gina) submitter='Gina';
+        const mpClass=item.member==='Gina'?'mp-gina':(item.member==='Split'?'mp-split':'mp-brandon');
+        const d=new Date(item.created_at);
+        const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+        const div=document.createElement('div'); div.className='hist-item';
+        div.innerHTML=`<div style="min-width:0;flex:1;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${item.category}</span><span class="hist-note">${item.note||item.category}</span><div class="hist-meta"><span class="mpill ${mpClass}">${item.member}</span><span class="hist-date">${ds} · <i class="fa-solid ${isMe?savedIcon:'fa-user-group'}"></i> ${submitter}</span></div></div><div class="hist-right"><div class="hist-amt">-$${item.amount.toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-edit" onclick="editEntry('${item.id}')"><i class="fa-solid fa-pen-to-square"></i></button><button class="act-btn act-del" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        list.appendChild(div);
+    });
+
+    const remaining=config.budget-total;
+    document.getElementById('balanceNum').innerText='$'+fmt(remaining);
+    document.getElementById('bSpend').innerText='$'+fmt(bS);
+    document.getElementById('gSpend').innerText='$'+fmt(gS);
+    document.getElementById('paceChip').innerText=`Pace: $${(remaining/30).toFixed(2)}/day`;
+    document.getElementById('safeChip').innerText='Safe: $'+fmt(remaining);
+}
+
+function openMemberView(name) {
+    switchView('memberBreakdown');
+    document.getElementById('memberTitle').innerText=name.toUpperCase()+"'S SPEND";
+    const mem=history.filter(h=>(h.member===name||h.member==='Split')&&!['Mortgage','Car','Utilities'].includes(h.category));
+    let tots={};
+    mem.forEach(i=>{let a=i.member==='Split'?i.amount/2:i.amount; tots[i.category]=(tots[i.category]||0)+a;});
+    const ctx=document.getElementById('memberChart').getContext('2d');
+    if(memberChartInst) memberChartInst.destroy();
+    memberChartInst=new Chart(ctx,{type:'doughnut',data:{labels:Object.keys(tots),datasets:[{data:Object.values(tots),backgroundColor:Object.keys(tots).map(l=>CAT_COLORS[l]||'#64748b'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8ca0bf',font:{family:'DM Sans'}}}}}});
+    const list=document.getElementById('memberList'); list.innerHTML='';
+    mem.forEach(item=>{
+        let a=item.member==='Split'?item.amount/2:item.amount;
+        const div=document.createElement('div'); div.className='hist-item';
+        div.innerHTML=`<div style="min-width:0;flex:1;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${item.category}</span><span class="hist-note">${item.note||item.category}</span></div><div class="hist-right"><div class="hist-amt">-$${a.toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-edit" onclick="editEntry('${item.id}')"><i class="fa-solid fa-pen-to-square"></i></button><button class="act-btn act-del" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        list.appendChild(div);
+    });
+}
+
+// ── Net Worth ──
+function renderNetWorth() {
+    const home=parseFloat(netWorth.home)||0, cash=parseFloat(netWorth.cash)||0, invest=parseFloat(netWorth.invest)||0, other=parseFloat(netWorth.other)||0;
+    const totalAssets=home+cash+invest+other;
+    const totalDebts=(config.m_balance||0)+(config.c_balance||0);
+    const nw=totalAssets-totalDebts;
+    document.getElementById('nwNumber').innerText=(nw>=0?'$':'-$')+fmt(Math.abs(nw));
+    document.getElementById('nwNumber').style.color=nw>=0?'var(--green)':'var(--rose)';
+    document.getElementById('nwAssets').innerText='$'+fmt0(totalAssets);
+    document.getElementById('nwDebts').innerText='$'+fmt0(totalDebts);
+    document.getElementById('nwTrend').innerText=`$${fmt0(totalAssets)} assets · $${fmt0(totalDebts)} debts`;
+    const breakdown=document.getElementById('assetBreakdown');
+    const rows=[{name:'🏠 Home Value',val:home},{name:'🏦 Checking / Savings',val:cash},{name:'📈 Investments',val:invest},{name:'💼 Other Assets',val:other},{name:'🏠 Mortgage (debt)',val:-config.m_balance||0},{name:'🚗 Car Loan (debt)',val:-config.c_balance||0}];
+    breakdown.innerHTML=rows.map(r=>`<div class="asset-row"><span class="asset-name">${r.name}</span><span class="asset-val" style="color:${r.val>=0?'var(--text)':'var(--rose)'};">${r.val>=0?'$':'-$'}${fmt0(Math.abs(r.val))}</span></div>`).join('');
+}
+
+function saveNetWorth() {
+    netWorth={ home:document.getElementById('nw_home').value||0, cash:document.getElementById('nw_cash').value||0, invest:document.getElementById('nw_invest').value||0, other:document.getElementById('nw_other').value||0 };
+    localStorage.setItem('montoya_networth', JSON.stringify(netWorth));
+    renderNetWorth(); showToast('Net worth saved!');
+}
+
+// ── Savings Vaults ──
+function renderVaults() {
+    const list=document.getElementById('vaultList'); list.innerHTML='';
+    if(!vaults.length){list.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:30px;font-size:.85rem;">No vaults yet. Create your first savings goal above.</div>';return;}
+    vaults.forEach((v,i)=>{
+        const pct=v.target>0?Math.min(100,v.saved/v.target*100):0;
+        const div=document.createElement('div'); div.className='vault-item';
+        div.innerHTML=`<div class="vault-head"><div><div style="font-size:1.4rem;margin-bottom:4px;">${v.emoji||'🎯'}</div><div class="vault-name">${v.name}</div></div><div class="vault-amounts"><div class="vault-saved">$${fmt0(v.saved)}</div><div class="vault-target">of $${fmt0(v.target)} goal</div></div></div><div class="prog-bar"><div class="prog-fill fill-goal" style="width:${pct}%"></div></div><div class="prog-meta" style="margin-top:5px;"><span>${Math.round(pct)}% complete</span><span>$${fmt0(v.target-v.saved)} to go</span></div><div class="vault-contrib"><input type="number" id="contrib_${i}" placeholder="Add $"><button class="btn btn-teal" onclick="contributeVault(${i})" style="width:auto;">Add</button><button class="act-btn act-del" onclick="deleteVault(${i})" style="margin-left:auto;"><i class="fa-solid fa-trash-can"></i></button></div>`;
+        list.appendChild(div);
+    });
+}
+
+function addVault() {
+    const name=document.getElementById('vaultName').value, target=parseFloat(document.getElementById('vaultTarget').value), emoji=document.getElementById('vaultEmoji').value||'🎯', saved=parseFloat(document.getElementById('vaultSaved').value)||0;
+    if(!name||!target) return;
+    vaults.push({name,target,saved,emoji});
+    localStorage.setItem('montoya_vaults',JSON.stringify(vaults));
+    document.getElementById('vaultName').value=''; document.getElementById('vaultTarget').value=''; document.getElementById('vaultEmoji').value=''; document.getElementById('vaultSaved').value='';
+    renderVaults(); showToast('Vault created!');
+}
+
+function contributeVault(i) {
+    const amt=parseFloat(document.getElementById('contrib_'+i).value)||0;
+    if(!amt) return;
+    vaults[i].saved+=amt;
+    if(vaults[i].saved>=vaults[i].target){ confetti({particleCount:100,spread:60,origin:{y:.6}}); showToast(`🎉 ${vaults[i].name} goal reached!`); }
+    localStorage.setItem('montoya_vaults',JSON.stringify(vaults));
+    renderVaults();
+}
+
+function deleteVault(i) { if(confirm('Delete vault?')){ vaults.splice(i,1); localStorage.setItem('montoya_vaults',JSON.stringify(vaults)); renderVaults(); } }
+
+// ── Bill Reminders ──
+function renderBills() {
+    const all=document.getElementById('billsList'); all.innerHTML='';
+    const upcoming=document.getElementById('upcomingBills'); upcoming.innerHTML='';
+    const sorted=[...billReminders].sort((a,b)=>daysUntil(a.day)-daysUntil(b.day));
+
+    if(!sorted.length){ upcoming.innerHTML='<div style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:10px;">No bills added yet.</div>'; }
+
+    sorted.forEach((b,i)=>{
+        const days=daysUntil(b.day);
+        let cls='due-ok', label=`${days}d away`;
+        if(days<=3){cls='due-urgent';label=days===0?'TODAY!':days===1?'Tomorrow':`${days} days`;}
+        else if(days<=7){cls='due-soon';label=`${days} days`;}
+
+        // upcoming (≤7 days)
+        if(days<=7){
+            const d=document.createElement('div'); d.className='bill-item';
+            d.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">${b.icon||'💳'}</div><div><div class="bill-name">${b.name}</div><div class="bill-due">Day ${b.day} of each cycle</div></div></div><div class="bill-right"><div class="bill-amt">$${parseFloat(b.amount).toFixed(2)}</div><div class="bill-countdown ${cls}">${label}</div></div>`;
+            upcoming.appendChild(d);
+        }
+
+        const div=document.createElement('div'); div.className='bill-item';
+        div.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">${b.icon||'💳'}</div><div><div class="bill-name">${b.name}</div><div class="bill-due">Due day ${b.day}</div></div></div><div class="bill-right"><div class="bill-amt">$${parseFloat(b.amount).toFixed(2)}</div><div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;"><span class="bill-countdown ${cls}">${label}</span><button class="act-btn act-del" onclick="deleteBill(${i})"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        all.appendChild(div);
+    });
+
+    if(!sorted.length) all.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:.85rem;">No bills yet. Add one below.</div>';
+}
+
+function addBill() {
+    const name=document.getElementById('billName').value, amt=document.getElementById('billAmt').value, day=parseInt(document.getElementById('billDay').value), icon=document.getElementById('billIcon').value||'💳';
+    if(!name||!amt||!day) return;
+    billReminders.push({name,amount:parseFloat(amt),day,icon});
+    localStorage.setItem('montoya_bills',JSON.stringify(billReminders));
+    document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('billDay').value=''; document.getElementById('billIcon').value='';
+    renderBills(); showToast('Bill added!');
+}
+
+function deleteBill(i) { if(confirm('Delete bill?')){ billReminders.splice(i,1); localStorage.setItem('montoya_bills',JSON.stringify(billReminders)); renderBills(); } }
+
+// ── AI Insights ──
+async function runInsight(type) {
+    const prompts={
+        overview: "Give me a concise spending overview for this cycle. What's the big picture?",
+        overspend: "Which spending categories am I overspending in? Be specific.",
+        tips: "Give me 3 actionable money-saving tips based on my spending patterns.",
+        forecast: "Based on my current spending, forecast my financial health for next month.",
+        compare: "Compare Brandon's and Gina's spending. Who is spending more and where?"
+    };
+    document.getElementById('aiQuestion').value=prompts[type]||'';
+    await askAI();
+}
+
+async function askAI() {
+    const q=document.getElementById('aiQuestion').value.trim(); if(!q) return;
+    const body=document.getElementById('aiBody');
+    body.innerHTML='<div class="ai-body loading"><div class="ai-spinner"></div>Analyzing your ledger…</div>';
+
+    // Build context from real transaction data
+    let spent=0; history.forEach(i=>spent+=i.amount);
+    let bS=0,gS=0; history.forEach(i=>{ if(!['Mortgage','Car','Utilities'].includes(i.category)){if(i.member==='Brandon')bS+=i.amount;else if(i.member==='Gina')gS+=i.amount;else if(i.member==='Split'){bS+=i.amount/2;gS+=i.amount/2;}} });
+    let cats={};history.forEach(i=>cats[i.category]=(cats[i.category]||0)+i.amount);
+    const catStr=Object.entries(cats).map(([k,v])=>`${k}: $${v.toFixed(2)}`).join(', ');
+
+    const context=`Family finance data for current billing cycle:
+- Monthly budget: $${config.budget}
+- Total spent: $${spent.toFixed(2)}
+- Remaining: $${(config.budget-spent).toFixed(2)}
+- Brandon's spend: $${bS.toFixed(2)}
+- Gina's spend: $${gS.toFixed(2)}
+- Mortgage balance: $${config.m_balance||0}
+- Car loan balance: $${config.c_balance||0}
+- Spending by category: ${catStr||'No transactions yet'}
+- Number of transactions: ${history.length}`;
+
+    if(!ANTHROPIC_KEY){ body.innerText="Add your Anthropic API key to the ANTHROPIC_KEY variable at the top of the script to enable AI insights. Your financial data is ready to analyze — just needs the key!"; addAIHistory(q,'[API key required]'); return; }
 
     try {
-        _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        _supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-                currentUser = session.user.id;
-                currentEmail = session.user.email || '';
-                document.body.classList.add('logged-in');
-                
-                let firstName = "PARTNER";
-                if (currentUser === USERS.Brandon || currentEmail.toLowerCase().includes('brandon')) {
-                    firstName = "BRANDON";
-                } else if (currentUser === USERS.Gina || currentEmail.toLowerCase().includes('gina')) {
-                    firstName = "GINA";
-                }
-
-                const titleEl = document.getElementById('welcomeTitle');
-                if (titleEl) titleEl.innerText = `WELCOME TO YOUR LEDGER ${firstName}`;
-                loadAppEngine(); 
-            }
+        const res=await fetch('https://api.anthropic.com/v1/messages',{
+            method:'POST',
+            headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01'},
+            body:JSON.stringify({
+                model:'claude-sonnet-4-20250514',
+                max_tokens:400,
+                system:`You are a friendly, direct financial coach for a family. You have access to their real spending data. Give concise, actionable advice in 2-4 sentences. Use specific numbers from the data. Be encouraging but honest. No markdown, just plain conversational text.`,
+                messages:[{role:'user',content:`${context}\n\nUser question: ${q}`}]
+            })
         });
-    } catch (e) { console.error(e); }
+        const d=await res.json();
+        const text=d.content?.[0]?.text||'Unable to get a response. Please try again.';
+        body.innerText=text;
+        addAIHistory(q,text);
+    } catch(e){ body.innerText='Connection error. Check your API key and try again.'; }
+    document.getElementById('aiQuestion').value='';
+}
 
-    function switchView(viewId) {
-        ['app','subManager','notesManager','analyticsModal','configManager','shareManager','profileManager','memberBreakdownManager'].forEach(v => {
-            document.getElementById(v).style.display = 'none';
-        });
-        document.getElementById(viewId).style.display = 'block';
-        window.scrollTo(0,0);
-        if (viewId === 'app' || viewId === 'analyticsModal') fetchData();
-        if (document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
-    }
+function addAIHistory(q,a) {
+    const hist=document.getElementById('aiHistory');
+    const div=document.createElement('div'); div.className='card'; div.style.marginBottom='10px';
+    div.innerHTML=`<div style="font-size:.72rem;font-weight:700;color:var(--violet);margin-bottom:6px;">You asked</div><div style="font-size:.82rem;color:var(--text-soft);margin-bottom:10px;">${q}</div><div style="font-size:.72rem;font-weight:700;color:var(--gold);margin-bottom:6px;">AI Coach</div><div style="font-size:.82rem;color:var(--text);line-height:1.6;">${a}</div>`;
+    hist.insertBefore(div,hist.firstChild);
+}
 
-    async function setProfileIcon(iconClass) {
-        localStorage.setItem('montoya_profile_icon', iconClass);
-        loadProfileIcon();
-        updateUI(); 
-        showToast("Avatar Updated!");
-    }
+// ── Analytics ──
+function renderAnalytics() {
+    let spent=0,mPay=0,cPay=0,tots={};
+    history.forEach(i=>{spent+=i.amount;tots[i.category]=(tots[i.category]||0)+i.amount;if(i.category==='Mortgage')mPay+=i.amount;if(i.category==='Car')cPay+=i.amount;});
+    document.getElementById('cycleTotal').innerText='$'+fmt(spent);
+    document.getElementById('creepTotal').innerText='$'+fmt(config.budget-spent);
+    const ctx=document.getElementById('catChart').getContext('2d');
+    if(catChartInst) catChartInst.destroy();
+    catChartInst=new Chart(ctx,{type:'doughnut',data:{labels:Object.keys(tots),datasets:[{data:Object.values(tots),backgroundColor:Object.keys(tots).map(l=>CAT_COLORS[l]||'#64748b'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8ca0bf',font:{family:'DM Sans'}}}}}});
+    const mB=config.m_balance||0, cB=config.c_balance||0;
+    if(mPay>0&&mB>0){let d=new Date();d.setMonth(d.getMonth()+Math.ceil(mB/mPay));document.getElementById('mortgFC').innerText=d.toLocaleDateString('en-US',{month:'short',year:'numeric'});}
+    else if(mB<=0&&config.m_orig>0){document.getElementById('mortgFC').innerText='PAID OFF! 🎉';document.getElementById('mortgFC').style.color='var(--green)';}
+    else document.getElementById('mortgFC').innerText='Awaiting Sync';
+    if(cPay>0&&cB>0){let d=new Date();d.setMonth(d.getMonth()+Math.ceil(cB/cPay));document.getElementById('carFC').innerText=d.toLocaleDateString('en-US',{month:'short',year:'numeric'});}
+    else if(cB<=0&&config.c_orig>0){document.getElementById('carFC').innerText='PAID OFF! 🎉';document.getElementById('carFC').style.color='var(--green)';}
+    else document.getElementById('carFC').innerText='Awaiting Sync';
+}
 
-    function loadProfileIcon() {
-        const savedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
-        const safeIcon = savedIcon.startsWith('fa-') ? savedIcon : 'fa-' + savedIcon;
-        const finalIcon = `<i class="fa-solid ${safeIcon}"></i>`;
-        
-        const sideAvatar = document.getElementById('sidebarAvatar');
-        if (sideAvatar) sideAvatar.innerHTML = finalIcon;
-        
-        const topAvatar = document.getElementById('topAvatarBadge');
-        if (topAvatar) topAvatar.innerHTML = finalIcon;
-        
-        document.querySelectorAll('.prof-icon-opt').forEach(el => el.classList.remove('selected'));
-        const opt = document.getElementById('icon_' + safeIcon);
-        if(opt) opt.classList.add('selected');
-    }
+// ── Notes ──
+function renderNotes() {
+    const list=document.getElementById('notesList'); list.innerHTML='';
+    notes.forEach(n=>{
+        const div=document.createElement('div'); div.className='hist-item';
+        div.innerHTML=`<div style="flex:1;min-width:0;"><b style="color:${n.author==='Gina'?'var(--gina)':'var(--brandon)'}">${n.author}</b><span style="color:var(--text-dim);margin:0 6px;">·</span><span style="color:var(--text-soft);font-size:.88rem;">${n.message}</span></div><button class="act-btn act-del" onclick="deleteNote('${n.id}')"><i class="fa-solid fa-trash-can"></i></button>`;
+        list.appendChild(div);
+    });
+}
 
-    async function loadAppEngine() {
-        const { data, error } = await _supabase.from('app_settings').select('*').limit(1);
-        if (data && data.length > 0) {
-            config = data[0]; 
-            currentGroup = config.group_id;
-            document.getElementById('ledgerKeyDisplay').innerText = currentGroup;
-            document.getElementById('conf_income').value = config.budget;
-            document.getElementById('conf_mbal').value = config.m_balance || 0;
-            document.getElementById('conf_cbal').value = config.c_balance || 0;
-            document.getElementById('conf_morig').value = config.m_orig || 500000;
-            document.getElementById('conf_corig').value = config.c_orig || 45000;
-        }
-        config.m_orig = config.m_orig || 500000;
-        config.c_orig = config.c_orig || 45000;
+// ── Subs ──
+function renderSubs() {
+    const list=document.getElementById('subList'); list.innerHTML='';
+    recurring.forEach(s=>{
+        const div=document.createElement('div'); div.className='hist-item';
+        div.innerHTML=`<div><span class="hist-note">${s.name}</span><span class="hist-date">Billed day ${s.billing_day}</span></div><div class="hist-right"><div class="hist-amt" style="color:var(--gold);">$${s.amount.toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-del" onclick="deleteSub('${s.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        list.appendChild(div);
+    });
+}
 
-        loadProfileIcon();
-        initCycles(); 
-        fetchData();
-    }
+// ── Notifications ──
+function renderNotifs() {
+    const list=document.getElementById('notifList'); list.innerHTML='';
+    let acts=[];
+    history.forEach(t=>{if(t.user_id!==currentUser){let n='Partner';if(t.user_id===USERS.Brandon)n='Brandon';else if(t.user_id===USERS.Gina)n='Gina';acts.push({user:n,text:`synced $${t.amount.toFixed(2)} — ${t.note||t.category}`,time:new Date(t.created_at)});}});
+    notes.forEach(n=>acts.push({user:n.author,text:'posted a note',time:new Date(n.created_at)}));
+    acts.sort((a,b)=>b.time-a.time).slice(0,10).forEach(a=>{
+        const div=document.createElement('div'); div.style.cssText='padding:10px 0;border-bottom:1px solid var(--border);';
+        div.innerHTML=`<div style="font-size:.82rem;color:var(--text);"><b>${a.user}</b> ${a.text}</div><div style="font-size:.62rem;color:var(--text-dim);font-family:'DM Mono',monospace;margin-top:2px;">${a.time.toLocaleDateString('en-US')} ${a.time.toLocaleTimeString('en-US')}</div>`;
+        list.appendChild(div);
+    });
+    const lastV=parseInt(localStorage.getItem('montoya_notifs')||'0');
+    const pingEl=document.getElementById('ping');
+    if(pingEl) pingEl.style.display=(acts.length>0&&acts[0].time.getTime()>lastV)?'block':'none';
+}
 
-    async function fetchData() {
-        if (!currentGroup) return;
-        const { start, end } = getCycleDates(currentViewDate);
-        const [transRes, recurRes, noteRes] = await Promise.all([
-            _supabase.from('transactions').select('*').eq('group_id', currentGroup).gte('created_at', start.toISOString()).lt('created_at', end.toISOString()).order('created_at', { ascending: false }),
-            _supabase.from('recurring_expenses').select('*').eq('group_id', currentGroup),
-            _supabase.from('app_notes').select('*').eq('group_id', currentGroup).order('created_at', { ascending: false })
-        ]);
-        history = transRes.data || []; recurring = recurRes.data || []; notes = noteRes.data || [];
-        updateUI(); updateNotesUI(); updateNotificationsUI(); calculateMilestones(); renderSubList(); renderAnalytics();
-    }
+function calcMilestones() {
+    const combined=[...history,...notes].map(x=>new Date(x.created_at).toDateString());
+    const unique=[...new Set(combined)]; let streak=0,check=new Date();
+    while(unique.includes(check.toDateString())){streak++;check.setDate(check.getDate()-1);}
+    document.getElementById('streakVal').innerText=streak;
+    let spent=0;history.forEach(i=>spent+=i.amount);
+    document.getElementById('powerVal').innerText=Math.round(((config.budget-spent)/config.budget)*100)+'%';
+}
 
-    function updateUI() {
-        let totalS = 0, bS = 0, gS = 0;
-        const list = document.getElementById('historyList'); list.innerHTML = '';
-        
-        document.getElementById('mortgageBalanceText').innerText = "$" + (config.m_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('carBalanceText').innerText = "$" + (config.c_balance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+// ── Transactions ──
+async function addEntry() {
+    const amt=parseFloat(document.getElementById('amount').value); if(!amt) return;
+    const cat=document.getElementById('category').value, isRecur=document.getElementById('isRecur').checked;
+    if(cat==='Mortgage'&&!editingId) config.m_balance-=amt;
+    if(cat==='Car'&&!editingId)      config.c_balance-=amt;
+    const payload={amount:amt,member:document.getElementById('memberSelect').value,category:cat,note:document.getElementById('noteInput').value,intent:currentType,user_id:currentUser,group_id:currentGroup};
+    if(editingId){await _sb.from('transactions').update(payload).eq('id',editingId);editingId=null;document.getElementById('syncBtn').innerText='Sync Transaction';document.getElementById('recurRow').style.display='flex';}
+    else{await _sb.from('transactions').insert([payload]);if(isRecur) await _sb.from('recurring_expenses').insert([{name:payload.note||cat,amount:amt,group_id:currentGroup,user_id:currentUser,billing_day:new Date().getDate()}]);}
+    await _sb.from('app_settings').update({m_balance:config.m_balance,c_balance:config.c_balance}).eq('group_id',currentGroup);
+    document.getElementById('amount').value=''; document.getElementById('noteInput').value=''; document.getElementById('isRecur').checked=false;
+    fetchData();
+}
 
-        const mOrig = config.m_orig || 500000; const currMBal = config.m_balance || 0;
-        const mAmtPaid = Math.max(0, mOrig - currMBal); const mPerc = mOrig > 0 ? Math.min(100, (mAmtPaid / mOrig) * 100) : 0;
-        document.getElementById('mortgagePayoffBar').style.width = mPerc + "%";
-        document.getElementById('mortgagePayoffPerc').innerText = Math.round(mPerc) + "%";
-        document.getElementById('mortgagePaidAmount').innerText = "Paid: $" + mAmtPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('mortgageRemainingAmount').innerText = "Rem: $" + currMBal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+function editEntry(id) {
+    const item=history.find(h=>h.id===id); if(!item) return; editingId=id;
+    document.getElementById('amount').value=item.amount; document.getElementById('noteInput').value=item.note;
+    document.getElementById('memberSelect').value=item.member; document.getElementById('category').value=item.category;
+    setType(item.intent); document.getElementById('syncBtn').innerText='Update Transaction'; document.getElementById('recurRow').style.display='none';
+    switchView('app'); window.scrollTo(0,0);
+}
 
-        const cOrig = config.c_orig || 45000; const currCBal = config.c_balance || 0;
-        const cAmtPaid = Math.max(0, cOrig - currCBal); const cPerc = cOrig > 0 ? Math.min(100, (cAmtPaid / cOrig) * 100) : 0;
-        document.getElementById('carPayoffBar').style.width = cPerc + "%";
-        document.getElementById('carPayoffPerc').innerText = Math.round(cPerc) + "%";
-        document.getElementById('carPaidAmount').innerText = "Paid: $" + cAmtPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('carRemainingAmount').innerText = "Rem: $" + currCBal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+async function deleteEntry(id){ if(confirm('Delete?')){ await _sb.from('transactions').delete().eq('id',id); fetchData(); } }
+async function deleteSub(id){ if(confirm('Delete?')){ await _sb.from('recurring_expenses').delete().eq('id',id); fetchData(); } }
+async function deleteNote(id){ if(confirm('Delete?')){ await _sb.from('app_notes').delete().eq('id',id); fetchData(); } }
 
-        if(currMBal <= 0 && mPerc >= 100 && !celebratedMilestones.mortgage && mOrig > 0) triggerCelebration('mortgage');
-        if(currCBal <= 0 && cPerc >= 100 && !celebratedMilestones.car && cOrig > 0) triggerCelebration('car');
+async function addNote() {
+    const msg=document.getElementById('noteMessage').value; if(!msg) return;
+    let author='Partner';
+    if(currentUser===USERS.Brandon||currentEmail.toLowerCase().includes('brandon')) author='Brandon';
+    else if(currentUser===USERS.Gina||currentEmail.toLowerCase().includes('gina')) author='Gina';
+    await _sb.from('app_notes').insert([{author,message:msg,group_id:currentGroup,user_id:currentUser}]);
+    document.getElementById('noteMessage').value=''; fetchData();
+}
 
-        const savedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
-        const myIcon = savedIcon.startsWith('fa-') ? savedIcon : 'fa-' + savedIcon;
-        
-        history.forEach(item => {
-            totalS += item.amount;
-            
-            if (!['Mortgage','Car','Utilities'].includes(item.category)) {
-                if (item.member === 'Brandon') bS += item.amount;
-                else if (item.member === 'Gina') gS += item.amount;
-                else if (item.member === 'Split') { bS += item.amount/2; gS += item.amount/2; }
-            }
+async function addSub() {
+    const n=document.getElementById('subName').value,a=parseFloat(document.getElementById('subAmt').value),d=parseInt(document.getElementById('subDay').value);
+    if(!n||!a||!d) return;
+    await _sb.from('recurring_expenses').insert([{name:n,amount:a,billing_day:d,group_id:currentGroup,user_id:currentUser}]);
+    document.getElementById('subName').value=''; document.getElementById('subAmt').value=''; document.getElementById('subDay').value=''; fetchData();
+}
 
-            let isMe = item.user_id === currentUser;
-            let submitterName = "Partner";
-            if (item.user_id === USERS.Brandon) submitterName = "Brandon";
-            else if (item.user_id === USERS.Gina) submitterName = "Gina";
-            
-            let finalIconClass = isMe ? myIcon : 'fa-user-group';
+// ── Auth ──
+async function authenticateUser() {
+    const email=document.getElementById('emailField').value, pass=document.getElementById('passwordField').value;
+    if(!email||!pass) return;
+    try {
+        const {data,error}=isSignUpMode?await _sb.auth.signUp({email,password:pass}):await _sb.auth.signInWithPassword({email,password:pass});
+        if(error) throw error;
+        if(data.session) location.reload();
+    } catch(e){ alert(e.message); }
+}
 
-            let d = new Date(item.created_at);
-            let dateStr = d.toLocaleDateString('en-US') + ' ' + d.toLocaleTimeString('en-US');
+async function saveConfig() {
+    config.budget   =parseFloat(document.getElementById('conf_income').value)||config.budget;
+    config.m_balance=parseFloat(document.getElementById('conf_mbal').value)||0;
+    config.c_balance=parseFloat(document.getElementById('conf_cbal').value)||0;
+    config.m_orig   =parseFloat(document.getElementById('conf_morig').value)||config.m_orig;
+    config.c_orig   =parseFloat(document.getElementById('conf_corig').value)||config.c_orig;
+    await _sb.from('app_settings').update(config).eq('group_id',currentGroup);
+    switchView('app'); showToast('Settings saved!');
+}
 
-            const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="display:flex; align-items:center; gap:8px; margin-top:6px;"><div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div><div style="font-size:0.6rem; color:#64748b;">${dateStr} • <i class="fa-solid ${finalIconClass}"></i> Synced by ${submitterName}</div></div></div><div style="text-align:right;"><div style="font-weight:700;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
-            list.appendChild(div);
-        });
+// ── Profile / Icon ──
+function setIcon(cls) { localStorage.setItem('montoya_icon',cls); loadIcon(); showToast('Avatar updated!'); }
+function loadIcon() {
+    const cls=(localStorage.getItem('montoya_icon')||'fa-user');
+    const safe=cls.startsWith('fa-')?cls:'fa-'+cls;
+    const html=`<i class="fa-solid ${safe}"></i>`;
+    document.getElementById('sideAvatar').innerHTML=html;
+    document.getElementById('topAvatar').innerHTML=html;
+    document.querySelectorAll('.prof-opt').forEach(el=>el.classList.remove('selected'));
+    const opt=document.getElementById('icon_'+safe); if(opt) opt.classList.add('selected');
+}
 
-        const INCOME = config.budget || 7400;
-        document.getElementById('balance').innerText = "$" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('brandonSpend').innerText = "$" + bS.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('ginaSpend').innerText = "$" + gS.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('paceDisplay').innerText = `Pace: $${((INCOME - totalS) / 30).toFixed(2)} / day`;
-        document.getElementById('safeToSpend').innerText = "Safe: $" + (INCOME - totalS).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    }
+async function updatePassword() {
+    const p=document.getElementById('newPass').value; if(p.length<6){showToast('Min 6 chars');return;}
+    try{await _sb.auth.updateUser({password:p});showToast('Password updated!');}catch(e){alert(e.message);}
+}
 
-    function openMemberAnalytics(memberName) {
-        switchView('memberBreakdownManager');
-        document.getElementById('memberBreakdownTitle').innerText = memberName.toUpperCase() + "'S SPEND";
-        
-        const memHistory = history.filter(h => (h.member === memberName || h.member === 'Split') && !['Mortgage','Car','Utilities'].includes(h.category));
-        
-        let totals = {};
-        memHistory.forEach(i => { let amt = i.member === 'Split' ? i.amount/2 : i.amount; totals[i.category] = (totals[i.category] || 0) + amt; });
-        
-        const ctx = document.getElementById('memberDonutChart').getContext('2d');
-        if(memberChart) memberChart.destroy();
-        memberChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(totals), datasets: [{ data: Object.values(totals), backgroundColor: Object.keys(totals).map(l => catColors[l] || "#94a3b8"), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } } });
-        
-        const list = document.getElementById('memberHistoryList'); list.innerHTML = '';
-        memHistory.forEach(item => {
-            let amt = item.member === 'Split' ? item.amount/2 : item.amount;
-            let dateStr = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="font-size:0.6rem; color:#64748b; margin-top:6px;">${dateStr}</div></div><div style="text-align:right;"><div style="font-weight:700;">-$${amt.toFixed(2)}</div><i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
-            list.appendChild(div);
-        });
-    }
+// ── Misc ──
+function triggerCelebration(type){ celebratedMilestones[type]=true; confetti({particleCount:150,spread:70,origin:{y:.6}}); showToast(`🎉 ${type.charAt(0).toUpperCase()+type.slice(1)} Paid Off!`); }
 
-    function updateNotificationsUI() {
-        const list = document.getElementById('notifList'); list.innerHTML = '';
-        let acts = []; 
-        history.forEach(t => { 
-            if(t.user_id !== currentUser) {
-                let submitterName = "Partner";
-                if (t.user_id === USERS.Brandon) submitterName = "Brandon";
-                else if (t.user_id === USERS.Gina) submitterName = "Gina";
-                acts.push({ user: submitterName, text: `synced $${t.amount.toFixed(2)}`, time: new Date(t.created_at) })
-            }
-        });
-        notes.forEach(n => acts.push({ user: n.author, text: `posted a note`, time: new Date(n.created_at) }));
-        acts.sort((a,b) => b.time - a.time).slice(0,10).forEach(a => {
-            const div = document.createElement('div'); div.style.padding = '10px'; div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-            div.innerHTML = `<div style="font-size:0.8rem; color:#fff;"><b>${a.user}</b> ${a.text}</div><small style="color:#64748b;">${a.time.toLocaleDateString('en-US')} ${a.time.toLocaleTimeString('en-US')}</small>`;
-            list.appendChild(div);
-        });
-        const lastV = parseInt(localStorage.getItem('montoya_notifs_viewed') || '0');
-        const pingEl = document.getElementById('headerPing');
-        if(pingEl) pingEl.style.display = (acts.length > 0 && acts[0].time.getTime() > lastV) ? 'block' : 'none';
-    }
+function exportCSV() {
+    let csv='Date,Category,Member,Amount,Note\n';
+    history.forEach(i=>csv+=`${new Date(i.created_at).toLocaleDateString()},${i.category},${i.member},${i.amount},${i.note}\n`);
+    const a=document.createElement('a'); a.setAttribute('href','data:text/csv;charset=utf-8,'+encodeURIComponent(csv)); a.setAttribute('download','Montoya_Ledger.csv'); a.click();
+}
 
-    function renderAnalytics() {
-        const ctx = document.getElementById('categoryDonutChart').getContext('2d');
-        let totals = {}; let mortgageCyclePayment = 0; let carCyclePayment = 0;
-        
-        history.forEach(i => { 
-            totals[i.category] = (totals[i.category] || 0) + i.amount; 
-            if (i.category === 'Mortgage') mortgageCyclePayment += i.amount;
-            if (i.category === 'Car') carCyclePayment += i.amount;
-        });
+function setType(t){ currentType=t; document.getElementById('needBtn').classList.toggle('active',t==='Need'); document.getElementById('wantBtn').classList.toggle('active',t==='Want'); }
+function quickFill(a,c,n,t){ document.getElementById('amount').value=a; document.getElementById('category').value=c; document.getElementById('noteInput').value=n; setType(t); window.scrollTo(0,document.querySelector('.type-toggle').offsetTop-20); }
+function autoSuggest(c){ if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
+function copyKey(){ navigator.clipboard.writeText(currentGroup); showToast('Key copied!'); }
+async function joinLedger(){ const k=document.getElementById('joinKey').value.trim(); if(k.length>20){await _sb.from('app_settings').update({group_id:k}).eq('user_id',currentUser);location.reload();} }
+function cycleDates(base){ let d=new Date(base),start=new Date(d.getFullYear(),d.getMonth(),CYCLE_START); if(d.getDate()<CYCLE_START) start.setMonth(start.getMonth()-1); let end=new Date(start); end.setMonth(end.getMonth()+1); return {start,end}; }
+function initCycles(){ const s=document.getElementById('cycleSelect'); s.innerHTML=''; let now=new Date(); for(let i=0;i<6;i++){let d=new Date(now.getFullYear(),now.getMonth()-i,16);let o=document.createElement('option');o.value=d.toISOString();o.text=d.toLocaleString('default',{month:'long',year:'numeric'})+' Cycle';s.appendChild(o);} }
+async function changeCycle(){ currentViewDate=new Date(document.getElementById('cycleSelect').value); await fetchData(); }
+async function logoutApp(){ await _sb.auth.signOut(); location.reload(); }
+function showToast(m){ const c=document.getElementById('toastContainer'),t=document.createElement('div'); t.className='toast'; t.innerText=m; c.appendChild(t); setTimeout(()=>t.remove(),3000); }
+function filterHistory(){ const q=document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('#historyList .hist-item').forEach(i=>{ i.style.display=i.innerText.toLowerCase().includes(q)?'flex':'none'; }); }
+function toggleNotif(){ const m=document.getElementById('notifModal'),o=document.getElementById('notifOverlay'),v=m.style.display==='block'; m.style.display=v?'none':'block'; o.style.display=v?'none':'block'; if(!v) localStorage.setItem('montoya_notifs',Date.now().toString()); }
+function toggleMenu(){ if(window.innerWidth>=1100)return; const m=document.getElementById('sideMenu'),o=document.getElementById('sideOverlay'); m.classList.toggle('open'); o.style.display=m.classList.contains('open')?'block':'none'; }
+function toggleAuthMode(){ isSignUpMode=!isSignUpMode; document.getElementById('authBtn').innerText=isSignUpMode?'Sign Up':'Secure Login'; }
 
-        if(catChart) catChart.destroy();
-        catChart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(totals), datasets: [{ data: Object.values(totals), backgroundColor: Object.keys(totals).map(l => catColors[l] || "#94a3b8"), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } } });
-        let spent = 0; history.forEach(i => spent += i.amount);
-        document.getElementById('cycleTotal').innerText = "$" + spent.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('creepTotal').innerText = "$" + (config.budget - spent).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-        const mBal = config.m_balance || 0;
-        if (mortgageCyclePayment > 0 && mBal > 0) {
-            let monthsLeft = Math.ceil(mBal / mortgageCyclePayment);
-            let d = new Date(); d.setMonth(d.getMonth() + monthsLeft);
-            document.getElementById('mortgageForecastDate').innerText = d.toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
-        } else if (mBal <= 0 && config.m_orig > 0) { document.getElementById('mortgageForecastDate').innerText = "PAID OFF!"; document.getElementById('mortgageForecastDate').style.color = "#10b981";
-        } else { document.getElementById('mortgageForecastDate').innerText = "Awaiting Sync"; }
-
-        const cBal = config.c_balance || 0;
-        if (carCyclePayment > 0 && cBal > 0) {
-            let monthsLeft = Math.ceil(cBal / carCyclePayment);
-            let d = new Date(); d.setMonth(d.getMonth() + monthsLeft);
-            document.getElementById('carForecastDate').innerText = d.toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
-        } else if (cBal <= 0 && config.c_orig > 0) { document.getElementById('carForecastDate').innerText = "PAID OFF!"; document.getElementById('carForecastDate').style.color = "#10b981";
-        } else { document.getElementById('carForecastDate').innerText = "Awaiting Sync"; }
-    }
-
-    function updateNotesUI() {
-        const list = document.getElementById('notesList'); list.innerHTML = '';
-        notes.forEach(n => {
-            const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><b style="color:${n.author === 'Gina' ? 'var(--gina)' : 'var(--brandon)'}">${n.author}:</b> ${n.message}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteNote('${n.id}')"></i>`;
-            list.appendChild(div);
-        });
-    }
-
-    function renderSubList() {
-        const list = document.getElementById('subList'); list.innerHTML = '';
-        recurring.forEach(s => {
-            const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><b>${s.name}</b><br><small style="color:#94a3b8">Billed Day ${s.billing_day}</small></div><div style="text-align:right;"><div style="font-weight:700;">$${s.amount.toFixed(2)}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteSub('${s.id}')"></i></div>`;
-            list.appendChild(div);
-        });
-    }
-
-    async function addNote() { 
-        const msg = document.getElementById('noteMessage').value; if(!msg) return; 
-        let authorName = "Partner";
-        if (currentUser === USERS.Brandon || currentEmail.toLowerCase().includes('brandon')) authorName = "Brandon";
-        else if (currentUser === USERS.Gina || currentEmail.toLowerCase().includes('gina')) authorName = "Gina";
-        
-        await _supabase.from('app_notes').insert([{ author: authorName, message: msg, group_id: currentGroup, user_id: currentUser }]); 
-        document.getElementById('noteMessage').value = ''; fetchData(); 
-    }
-
-    async function addSub() { const n = document.getElementById('subName').value, a = parseFloat(document.getElementById('subAmt').value), d = parseInt(document.getElementById('subDay').value); if(!n || !a || !d) return; await _supabase.from('recurring_expenses').insert([{ name: n, amount: a, billing_day: d, group_id: currentGroup, user_id: currentUser }]); document.getElementById('subName').value = ''; document.getElementById('subAmt').value = ''; document.getElementById('subDay').value = ''; fetchData(); }
-    
-    function calculateMilestones() {
-        const combined = [...history, ...notes].map(x => new Date(x.created_at).toDateString());
-        const unique = [...new Set(combined)]; let streak = 0; let check = new Date();
-        while (unique.includes(check.toDateString())) { streak++; check.setDate(check.getDate() - 1); }
-        document.getElementById('streakDisplay').innerText = streak;
-        let spent = 0; history.forEach(i => spent += i.amount);
-        document.getElementById('savingsPowerDisplay').innerText = Math.round(((config.budget - spent) / config.budget) * 100) + "%";
-    }
-
-    function triggerCelebration(type) { celebratedMilestones[type] = true; confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); showToast(`🎉 ${type.toUpperCase()} PAID OFF!`); }
-
-    function exportCSV() {
-        let csv = 'Date,Category,Member,Amount,Note\n';
-        history.forEach(i => csv += `${new Date(i.created_at).toLocaleDateString()},${i.category},${i.member},${i.amount},${i.note}\n`);
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', 'Montoya_Ledger.csv'); a.click();
-    }
-
-    async function authenticateUser() { const email = document.getElementById('emailField').value; const pass = document.getElementById('passwordField').value; const btn = document.getElementById('authBtn'); if(!email || !pass) return; try { const { data, error } = isSignUpMode ? await _supabase.auth.signUp({email, password: pass}) : await _supabase.auth.signInWithPassword({email, password: pass}); if (error) throw error; if (data.session) location.reload(); } catch (err) { alert(err.message); } }
-
-    async function saveConfig() { 
-        config.budget = parseFloat(document.getElementById('conf_income').value) || config.budget; 
-        config.m_balance = parseFloat(document.getElementById('conf_mbal').value) || 0; 
-        config.c_balance = parseFloat(document.getElementById('conf_cbal').value) || 0; 
-        config.m_orig = parseFloat(document.getElementById('conf_morig').value) || config.m_orig; 
-        config.c_orig = parseFloat(document.getElementById('conf_corig').value) || config.c_orig; 
-        await _supabase.from('app_settings').update(config).eq('group_id', currentGroup); switchView('app'); showToast("Settings Saved!"); 
-    }
-    
-    async function addEntry() { 
-        const amtInput = document.getElementById('amount').value; const amt = parseFloat(amtInput); if (!amt) return; 
-        const cat = document.getElementById('category').value; const isRecur = document.getElementById('isRecurring').checked; 
-        if (cat === 'Mortgage' && !editingId) config.m_balance -= amt; if (cat === 'Car' && !editingId) config.c_balance -= amt; 
-        
-        const payload = { amount: amt, member: document.getElementById('memberSelect').value, category: cat, note: document.getElementById('noteInput').value, intent: currentType, user_id: currentUser, group_id: currentGroup }; 
-        
-        if (editingId) { 
-            await _supabase.from('transactions').update(payload).eq('id', editingId); 
-            editingId = null; 
-            document.getElementById('syncBtn').innerText = "Sync Transaction"; 
-            document.getElementById('recurToggleRow').style.display = 'flex'; 
-        } else { 
-            await _supabase.from('transactions').insert([payload]); 
-            if (isRecur) await _supabase.from('recurring_expenses').insert([{ name: payload.note || cat, amount: amt, group_id: currentGroup, user_id: currentUser, billing_day: new Date().getDate() }]); 
-        } 
-        
-        await _supabase.from('app_settings').update({ m_balance: config.m_balance, c_balance: config.c_balance }).eq('group_id', currentGroup); 
-        document.getElementById('amount').value = ''; document.getElementById('noteInput').value = ''; document.getElementById('isRecurring').checked = false; fetchData(); 
-    }
-
-    function editEntry(id) { 
-        const item = history.find(h => h.id === id); if (!item) return; editingId = id; 
-        document.getElementById('amount').value = item.amount; 
-        document.getElementById('noteInput').value = item.note; 
-        document.getElementById('memberSelect').value = item.member; 
-        document.getElementById('category').value = item.category; 
-        setType(item.intent); 
-        document.getElementById('syncBtn').innerText = "Update Transaction"; 
-        document.getElementById('recurToggleRow').style.display = 'none'; 
-        switchView('app');
-        window.scrollTo(0,0); 
-    }
-
-    async function deleteEntry(id) { if (confirm("Delete?")) { await _supabase.from('transactions').delete().eq('id', id); fetchData(); } }
-    async function deleteSub(id) { if (confirm("Delete bill?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); fetchData(); } }
-    async function deleteNote(id) { if (confirm("Delete note?")) { await _supabase.from('app_notes').delete().eq('id', id); fetchData(); } }
-    function toggleNotifications() { const m = document.getElementById('notifModal'); const o = document.getElementById('notifOverlay'); const isV = m.style.display === 'block'; m.style.display = isV ? 'none' : 'block'; o.style.display = isV ? 'none' : 'block'; if(!isV) localStorage.setItem('montoya_notifs_viewed', Date.now().toString()); }
-    function toggleMenu() { if (window.innerWidth >= 1100) return; const m = document.getElementById('sideMenu'); const o = document.getElementById('sideMenuOverlay'); m.classList.toggle('open'); o.style.display = m.classList.contains('open') ? 'block' : 'none'; }
-    function toggleAuthMode() { isSignUpMode = !isSignUpMode; document.getElementById('authTitle').innerText = isSignUpMode ? "Create Account" : "Montoya Ledger"; document.getElementById('authBtn').innerText = isSignUpMode ? "Sign Up" : "Secure Login"; }
-    function setType(t) { currentType = t; document.getElementById('needBtn').classList.toggle('active', t==='Need'); document.getElementById('wantBtn').classList.toggle('active', t==='Want'); }
-    function quickFill(a, c, n, t) { document.getElementById('amount').value = a; document.getElementById('category').value = c; document.getElementById('noteInput').value = n; setType(t); window.scrollTo(0, document.querySelector('.type-toggle').offsetTop - 20); }
-    function copyKey() { navigator.clipboard.writeText(currentGroup); showToast("Key Copied!"); }
-    async function joinLedger() { const key = document.getElementById('joinKeyInput').value.trim(); if(key.length > 20) { await _supabase.from('app_settings').update({ group_id: key }).eq('user_id', currentUser); location.reload(); } }
-    function getCycleDates(baseDate) { let d = new Date(baseDate); let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY); if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); let end = new Date(start); end.setMonth(end.getMonth() + 1); return { start, end }; }
-    function initCycles() { const select = document.getElementById('cycleSelect'); select.innerHTML = ''; let now = new Date(); for(let i=0; i<6; i++) { let d = new Date(now.getFullYear(), now.getMonth() - i, 16); let opt = document.createElement('option'); opt.value = d.toISOString(); opt.text = d.toLocaleString('default', { month: 'short' }) + " Cycle"; select.appendChild(opt); } }
-    async function changeCycle() { currentViewDate = new Date(document.getElementById('cycleSelect').value); await fetchData(); }
-    async function logoutApp() { await _supabase.auth.signOut(); location.reload(); }
-    function showToast(m) { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = 'toast'; t.innerText = m; c.appendChild(t); setTimeout(() => t.remove(), 3000); }
-    function filterHistory() { const q = document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('.history-item').forEach(item => { item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none'; }); }
-    function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
-    async function updatePassword() { const newPass = document.getElementById('newPasswordInput').value; if(newPass.length < 6) { showToast("Min 6 chars"); return; } try { await _supabase.auth.updateUser({ password: newPass }); showToast("Password Updated!"); } catch (err) { alert(err.message); } }
+function switchView(id) {
+    const panels=['app','memberBreakdown','networth','vaults','bills','aiInsights','subManager','notesManager','analyticsModal','configManager','shareManager','profileManager'];
+    panels.forEach(p=>{ const el=document.getElementById(p); if(el) el.style.display='none'; });
+    const target=document.getElementById(id); if(target) target.style.display='block';
+    document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+    const nav=document.getElementById('nav-'+id); if(nav) nav.classList.add('active');
+    window.scrollTo(0,0);
+    if(id==='app'||id==='analyticsModal') fetchData();
+    if(id==='networth') renderNetWorth();
+    if(id==='vaults') renderVaults();
+    if(id==='bills') renderBills();
+    if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
+}
 </script>
 </body>
 </html>
