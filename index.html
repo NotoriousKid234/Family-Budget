@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { 
-            --primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --primary: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
             --secondary: linear-gradient(135deg, #4f46e5 0%, #7e22ce 100%);
             --brandon: #3b82f6; --gina: #ec4899; 
             --need: #10b981; --want: #f59e0b; --goal: #8b5cf6;
@@ -57,7 +57,7 @@
         /* THE PERFECT CENTERING SYSTEM */
         .top-header { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; margin-bottom: 25px; }
         .hamburger { font-size: 1.5rem; color: #94a3b8; cursor: pointer; }
-        .app-title { font-weight: 800; font-size: 0.9rem; letter-spacing: 1.5px; color: #fff; text-transform: uppercase; text-align: center; }
+        .app-title { font-weight: 800; font-size: 0.9rem; letter-spacing: 1.5px; color: #fff; text-transform: uppercase; text-align: center; margin: 0; }
 
         .cycle-selector { background: var(--primary); border: none; color: #fff; padding: 10px 20px; border-radius: 100px; font-size: 0.8rem; font-weight: 700; width: fit-content; margin: 0 auto 15px auto; display: block; cursor: pointer; }
         
@@ -79,7 +79,6 @@
         .streak-fire { color: #f97316; font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.5)); }
         .goal-trophy { color: #eab308; font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(234, 179, 8, 0.5)); }
 
-        .member-spend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .member-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 20px; text-align: center; border: 1px solid var(--border); }
 
         .history-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; margin-bottom: 10px; }
@@ -90,18 +89,27 @@
         .pill-gina { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
         .pill-split { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
 
-        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; transition: opacity 0.2s; }
+        .edit-icon { color: #60a5fa; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
+        .trash-icon { color: #ef4444; cursor: pointer; padding: 8px; font-size: 1rem; opacity: 0.7; }
+
+        .btn-elite { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 700; width: 100%; cursor: pointer; margin-bottom: 12px; }
         .quick-sync-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
         .quick-chip { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 6px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px; }
 
         input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 1rem; box-sizing: border-box; }
-        .user-badge { width: 36px; height: 36px; background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.4); }
+        
+        .user-badge { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.4); }
+
+        /* Icon Grid Selection styling */
+        .icon-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+        .prof-icon-opt { aspect-ratio: 1; background: rgba(0,0,0,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; border: 2px solid transparent; color: #94a3b8; transition: 0.2s; }
+        .prof-icon-opt.selected { border-color: #fff; background: var(--primary); color: white; }
 
         @media (min-width: 1100px) {
             body.logged-in .dashboard-wrapper { display: flex !important; justify-content: center; align-items: flex-start; gap: 40px; padding: 40px; }
             body.logged-in .side-menu { position: sticky; top: 40px; left: 0 !important; width: 280px; height: max-content; border-radius: 32px; flex-shrink: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
             body.logged-in #app, body.logged-in #subManager, body.logged-in #notesManager, body.logged-in #analyticsModal, body.logged-in #configManager, body.logged-in #shareManager, body.logged-in #profileManager { margin: 0; width: 550px; flex-shrink: 0; }
-            body.logged-in .hamburger { visibility: hidden !important; pointer-events: none !important; }
+            body.logged-in .hamburger { visibility: hidden !important; }
         }
     </style>
 </head>
@@ -176,6 +184,7 @@
                     <div class="quick-chip" onclick="quickFill(15, 'Dining', 'McDonalds', 'Want')"><i class="fa-solid fa-burger" style="color:#f59e0b"></i> McDonalds</div>
                     <div class="quick-chip" onclick="quickFill(40, 'Car', 'Gas', 'Need')"><i class="fa-solid fa-gas-pump" style="color:#3b82f6"></i> Gas</div>
                     <div class="quick-chip" onclick="quickFill(100, 'Groceries', 'Publix', 'Need')"><i class="fa-solid fa-basket-shopping" style="color:#10b981"></i> Publix</div>
+                    <div class="quick-chip" onclick="quickFill(450.00, 'Car', 'Car Loan', 'Need')"><i class="fa-solid fa-car" style="color:#3b82f6"></i> Car Loan</div>
                 </div>
                 <div class="recur-row"><span>Set as Recurring Bill?</span><input type="checkbox" id="isRecurring" style="width:18px; height:18px; cursor:pointer;"></div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><select id="memberSelect"><option value="Brandon">Brandon</option><option value="Gina">Gina</option><option value="Split">Split</option></select><input type="number" id="amount" placeholder="0.00" inputmode="decimal"></div>
@@ -188,12 +197,12 @@
             <div id="historyList" style="margin-top:15px;"></div>
         </div>
 
-        <div id="subManager"><div class="top-header"><i></i><div class="app-title">BILLS & SUBSCRIPTIONS</div><i></i></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><input type="text" id="subName" placeholder="Bill Name"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="subAmt" placeholder="Amount"><input type="number" id="subDay" placeholder="Day (1-31)"></div><button class="btn-elite" onclick="addSub()" style="margin-bottom:0;">Add New Bill</button></div><div id="subList"></div></div>
-        <div id="notesManager"><div class="top-header"><i></i><div class="app-title">FAMILY NOTES</div><i></i></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><textarea id="noteMessage" placeholder="Type a message..." style="height:100px;"></textarea><button class="btn-elite" onclick="addNote()" style="margin-bottom:0;">Post Note</button></div><div id="notesList"></div></div>
-        <div id="analyticsModal"><div class="top-header"><i></i><div class="app-title">CYCLE ANALYTICS</div><i></i></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span style="color:#94a3b8;">Last Cycle Total:</span><span id="lastCycleTotal" style="font-weight:700;">$0.00</span></div><div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;"><span style="color:#c4b5fd; font-weight:700;">Savings/Creep:</span><span id="creepTotal" style="font-weight:700;">$0.00</span></div></div><div style="height:300px; position:relative;"><canvas id="categoryDonutChart"></canvas></div><button class="btn-elite" onclick="exportCSV()" style="margin-top:20px;">Export Cycle to CSV</button></div>
+        <div id="subManager"><div class="top-header"><i></i><div class="app-title">BILLS & SUBSCRIPTIONS</div><i></i></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><input type="text" id="subName" placeholder="Bill Name"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="subAmt" placeholder="Amount"><input type="number" id="subDay" placeholder="Day (1-31)"></div><button class="btn-elite" onclick="addSub()">Add New Bill</button></div><div id="subList"></div></div>
+        <div id="notesManager"><div class="top-header"><i></i><div class="app-title">FAMILY NOTES</div><i></i></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><textarea id="noteMessage" placeholder="Type a message..." style="height:100px;"></textarea><button class="btn-elite" onclick="addNote()">Post Note</button></div><div id="notesList"></div></div>
+        <div id="analyticsModal"><div class="top-header"><i></i><div class="app-title">CYCLE ANALYTICS</div><i></i></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><div style="display:flex; justify-content:space-between; margin-bottom:12px;"><span style="color:#94a3b8;">Cycle Spend:</span><span id="lastCycleTotal" style="font-weight:700;">$0.00</span></div><div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:12px;"><span style="color:#c4b5fd; font-weight:700;">Savings/Creep:</span><span id="creepTotal" style="font-weight:700;">$0.00</span></div></div><div style="height:300px; position:relative;"><canvas id="categoryDonutChart"></canvas></div><button class="btn-elite" onclick="exportCSV()" style="margin-top:20px;">Export Cycle to CSV</button></div>
         <div id="configManager"><div class="top-header"><i></i><div class="app-title">LEDGER CONFIG</div><i></i></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><label style="font-size:0.7rem; font-weight:700;">MONTHLY BUDGET</label><input type="number" id="conf_income"><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><div><label style="font-size:0.7rem; font-weight:700;">MORTGAGE BAL</label><input type="number" id="conf_mbal"></div><div><label style="font-size:0.7rem; font-weight:700;">CAR LOAN BAL</label><input type="number" id="conf_cbal"></div></div><label style="font-size:0.7rem; font-weight:700; margin-top: 15px; display:block;">ORIGINAL LOAN AMOUNTS</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><input type="number" id="conf_morig" placeholder="Mortgage Orig"><input type="number" id="conf_corig" placeholder="Car Orig"></div><button class="btn-elite" onclick="saveConfig()">Save Settings</button></div></div>
         <div id="shareManager"><div class="top-header"><i></i><div class="app-title">LEDGER SHARE</div><i></i></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><div id="ledgerKeyDisplay" style="background:#000; color:#10b981; font-family:monospace; padding:15px; border-radius:8px; font-size:0.8rem; text-align:center; cursor:pointer;" onclick="copyKey()">Loading...</div><input type="text" id="joinKeyInput" placeholder="Paste Join Key..."><button class="btn-elite" onclick="joinLedger()" style="background:var(--secondary)">Link Ledger</button></div></div>
-        <div id="profileManager"><div class="top-header"><i></i><div class="app-title">PROFILE SETTINGS</div><i></i></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border);"><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">CHOOSE YOUR AVATAR</label><div class="icon-grid"><div class="prof-icon-opt" id="icon_fa-user" onclick="setProfileIcon('fa-user')"><i class="fa-solid fa-user"></i></div><div class="prof-icon-opt" id="icon_fa-gamepad" onclick="setProfileIcon('fa-gamepad')"><i class="fa-solid fa-gamepad"></i></div><div class="prof-icon-opt" id="icon_fa-futbol" onclick="setProfileIcon('fa-futbol')"><i class="fa-solid fa-futbol"></i></div><div class="prof-icon-opt" id="icon_fa-dog" onclick="setProfileIcon('fa-dog')"><i class="fa-solid fa-dog"></i></div><div class="prof-icon-opt" id="icon_fa-cat" onclick="setProfileIcon('fa-cat')"><i class="fa-solid fa-cat"></i></div></div><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">UPDATE PASSWORD</label><input type="password" id="newPasswordInput" placeholder="New password..."><button class="btn-elite" onclick="updatePassword()">Update Password</button></div></div>
+        <div id="profileManager"><div class="top-header"><i></i><div class="app-title">PROFILE SETTINGS</div><i></i></div><div style="background:rgba(0,0,0,0.2); padding:20px; border-radius:24px; border:1px solid var(--border); margin-bottom:20px;"><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">CHOOSE YOUR AVATAR</label><div class="icon-grid"><div class="prof-icon-opt" id="icon_fa-user" onclick="setProfileIcon('fa-user')"><i class="fa-solid fa-user"></i></div><div class="prof-icon-opt" id="icon_fa-gamepad" onclick="setProfileIcon('fa-gamepad')"><i class="fa-solid fa-gamepad"></i></div><div class="prof-icon-opt" id="icon_fa-futbol" onclick="setProfileIcon('fa-futbol')"><i class="fa-solid fa-futbol"></i></div><div class="prof-icon-opt" id="icon_fa-dog" onclick="setProfileIcon('fa-dog')"><i class="fa-solid fa-dog"></i></div><div class="prof-icon-opt" id="icon_fa-cat" onclick="setProfileIcon('fa-cat')"><i class="fa-solid fa-cat"></i></div></div><label style="font-size:0.7rem; font-weight:700; margin-bottom:10px; display:block;">UPDATE PASSWORD</label><input type="password" id="newPasswordInput" placeholder="New password..."><button class="btn-elite" onclick="updatePassword()">Update Password</button></div></div>
     </div>
 
 <script>
@@ -276,20 +285,15 @@
         document.getElementById('carPaidAmount').innerText = "Paid: $" + Math.max(0, config.c_orig - config.c_balance).toLocaleString();
         document.getElementById('carRemainingAmount').innerText = "Rem: $" + (config.c_balance || 0).toLocaleString();
 
-        if(mPerc >= 100 && !celebratedMilestones.mortgage) triggerCelebration('mortgage');
-        if(cPerc >= 100 && !celebratedMilestones.car) triggerCelebration('car');
-
-        const mySavedIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
+        const myIcon = localStorage.getItem('montoya_profile_icon') || 'fa-user';
 
         history.forEach(item => {
             totalS += item.amount;
             if (item.member === 'Brandon') bS += item.amount; else if (item.member === 'Gina') gS += item.amount; else if (item.member === 'Split') { bS += item.amount/2; gS += item.amount/2; }
             let isMe = item.user_id === currentUser;
-            let iconHtml = `<i class="fa-solid ${isMe ? mySavedIcon.replace('fa-','') : 'fa-user-group'}"></i>`;
             let dateStr = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="display:flex; align-items:center; gap:8px; margin-top:6px;"><div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div><div style="font-size:0.6rem; color:#64748b;">${dateStr} • ${iconHtml} ${isMe ? 'You' : 'Partner'}</div></div></div><div style="text-align:right;"><div style="font-weight:700; font-size:1.1rem;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-pen-to-square edit-icon" onclick="editEntry('${item.id}')"></i><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
+            div.innerHTML = `<div><span class="cat-pill" style="background:${catColors[item.category] || "#94a3b8"}22; color:${catColors[item.category] || "#94a3b8"}">${item.category}</span><span class="item-note-text">${item.note || item.category}</span><div style="display:flex; align-items:center; gap:8px; margin-top:6px;"><div class="member-pill ${item.member === 'Gina' ? 'pill-gina' : (item.member === 'Split' ? 'pill-split' : 'pill-brandon')}">${item.member}</div><div style="font-size:0.6rem; color:#64748b;">${dateStr} • <i class="fa-solid ${isMe ? myIcon.replace('fa-','') : 'fa-user-group'}"></i> ${isMe ? 'You' : 'Partner'}</div></div></div><div style="text-align:right;"><div style="font-weight:700; font-size:1.1rem;">-$${item.amount.toFixed(2)}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteEntry('${item.id}')"></i></div>`;
             list.appendChild(div);
         });
 
@@ -303,8 +307,8 @@
 
     function updateNotificationsUI() {
         let activities = [];
-        notes.forEach(n => activities.push({ type: 'note', author: n.author, text: `posted a note`, time: new Date(n.created_at) }));
-        history.forEach(t => { if(t.user_id !== currentUser) activities.push({ type: 'trans', author: 'Partner', text: `synced $${t.amount.toFixed(2)}`, time: new Date(t.created_at) }); });
+        notes.forEach(n => activities.push({ author: n.author, text: `posted a note`, time: new Date(n.created_at) }));
+        history.forEach(t => { if(t.user_id !== currentUser) activities.push({ author: 'Partner', text: `synced $${t.amount.toFixed(2)}`, time: new Date(t.created_at) }); });
         activities.sort((a,b) => b.time - a.time);
         const list = document.getElementById('notifList'); list.innerHTML = '';
         activities.slice(0,10).forEach(act => {
@@ -340,7 +344,7 @@
         const list = document.getElementById('subList'); list.innerHTML = '';
         recurring.forEach(s => {
             const div = document.createElement('div'); div.className = 'history-item';
-            div.innerHTML = `<div><b class="item-note-text">${s.name}</b><small style="color:#94a3b8">Billed Day ${s.billing_day}</small></div><div style="text-align:right;"><div style="font-weight:700;">$${s.amount.toFixed(2)}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteSub('${s.id}')"></i></div>`;
+            div.innerHTML = `<div><b class="item-note-text">${s.name}</b><small style="color:#94a3b8">Day ${s.billing_day}</small></div><div style="text-align:right;"><div style="font-weight:700;">$${s.amount.toFixed(2)}</div><i class="fa-solid fa-trash-can trash-icon" onclick="deleteSub('${s.id}')"></i></div>`;
             list.appendChild(div);
         });
     }
@@ -353,12 +357,12 @@
         const html = `<i class="fa-solid ${savedIcon.replace('fa-','')}"></i>`;
         document.getElementById('sidebarAvatar').innerHTML = html;
         document.getElementById('topAvatarBadge').innerHTML = html;
-        document.querySelectorAll('.prof-icon-opt').forEach(el => el.style.border = '2px solid transparent');
-        if(document.getElementById('icon_'+savedIcon)) document.getElementById('icon_'+savedIcon).style.border = '2px solid var(--primary)';
+        document.querySelectorAll('.prof-icon-opt').forEach(el => el.classList.remove('selected'));
+        if(document.getElementById('icon_'+savedIcon)) document.getElementById('icon_'+savedIcon).classList.add('selected');
     }
     function calculateMilestones() {
-        const combined = [...history, ...notes].map(x => new Date(x.created_at).toDateString());
-        const unique = [...new Set(combined)]; let streak = 0; let check = new Date();
+        const unique = [...new Set([...history, ...notes].map(x => new Date(x.created_at).toDateString()))];
+        let streak = 0; let check = new Date();
         while (unique.includes(check.toDateString())) { streak++; check.setDate(check.getDate() - 1); }
         document.getElementById('streakDisplay').innerText = streak;
         let spent = 0; history.forEach(i => spent += i.amount);
@@ -374,11 +378,10 @@
     }
     async function authenticateUser() { const email = document.getElementById('emailField').value; const pass = document.getElementById('passwordField').value; const btn = document.getElementById('authBtn'); if(!email || !pass) return; btn.innerText = "Authenticating..."; try { const { data, error } = isSignUpMode ? await _supabase.auth.signUp({email, password: pass}) : await _supabase.auth.signInWithPassword({email, password: pass}); if (error) throw error; if (data.session) location.reload(); } catch (err) { alert(err.message); btn.innerText = isSignUpMode ? "Sign Up" : "Secure Login"; } }
     async function saveConfig() { config.budget = parseFloat(document.getElementById('conf_income').value); config.m_balance = parseFloat(document.getElementById('conf_mbal').value); config.c_balance = parseFloat(document.getElementById('conf_cbal').value); config.m_orig = parseFloat(document.getElementById('conf_morig').value); config.c_orig = parseFloat(document.getElementById('conf_corig').value); await _supabase.from('app_settings').update(config).eq('group_id', currentGroup); switchView('app'); showToast("Settings Saved!"); }
-    async function addEntry() { const amtInput = document.getElementById('amount').value; const amt = parseFloat(amtInput); if (!amt) return; const cat = document.getElementById('category').value; if (cat === 'Mortgage') config.m_balance -= amt; if (cat === 'Car') config.c_balance -= amt; const payload = { amount: amt, member: document.getElementById('memberSelect').value, category: cat, note: document.getElementById('noteInput').value, intent: currentType, user_id: currentUser, group_id: currentGroup }; await _supabase.from('transactions').insert([payload]); await _supabase.from('app_settings').update({ m_balance: config.m_balance, c_balance: config.c_balance }).eq('group_id', currentGroup); document.getElementById('amount').value = ''; fetchData(); }
+    async function addEntry() { const amtInput = document.getElementById('amount').value; const amt = parseFloat(amtInput); if (!amt) return; const cat = document.getElementById('category').value; const isRecur = document.getElementById('isRecurring').checked; if (cat === 'Mortgage') config.m_balance -= amt; if (cat === 'Car') config.c_balance -= amt; const payload = { amount: amt, member: document.getElementById('memberSelect').value, category: cat, note: document.getElementById('noteInput').value, intent: currentType, user_id: currentUser, group_id: currentGroup }; await _supabase.from('transactions').insert([payload]); if (isRecur) await _supabase.from('recurring_expenses').insert([{ name: payload.note || cat, amount: amt, group_id: currentGroup, user_id: currentUser, billing_day: new Date().getDate() }]); await _supabase.from('app_settings').update({ m_balance: config.m_balance, c_balance: config.c_balance }).eq('group_id', currentGroup); document.getElementById('amount').value = ''; fetchData(); }
     async function deleteEntry(id) { if (confirm("Delete?")) { await _supabase.from('transactions').delete().eq('id', id); fetchData(); } }
     async function deleteSub(id) { if (confirm("Delete bill?")) { await _supabase.from('recurring_expenses').delete().eq('id', id); fetchData(); } }
     async function deleteNote(id) { if (confirm("Delete note?")) { await _supabase.from('app_notes').delete().eq('id', id); fetchData(); } }
-    function editEntry(id) { const item = history.find(h => h.id === id); if (!item) return; editingId = id; document.getElementById('amount').value = item.amount; document.getElementById('noteInput').value = item.note; document.getElementById('memberSelect').value = item.member; document.getElementById('category').value = item.category; setType(item.intent); document.getElementById('syncBtn').innerText = "Update Transaction"; window.scrollTo(0,0); }
     function toggleNotifications() { const m = document.getElementById('notifModal'); const o = document.getElementById('notifOverlay'); const isV = m.style.display === 'block'; m.style.display = isV ? 'none' : 'block'; o.style.display = isV ? 'none' : 'block'; if(!isV) localStorage.setItem('montoya_notifs_viewed', Date.now().toString()); }
     function toggleMenu() { if (window.innerWidth >= 1100) return; const m = document.getElementById('sideMenu'); const o = document.getElementById('sideMenuOverlay'); m.classList.toggle('open'); o.style.display = m.classList.contains('open') ? 'block' : 'none'; }
     function toggleAuthMode() { isSignUpMode = !isSignUpMode; document.getElementById('authTitle').innerText = isSignUpMode ? "Create Account" : "Montoya Ledger"; document.getElementById('authBtn').innerText = isSignUpMode ? "Sign Up" : "Secure Login"; }
@@ -386,11 +389,11 @@
     function quickFill(a, c, n, t) { document.getElementById('amount').value = a; document.getElementById('category').value = c; document.getElementById('noteInput').value = n; setType(t); }
     function copyKey() { navigator.clipboard.writeText(currentGroup); showToast("Key Copied!"); }
     async function joinLedger() { const key = document.getElementById('joinKeyInput').value.trim(); if(key.length > 20) { await _supabase.from('app_settings').update({ group_id: key }).eq('user_id', currentUser); location.reload(); } }
-    function getCycleDates(baseDate) { let d = new Date(baseDate); let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY); if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); let end = new Date(start); end.setMonth(end.getMonth() + 1); return { start, end }; }
-    function initCycles() { const select = document.getElementById('cycleSelect'); select.innerHTML = ''; let now = new Date(); for(let i=0; i<6; i++) { let d = new Date(now.getFullYear(), now.getMonth() - i, 16); let opt = document.createElement('option'); opt.value = d.toISOString(); opt.text = d.toLocaleString('default', { month: 'short' }) + " Cycle"; select.appendChild(opt); } }
-    async function changeCycle() { currentViewDate = new Date(document.getElementById('cycleSelect').value); await fetchData(); }
     async function logoutApp() { await _supabase.auth.signOut(); location.reload(); }
     function showToast(m) { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = 'toast'; t.innerText = m; c.appendChild(t); setTimeout(() => t.remove(), 3000); }
+    function getCycleDates(baseDate) { let d = new Date(baseDate); let start = new Date(d.getFullYear(), d.getMonth(), CYCLE_START_DAY); if (d.getDate() < CYCLE_START_DAY) start.setMonth(start.getMonth() - 1); let end = new Date(start); end.setMonth(end.getMonth() + 1); return { start, end }; }
+    function initCycles() { const select = document.getElementById('cycleSelect'); select.innerHTML = ''; let now = new Date(); for(let i=0; i<6; i++) { let d = new Date(now.getFullYear(), now.getMonth() - i, 16); let opt = document.createElement('option'); opt.value = d.toISOString(); opt.text = d.toLocaleString('default', { month: 'short' }) + " Cycle"; select.appendChild(opt); } }
+    async function updatePassword() { const newPass = document.getElementById('newPasswordInput').value; if(newPass.length < 6) { showToast("Min 6 characters"); return; } try { const { error } = await _supabase.auth.updateUser({ password: newPass }); if (error) throw error; showToast("Password Updated!"); } catch (err) { alert(err.message); } }
     function filterHistory() { const q = document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('.history-item').forEach(item => { item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none'; }); }
     function autoSuggest(c) { if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
 </script>
