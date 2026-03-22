@@ -12,7 +12,26 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { prompt, system } = JSON.parse(event.body);
+    const { prompt, system, image, mediaType } = JSON.parse(event.body);
+
+    // Build message content — supports text only OR image + text
+    let messageContent;
+    if (image) {
+      messageContent = [
+        {
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: mediaType || 'image/jpeg',
+            data: image
+          }
+        },
+        { type: 'text', text: prompt }
+      ];
+    } else {
+      messageContent = prompt;
+    }
+
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -23,19 +42,21 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 400,
-        system: system,
-        messages: [{ role: 'user', content: prompt }]
+        system: system || '',
+        messages: [{ role: 'user', content: messageContent }]
       })
     });
+
     const data = await res.json();
     return {
       statusCode: 200,
       headers: { 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify(data)
     };
-  } catch(e) {
+  } catch (e) {
     return {
       statusCode: 500,
+      headers: { 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify({ error: e.message })
     };
   }
