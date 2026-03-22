@@ -359,6 +359,11 @@
 
         /* ─── Auto-sync badge ─── */
         .auto-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--violet-dim); border: 1px solid rgba(167,139,250,.25); color: var(--violet); padding: 4px 10px; border-radius: 100px; font-size: .65rem; font-weight: 700; margin-bottom: 12px; }
+
+        /* ─── AI Purchase Coach ─── */
+        .verdict-go   { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,.25); }
+        .verdict-warn { background: rgba(251,191,36,.1); color: var(--amber); border: 1px solid rgba(251,191,36,.25); }
+        .verdict-skip { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(251,113,133,.25); }
     </style>
 </head>
 <body>
@@ -467,6 +472,42 @@
                 <div class="member-card gina"    onclick="openMemberView('Gina')">   <div class="member-name gina">Gina</div>    <div id="gSpend" class="member-amt">$0.00</div></div>
             </div>
 
+            <!-- Need vs Want Split -->
+            <div class="card" id="needWantCard" style="margin-bottom:12px;padding:16px 18px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);">Need vs Want</div>
+                    <div id="wantWarning" style="display:none;font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--rose-dim);color:var(--rose);border:1px solid rgba(251,113,133,.2);">⚠ Want limit reached</div>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:10px;">
+                    <div style="flex:1;text-align:center;padding:10px;background:var(--green-dim);border-radius:12px;border:1px solid rgba(52,211,153,.15);">
+                        <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:3px;">Needs</div>
+                        <div id="needAmt" style="font-family:'DM Mono',monospace;font-size:.95rem;color:var(--text);">$0.00</div>
+                    </div>
+                    <div style="flex:1;text-align:center;padding:10px;background:rgba(251,191,36,.08);border-radius:12px;border:1px solid rgba(251,191,36,.15);">
+                        <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--amber);margin-bottom:3px;">Wants</div>
+                        <div id="wantAmt" style="font-family:'DM Mono',monospace;font-size:.95rem;color:var(--text);">$0.00</div>
+                    </div>
+                    <div style="flex:1;text-align:center;padding:10px;background:var(--blue-dim);border-radius:12px;border:1px solid rgba(96,165,250,.15);">
+                        <div style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:3px;">Want Cap</div>
+                        <div id="wantCapDisplay" style="font-family:'DM Mono',monospace;font-size:.95rem;color:var(--text);">$0</div>
+                    </div>
+                </div>
+                <div style="height:6px;background:rgba(255,255,255,.05);border-radius:100px;overflow:hidden;display:flex;">
+                    <div id="needBar2" style="height:100%;background:linear-gradient(90deg,var(--green),rgba(52,211,153,.7));border-radius:100px;transition:width .8s ease;width:0%;"></div>
+                    <div id="wantBar2" style="height:100%;background:linear-gradient(90deg,var(--amber),rgba(251,191,36,.7));border-radius:100px;transition:width .8s ease;width:0%;margin-left:2px;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--text-dim);margin-top:5px;font-family:'DM Mono',monospace;">
+                    <span id="needPct2">Needs: 0%</span>
+                    <span id="wantPct2">Wants: 0%</span>
+                </div>
+                <div id="wantCapBar" style="display:none;margin-top:8px;">
+                    <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--text-dim);margin-bottom:4px;"><span>Want budget used</span><span id="wantCapPct">0%</span></div>
+                    <div style="height:5px;background:rgba(255,255,255,.05);border-radius:100px;overflow:hidden;">
+                        <div id="wantCapFill" style="height:100%;border-radius:100px;transition:width .8s ease;width:0%;background:linear-gradient(90deg,var(--amber),var(--rose));"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Input -->
             <div class="input-card">
                 <div class="type-toggle"><button id="needBtn" class="type-btn active" onclick="setType('Need')">NEED</button><button id="wantBtn" class="type-btn" onclick="setType('Want')">WANT</button></div>
@@ -484,7 +525,18 @@
                     <option value="Groceries">🛒 Groceries</option><option value="Dining">🍔 Dining</option><option value="Utilities">💡 Utilities</option><option value="Mortgage">🏠 Mortgage</option><option value="Car">🚗 Car Payment</option><option value="CreditCard">💳 Credit Card</option><option value="Subscription">📺 Subscription</option><option value="Beauty">✂️ Beauty</option><option value="Goal">🎯 Vault / Goal</option><option value="Misc">📦 Misc</option>
                 </select>
                 <input type="text" id="noteInput" placeholder="Note or #tags">
-                <button class="btn btn-gold" id="syncBtn" onclick="addEntry()">Sync Transaction</button>
+                <div id="aiAdvicePanel" style="display:none;background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(96,165,250,.06));border:1px solid rgba(167,139,250,.25);border-radius:16px;padding:14px 16px;margin-bottom:10px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                        <div style="width:7px;height:7px;background:var(--violet);border-radius:50%;box-shadow:0 0 8px var(--violet);animation:pulse 2s infinite;"></div>
+                        <span style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--violet);">AI Purchase Coach</span>
+                    </div>
+                    <div id="aiAdviceText" style="font-size:.88rem;color:var(--text-soft);line-height:1.6;">Analyzing your spending…</div>
+                    <div id="aiVerdict" style="display:none;margin-top:10px;padding:8px 14px;border-radius:10px;font-size:.8rem;font-weight:700;text-align:center;"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:10px;" id="syncBtnRow">
+                    <button class="btn btn-gold" id="syncBtn" onclick="addEntry()">Sync Transaction</button>
+                    <button class="btn" id="askAiBtn" onclick="askPurchaseAI()" style="width:auto;padding:15px 14px;background:var(--violet-dim);border:1px solid rgba(167,139,250,.3);color:var(--violet);border-radius:14px;font-size:.75rem;font-weight:700;white-space:nowrap;" title="Ask AI if you should buy this">🤖 Ask AI</button>
+                </div>
             </div>
 
             <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="searchBar" placeholder="Search transactions…" onkeyup="filterHistory()"></div>
@@ -614,6 +666,7 @@
             <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">LEDGER CONFIG</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
             <div class="input-card">
                 <label class="lbl">Monthly Budget</label><input type="number" id="conf_income">
+                <label class="lbl">Monthly Want Spending Cap</label><input type="number" id="conf_want_cap" placeholder="e.g. 500 — leave 0 for no limit">
                 <div class="g2"><div><label class="lbl">Mortgage Balance</label><input type="number" id="conf_mbal"></div><div><label class="lbl">Car Loan Balance</label><input type="number" id="conf_cbal"></div></div>
                 <label class="lbl" style="margin-top:8px;">Original Loan Amounts</label>
                 <div class="g2"><input type="number" id="conf_morig" placeholder="Mortgage original"><input type="number" id="conf_corig" placeholder="Car original"></div>
@@ -772,6 +825,7 @@ async function loadApp() {
         currentGroup = config.group_id;
         document.getElementById('keyDisplay').innerText = currentGroup;
         document.getElementById('conf_income').value = config.budget;
+        const wcEl = document.getElementById('conf_want_cap'); if(wcEl) wcEl.value = config.want_cap||0;
         document.getElementById('conf_mbal').value   = config.m_balance||0;
         document.getElementById('conf_cbal').value   = config.c_balance||0;
         document.getElementById('conf_morig').value  = config.m_orig||500000;
@@ -861,13 +915,46 @@ function renderDashboard() {
         const mpClass=item.member==='Gina'?'mp-gina':(item.member==='Split'?'mp-split':'mp-brandon');
         const d=new Date(item.created_at);
         const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-        const div=document.createElement('div'); div.className='hist-item';
+        const intentColor = item.intent==='Want' ? 'rgba(251,191,36,.06)' : 'rgba(52,211,153,.04)';
+        const intentBorder = item.intent==='Want' ? 'rgba(251,191,36,.15)' : 'rgba(52,211,153,.1)';
+        const div=document.createElement('div'); div.className='hist-item'; div.style.background=intentColor; div.style.borderColor=intentBorder;
         div.innerHTML=`<div style="min-width:0;flex:1;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${item.category}</span><span class="hist-note">${item.note||item.category}</span><div class="hist-meta"><span class="mpill ${mpClass}">${item.member}</span><span class="hist-date">${ds} · <i class="fa-solid ${isMe?savedIcon:'fa-user-group'}"></i> ${submitter}</span></div></div><div class="hist-right"><div class="hist-amt">-$${item.amount.toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-edit" onclick="editEntry('${item.id}')"><i class="fa-solid fa-pen-to-square"></i></button><button class="act-btn act-del" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
         list.appendChild(div);
     });
 
     const remaining=config.budget-total;
     document.getElementById('balanceNum').innerText='$'+fmt(remaining);
+
+    // Need vs Want split
+    let needTotal=0, wantTotal=0;
+    history.forEach(i=>{ if(i.intent==='Want') wantTotal+=i.amount; else needTotal+=i.amount; });
+    const grandTotal = needTotal+wantTotal || 1;
+    const needPct = Math.round(needTotal/grandTotal*100);
+    const wantPct = 100-needPct;
+    const needEl=document.getElementById('needAmt'); if(needEl) needEl.innerText='$'+fmt(needTotal);
+    const wantEl=document.getElementById('wantAmt'); if(wantEl) wantEl.innerText='$'+fmt(wantTotal);
+    const nb2=document.getElementById('needBar2'); if(nb2) nb2.style.width=needPct+'%';
+    const wb2=document.getElementById('wantBar2'); if(wb2) wb2.style.width=wantPct+'%';
+    const np2=document.getElementById('needPct2'); if(np2) np2.innerText='Needs: '+needPct+'%';
+    const wp2=document.getElementById('wantPct2'); if(wp2) wp2.innerText='Wants: '+wantPct+'%';
+
+    // Want cap logic
+    const wantCap = config.want_cap||0;
+    const wantCapDisp=document.getElementById('wantCapDisplay'); if(wantCapDisp) wantCapDisp.innerText=wantCap>0?'$'+fmt0(wantCap):'No cap';
+    const wantCapBar=document.getElementById('wantCapBar'); 
+    const wantWarn=document.getElementById('wantWarning');
+    if(wantCap>0) {
+        const capPct=Math.min(100,Math.round(wantTotal/wantCap*100));
+        if(wantCapBar) wantCapBar.style.display='block';
+        const capFill=document.getElementById('wantCapFill'); if(capFill) { capFill.style.width=capPct+'%'; capFill.style.background=capPct>=100?'var(--rose)':capPct>=80?'linear-gradient(90deg,var(--amber),var(--rose))':'linear-gradient(90deg,var(--green),var(--amber))';}
+        const capPctEl=document.getElementById('wantCapPct'); if(capPctEl) capPctEl.innerText=capPct+'%';
+        if(wantWarn) wantWarn.style.display=capPct>=100?'block':'none';
+        // Warn at 80%
+        const prevWantPct = parseFloat(localStorage.getItem('montoya_prev_want_pct')||'0');
+        if(capPct>=80 && capPct<100 && prevWantPct<80) showToast('⚠️ 80% of your Want budget used!');
+        if(capPct>=100 && prevWantPct<100) showToast('🚨 Want budget limit reached!');
+        localStorage.setItem('montoya_prev_want_pct', capPct);
+    } else { if(wantCapBar) wantCapBar.style.display='none'; if(wantWarn) wantWarn.style.display='none'; }
     document.getElementById('bSpend').innerText='$'+fmt(bS);
     document.getElementById('gSpend').innerText='$'+fmt(gS);
     document.getElementById('paceChip').innerText=`Pace: $${(remaining/30).toFixed(2)}/day`;
@@ -886,7 +973,9 @@ function openMemberView(name) {
     const list=document.getElementById('memberList'); list.innerHTML='';
     mem.forEach(item=>{
         let a=item.member==='Split'?item.amount/2:item.amount;
-        const div=document.createElement('div'); div.className='hist-item';
+        const intentColor = item.intent==='Want' ? 'rgba(251,191,36,.06)' : 'rgba(52,211,153,.04)';
+        const intentBorder = item.intent==='Want' ? 'rgba(251,191,36,.15)' : 'rgba(52,211,153,.1)';
+        const div=document.createElement('div'); div.className='hist-item'; div.style.background=intentColor; div.style.borderColor=intentBorder;
         div.innerHTML=`<div style="min-width:0;flex:1;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${item.category}</span><span class="hist-note">${item.note||item.category}</span></div><div class="hist-right"><div class="hist-amt">-$${a.toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-edit" onclick="editEntry('${item.id}')"><i class="fa-solid fa-pen-to-square"></i></button><button class="act-btn act-del" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
         list.appendChild(div);
     });
@@ -1112,6 +1201,14 @@ function calcMilestones() {
 async function addEntry() {
     const amt=parseFloat(document.getElementById('amount').value); if(!amt) return;
     const cat=document.getElementById('category').value, isRecur=document.getElementById('isRecur').checked;
+    // Warn if adding a Want over cap
+    if(currentType==='Want' && config.want_cap>0) {
+        let wantSpent=0; history.forEach(i=>{ if(i.intent==='Want') wantSpent+=i.amount; });
+        if(wantSpent+amt > config.want_cap) {
+            const over = fmt(wantSpent+amt-config.want_cap);
+            if(!confirm(`⚠️ This Want puts you $${over} over your Want budget. Add anyway?`)) return;
+        }
+    }
     if(cat==='Mortgage'&&!editingId) config.m_balance-=amt;
     if(cat==='Car'&&!editingId)      config.c_balance-=amt;
     const payload={amount:amt,member:document.getElementById('memberSelect').value,category:cat,note:document.getElementById('noteInput').value,intent:currentType,user_id:currentUser,group_id:currentGroup};
@@ -1162,7 +1259,8 @@ async function authenticateUser() {
 }
 
 async function saveConfig() {
-    config.budget   =parseFloat(document.getElementById('conf_income').value)||config.budget;
+    config.budget    =parseFloat(document.getElementById('conf_income').value)||config.budget;
+    config.want_cap  =parseFloat(document.getElementById('conf_want_cap').value)||0;
     config.m_balance=parseFloat(document.getElementById('conf_mbal').value)||0;
     config.c_balance=parseFloat(document.getElementById('conf_cbal').value)||0;
     config.m_orig   =parseFloat(document.getElementById('conf_morig').value)||config.m_orig;
@@ -1414,6 +1512,94 @@ async function checkAutoSync() {
     localStorage.setItem('montoya_autosynced', JSON.stringify(synced));
 }
 
+// ── AI Purchase Coach ──
+async function askPurchaseAI() {
+    const amt = parseFloat(document.getElementById('amount').value);
+    const note = document.getElementById('noteInput').value || 'this item';
+    const cat = document.getElementById('category').value;
+
+    if (!amt) { showToast('Enter an amount first!'); return; }
+    if (currentType !== 'Want') { showToast('AI Coach is for Want purchases only!'); return; }
+
+    const panel = document.getElementById('aiAdvicePanel');
+    const adviceText = document.getElementById('aiAdviceText');
+    const verdict = document.getElementById('aiVerdict');
+
+    panel.style.display = 'block';
+    verdict.style.display = 'none';
+    adviceText.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--text-dim);font-size:.82rem;"><div class="ai-spinner"></div>Analyzing your finances…</div>';
+
+    // Build rich financial context
+    let wantSpent = 0, needSpent = 0, totalSpent = 0;
+    history.forEach(i => {
+        totalSpent += i.amount;
+        if (i.intent === 'Want') wantSpent += i.amount;
+        else needSpent += i.amount;
+    });
+    const wantCap = config.want_cap || 0;
+    const budget = config.budget || 7400;
+    const remaining = budget - totalSpent;
+    const wantRemaining = wantCap > 0 ? wantCap - wantSpent : null;
+    const { start, end } = cycleDates(currentViewDate);
+    const now = new Date();
+    const daysInCycle = Math.round((end - start) / (1000*60*60*24));
+    const daysLeft = Math.max(0, Math.round((end - now) / (1000*60*60*24)));
+    const savingsPct = Math.round(((budget - totalSpent) / budget) * 100);
+    const wantCapPct = wantCap > 0 ? Math.round((wantSpent / wantCap) * 100) : null;
+
+    const context = `Family budget data:
+- Monthly budget: $${budget}
+- Total spent this cycle: $${totalSpent.toFixed(2)}
+- Remaining budget: $${remaining.toFixed(2)}
+- Savings power: ${savingsPct}%
+- Days left in cycle: ${daysLeft} of ${daysInCycle}
+- Needs spent: $${needSpent.toFixed(2)}
+- Wants spent this cycle: $${wantSpent.toFixed(2)}
+${wantCap > 0 ? `- Monthly Want budget cap: $${wantCap} (${wantCapPct}% used, $${(wantCap-wantSpent).toFixed(2)} remaining)` : '- No Want budget cap set'}
+- Mortgage balance: $${config.m_balance || 0}
+- Car loan balance: $${config.c_balance || 0}
+
+The person wants to buy: "${note}" (${cat}) for $${amt.toFixed(2)}`;
+
+    try {
+        const res = await fetch('/.netlify/functions/ai-proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                system: `You are a caring but honest personal finance coach for a family. They are about to make a Want purchase and want your advice. Analyze their financial situation and give a clear, specific recommendation in exactly 2-3 sentences. Be direct and use their actual numbers. End your response with exactly one of these verdict codes on its own line: [GO] if they can clearly afford it, [WARN] if they should be cautious, or [SKIP] if they really shouldn't buy it right now. Be encouraging but prioritize their financial health.`,
+                prompt: context + `
+
+Should they buy this right now? Give specific advice using their numbers.`
+            })
+        });
+        const data = await res.json();
+        const full = data.content?.[0]?.text || 'Unable to analyze right now.';
+
+        // Parse verdict code
+        let verdictCode = 'WARN';
+        let adviceOnly = full;
+        if (full.includes('[GO]')) { verdictCode = 'GO'; adviceOnly = full.replace('[GO]', '').trim(); }
+        else if (full.includes('[SKIP]')) { verdictCode = 'SKIP'; adviceOnly = full.replace('[SKIP]', '').trim(); }
+        else if (full.includes('[WARN]')) { verdictCode = 'WARN'; adviceOnly = full.replace('[WARN]', '').trim(); }
+
+        adviceText.innerText = adviceOnly;
+        verdict.style.display = 'block';
+        verdict.className = '';
+        if (verdictCode === 'GO') {
+            verdict.classList.add('verdict-go');
+            verdict.innerText = '✅ Go for it — you can afford this!';
+        } else if (verdictCode === 'WARN') {
+            verdict.classList.add('verdict-warn');
+            verdict.innerText = '⚠️ Be careful — think twice before buying';
+        } else {
+            verdict.classList.add('verdict-skip');
+            verdict.innerText = '🚫 Skip it — not the right time';
+        }
+    } catch(e) {
+        adviceText.innerText = 'Could not connect to AI Coach. Please try again.';
+    }
+}
+
 async function updatePassword() {
     const p=document.getElementById('newPass').value; if(p.length<6){showToast('Min 6 chars');return;}
     try{await _sb.auth.updateUser({password:p});showToast('Password updated!');}catch(e){alert(e.message);}
@@ -1428,7 +1614,15 @@ function exportCSV() {
     const a=document.createElement('a'); a.setAttribute('href','data:text/csv;charset=utf-8,'+encodeURIComponent(csv)); a.setAttribute('download','Montoya_Ledger.csv'); a.click();
 }
 
-function setType(t){ currentType=t; document.getElementById('needBtn').classList.toggle('active',t==='Need'); document.getElementById('wantBtn').classList.toggle('active',t==='Want'); }
+function setType(t){ 
+    currentType=t; 
+    document.getElementById('needBtn').classList.toggle('active',t==='Need'); 
+    document.getElementById('wantBtn').classList.toggle('active',t==='Want');
+    const aiPanel=document.getElementById('aiAdvicePanel');
+    const askBtn=document.getElementById('askAiBtn');
+    if(aiPanel) aiPanel.style.display='none';
+    if(askBtn) askBtn.style.display=t==='Want'?'block':'none';
+}
 function quickFill(a,c,n,t){ document.getElementById('amount').value=a; document.getElementById('category').value=c; document.getElementById('noteInput').value=n; setType(t); window.scrollTo(0,document.querySelector('.type-toggle').offsetTop-20); }
 function autoSuggest(c){ if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
 function copyKey(){ navigator.clipboard.writeText(currentGroup); showToast('Key copied!'); }
