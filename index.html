@@ -1239,6 +1239,45 @@
         .cat-limit-warn { background: rgba(251,191,36,.15); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
         .cat-limit-over { background: rgba(251,113,133,.15); color: var(--rose); border: 1px solid rgba(251,113,133,.3); }
 
+        /* ─── Profile ─── */
+        .prof-hero-card {
+            background: linear-gradient(135deg, rgba(249,115,22,.08), rgba(232,194,82,.05));
+            border: 1px solid rgba(249,115,22,.15);
+            border-radius: 20px; padding: 24px;
+            display: flex; align-items: center; gap: 18px;
+            margin-bottom: 20px; position: relative; overflow: hidden;
+        }
+        .prof-hero-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, #f97316, #e8c252, transparent);
+        }
+        .prof-avatar-large {
+            width: 64px; height: 64px; border-radius: 18px; flex-shrink: 0;
+            background: linear-gradient(135deg, rgba(249,115,22,.2), rgba(232,194,82,.15));
+            border: 1px solid rgba(249,115,22,.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; color: var(--g2, #e8c252);
+        }
+        .prof-hero-name { font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700; background: linear-gradient(90deg,#f97316,#e8c252); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 4px; }
+        .prof-hero-email { font-size: .78rem; color: var(--text-soft); margin-bottom: 3px; }
+        .prof-hero-since { font-size: .65rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+
+        .prof-stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+        .prof-stat-card { background: var(--ink-2); border: 1px solid var(--border); border-radius: 16px; padding: 16px 10px; text-align: center; transition: all .2s; }
+        .prof-stat-card:hover { border-color: rgba(249,115,22,.2); transform: translateY(-2px); }
+        .prof-stat-icon { font-size: 1.3rem; margin-bottom: 6px; }
+        .prof-stat-val { font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+        .prof-stat-lbl { font-size: .55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); }
+
+        /* Toggle switch */
+        .prof-toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 16px; }
+        .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; inset: 0; background: rgba(255,255,255,.1); border-radius: 100px; cursor: pointer; transition: .3s; border: 1px solid var(--border); }
+        .toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px; background: white; border-radius: 50%; transition: .3s; }
+        .toggle-switch input:checked + .toggle-slider { background: linear-gradient(90deg,#f97316,#e8c252); border-color: rgba(249,115,22,.4); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
         /* ─── Right Side Panels ─── */
         .side-panel-card {
             background: var(--ink-2);
@@ -1660,7 +1699,7 @@
                     <div id="needBar2" style="height:100%;background:linear-gradient(90deg,var(--green),rgba(52,211,153,.7));border-radius:100px;transition:width .8s ease;width:0%;"></div>
                     <div id="wantBar2" style="height:100%;background:linear-gradient(90deg,var(--amber),rgba(251,191,36,.7));border-radius:100px;transition:width .8s ease;width:0%;margin-left:2px;"></div>
                 </div>
-                <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--text-dim);margin-top:5px;font-family:'DM Mono',monospace;">
+                <div style="display:flex;justify-content:space-between;font-size:.6rem;color:var(--text-dim);margin-top:5px;">
                     <span id="needPct2">Needs: 0%</span><span id="wantPct2">Wants: 0%</span>
                 </div>
                 <div id="wantCapBar" style="display:none;margin-top:8px;">
@@ -1856,7 +1895,37 @@
             </div>
             <div class="sec-head">Asset Breakdown</div>
             <div class="card" id="assetBreakdown"></div>
-            <div class="sec-head" style="margin-top:14px;">Update Assets</div>
+            <div class="sec-head" style="margin-top:14px;">Net Worth Goal</div>
+            <div class="card" style="padding:18px;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    <div style="flex:1;">
+                        <label class="lbl">Target Net Worth</label>
+                        <input type="number" id="nw_goal" placeholder="e.g. 100000" style="margin:0;">
+                    </div>
+                    <button class="btn btn-gold" style="flex-shrink:0;width:auto;padding:10px 16px;margin:0;" onclick="saveNwGoal()">Set</button>
+                </div>
+                <div id="nwGoalProgress" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-dim);margin-bottom:6px;">
+                        <span>Progress to goal</span>
+                        <span id="nwGoalPct">0%</span>
+                    </div>
+                    <div style="height:6px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden;">
+                        <div id="nwGoalBar" style="height:100%;background:linear-gradient(90deg,var(--green),#86efac);border-radius:100px;width:0%;transition:width .6s;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sec-head">Emergency Fund</div>
+            <div class="card" style="padding:18px;margin-bottom:14px;">
+                <div style="font-size:.78rem;color:var(--text-dim);margin-bottom:12px;line-height:1.6;">Financial experts recommend 3–6 months of expenses saved.</div>
+                <div class="g2" style="margin-bottom:10px;">
+                    <div><label class="lbl">Current Emergency Fund</label><input type="number" id="nw_emergency" placeholder="Amount saved" style="margin:0;" oninput="updateEmergencyFund()"></div>
+                    <div><label class="lbl">Monthly Expenses</label><input type="number" id="nw_monthly_exp" placeholder="Your monthly spend" style="margin:0;" oninput="updateEmergencyFund()"></div>
+                </div>
+                <div id="emergencyFundStatus" style="font-size:.78rem;color:var(--text-dim);padding:10px 12px;background:rgba(0,0,0,.2);border-radius:10px;"></div>
+            </div>
+
+            <div class="sec-head">Update Assets</div>
             <div class="input-card">
                 <label class="lbl">Home Value</label><input type="number" id="nw_home" placeholder="Estimated home value">
                 <label class="lbl">Checking / Savings</label><input type="number" id="nw_cash" placeholder="Bank balances">
@@ -1923,8 +1992,55 @@
         <!-- ══ SUBSCRIPTIONS ══ -->
         <div id="subManager" class="app-panel">
             <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">SUBSCRIPTIONS</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
-            <div class="input-card"><input type="text" id="subName" placeholder="Bill name"><div class="g2"><input type="number" id="subAmt" placeholder="Amount"><input type="number" id="subDay" placeholder="Day (1–31)"></div><button class="btn btn-gold" onclick="addSub()">Add Bill</button></div>
-            <div id="subList"></div>
+
+            <!-- Summary card -->
+            <div class="card card-hi" style="margin-bottom:14px;padding:18px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);">Monthly Subscriptions</div>
+                    <div id="subTotalDisplay" style="font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:600;color:var(--rose);">$0.00/mo</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                    <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:12px;text-align:center;">
+                        <div id="subCountDisplay" style="font-size:1.2rem;font-weight:700;color:var(--text);">0</div>
+                        <div style="font-size:.58rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Active</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:12px;text-align:center;">
+                        <div id="subYearlyDisplay" style="font-size:1.2rem;font-weight:700;color:var(--text);">$0</div>
+                        <div style="font-size:.58rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Per Year</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:12px;text-align:center;">
+                        <div id="subDailyDisplay" style="font-size:1.2rem;font-weight:700;color:var(--text);">$0</div>
+                        <div style="font-size:.58rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Per Day</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sec-head">Your Subscriptions</div>
+            <div id="subList" style="margin-bottom:14px;"></div>
+
+            <!-- Add new -->
+            <div class="sec-head">Add Subscription</div>
+            <div class="input-card">
+                <div class="g2">
+                    <div><label class="lbl">Service Name</label><input type="text" id="subName" placeholder="e.g. Netflix"></div>
+                    <div><label class="lbl">Monthly Cost</label><input type="number" id="subAmt" placeholder="e.g. 15.99"></div>
+                </div>
+                <div class="g2">
+                    <div><label class="lbl">Billing Day</label><input type="number" id="subDay" placeholder="Day (1–31)"></div>
+                    <div><label class="lbl">Category</label>
+                        <select id="subCat">
+                            <option value="Streaming">📺 Streaming</option>
+                            <option value="Music">🎵 Music</option>
+                            <option value="Software">💻 Software</option>
+                            <option value="Fitness">💪 Fitness</option>
+                            <option value="News">📰 News</option>
+                            <option value="Gaming">🎮 Gaming</option>
+                            <option value="Other">📦 Other</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-gold" onclick="addSub()">Add Subscription</button>
+            </div>
         </div>
 
         <!-- ══ FAMILY NOTES ══ -->
@@ -1968,7 +2084,7 @@
 
         <!-- ══ ANALYTICS ══ -->
         <div id="analyticsModal" class="app-panel">
-            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">CYCLE ANALYTICS</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">ANALYTICS</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
             <div class="card card-hi" style="margin-bottom:12px;">
                 <div class="stat-row"><span class="stat-key">Cycle Spend</span><span id="cycleTotal" class="stat-val" style="color:var(--rose);">$0.00</span></div>
                 <div class="stat-row"><span class="stat-key" style="color:var(--gold);">Left in Budget</span><span id="creepTotal" class="stat-val" style="color:var(--gold);">$0.00</span></div>
@@ -1980,19 +2096,83 @@
             </div>
             <div class="card" style="padding:20px;"><div style="height:270px;position:relative;"><canvas id="catChart"></canvas></div></div>
             <button class="btn btn-ghost" onclick="exportCSV()" style="margin-top:14px;"><i class="fa-solid fa-download" style="margin-right:8px;"></i>Export Cycle CSV</button>
+
+            <!-- Category Breakdown -->
+            <div class="sec-head" style="margin-top:16px;">Spending by Category</div>
+            <div class="card" style="padding:18px;margin-bottom:14px;" id="categoryBreakdown">
+                <div style="color:var(--text-dim);font-size:.82rem;">Load analytics to see breakdown</div>
+            </div>
+
+            <!-- Month over month -->
+            <div id="momComparison"></div>
+
+            <!-- Spend by day -->
+            <div class="sec-head">Best & Worst Spending Days</div>
+            <div class="card" style="padding:18px;margin-bottom:14px;" id="spendByDay">
+                <div style="color:var(--text-dim);font-size:.82rem;">Load analytics to see patterns</div>
+            </div>
         </div>
 
         <!-- ══ CONFIG ══ -->
         <div id="configManager" class="app-panel">
-            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">LEDGER CONFIG</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">SETTINGS</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+
+            <div class="sec-head">Budget</div>
             <div class="input-card">
-                <label class="lbl">Monthly Budget</label><input type="number" id="conf_income">
-                <label class="lbl">Monthly Want Spending Cap</label><input type="number" id="conf_want_cap" placeholder="e.g. 500 — leave 0 for no limit">
+                <label class="lbl">Monthly Budget</label>
+                <input type="number" id="conf_income" placeholder="e.g. 7500">
+                <label class="lbl">Monthly Want Spending Cap</label>
+                <input type="number" id="conf_want_cap" placeholder="e.g. 500 — leave 0 for no limit">
+                <label class="lbl">Cycle Start Day</label>
+                <select id="conf_cycle_day" style="margin-bottom:0;">
+                    <option value="1">1st of each month</option>
+                    <option value="5">5th of each month</option>
+                    <option value="10">10th of each month</option>
+                    <option value="15">15th of each month</option>
+                    <option value="16" selected>16th of each month</option>
+                    <option value="20">20th of each month</option>
+                    <option value="25">25th of each month</option>
+                </select>
+            </div>
+
+            <div class="sec-head">Loans</div>
+            <div class="input-card">
                 <div class="g2"><div><label class="lbl">Mortgage Balance</label><input type="number" id="conf_mbal"></div><div><label class="lbl">Car Loan Balance</label><input type="number" id="conf_cbal"></div></div>
                 <label class="lbl" style="margin-top:8px;">Original Loan Amounts</label>
                 <div class="g2"><input type="number" id="conf_morig" placeholder="Mortgage original"><input type="number" id="conf_corig" placeholder="Car original"></div>
-                <button class="btn btn-gold" onclick="saveConfig()">Save Settings</button>
             </div>
+
+            <div class="sec-head">Category Spending Limits</div>
+            <div class="card" style="padding:18px;margin-bottom:14px;">
+                <div style="font-size:.78rem;color:var(--text-dim);margin-bottom:14px;line-height:1.6;">Set monthly limits per category. You will get a warning when you approach or exceed them.</div>
+                <div id="catLimitsList"></div>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <select id="newLimitCat" style="flex:1;margin:0;">
+                        <option value="Dining">Dining</option>
+                        <option value="Groceries">Groceries</option>
+                        <option value="Gas">Gas</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Health">Health</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Misc">Misc</option>
+                    </select>
+                    <input type="number" id="newLimitAmt" placeholder="$ limit" style="flex:1;margin:0;">
+                    <button class="btn btn-gold" style="flex-shrink:0;padding:10px 16px;margin:0;width:auto;" onclick="addCategoryLimit()">Add</button>
+                </div>
+            </div>
+
+            <div class="sec-head">Data</div>
+            <div class="card" style="padding:18px;margin-bottom:14px;">
+                <button class="btn" style="background:rgba(96,165,250,.1);color:var(--blue);border:1px solid rgba(96,165,250,.3);margin-bottom:8px;" onclick="exportCSV()">
+                    <i class="fa-solid fa-download" style="margin-right:8px;"></i>Export Transactions (CSV)
+                </button>
+                <button class="btn" id="clearCycleBtn" style="background:rgba(251,113,133,.08);color:var(--rose);border:1px solid rgba(251,113,133,.2);margin-bottom:0;" onclick="confirmClearCycle()">
+                    <i class="fa-solid fa-rotate" style="margin-right:8px;"></i>Reset Current Cycle Data
+                </button>
+            </div>
+
+            <button class="btn btn-gold" onclick="saveConfig()" style="width:100%;margin-top:4px;">Save All Settings</button>
         </div>
 
         <!-- ══ SHARE ══ -->
@@ -2010,8 +2190,45 @@
         <!-- ══ PROFILE ══ -->
         <div id="profileManager" class="app-panel">
             <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">PROFILE</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
-            <div class="input-card">
-                <label class="lbl">Choose Avatar</label>
+
+            <!-- Profile Hero -->
+            <div class="prof-hero-card">
+                <div class="prof-avatar-large" id="profAvatarLarge"><i class="fa-solid fa-user"></i></div>
+                <div class="prof-hero-info">
+                    <div class="prof-hero-name" id="profHeroName">Loading…</div>
+                    <div class="prof-hero-email" id="profHeroEmail"></div>
+                    <div class="prof-hero-since" id="profHeroSince"></div>
+                </div>
+            </div>
+
+            <!-- Account Stats -->
+            <div class="sec-head">Your Activity</div>
+            <div class="prof-stats-grid">
+                <div class="prof-stat-card">
+                    <div class="prof-stat-icon">💰</div>
+                    <div id="profStatTxns" class="prof-stat-val">0</div>
+                    <div class="prof-stat-lbl">Transactions</div>
+                </div>
+                <div class="prof-stat-card">
+                    <div class="prof-stat-icon">🔥</div>
+                    <div id="profStatStreak" class="prof-stat-val">0</div>
+                    <div class="prof-stat-lbl">Day Streak</div>
+                </div>
+                <div class="prof-stat-card">
+                    <div class="prof-stat-icon">🏦</div>
+                    <div id="profStatVaults" class="prof-stat-val">0</div>
+                    <div class="prof-stat-lbl">Active Vaults</div>
+                </div>
+                <div class="prof-stat-card">
+                    <div class="prof-stat-icon">📅</div>
+                    <div id="profStatCycles" class="prof-stat-val">0</div>
+                    <div class="prof-stat-lbl">Cycles Tracked</div>
+                </div>
+            </div>
+
+            <!-- Avatar -->
+            <div class="sec-head">Choose Avatar</div>
+            <div class="card" style="padding:18px;margin-bottom:14px;">
                 <div class="icon-grid">
                     <div class="prof-opt" id="icon_fa-user"       onclick="setIcon('fa-user')"><i class="fa-solid fa-user"></i></div>
                     <div class="prof-opt" id="icon_fa-gamepad"    onclick="setIcon('fa-gamepad')"><i class="fa-solid fa-gamepad"></i></div>
@@ -2022,9 +2239,66 @@
                     <div class="prof-opt" id="icon_fa-car"        onclick="setIcon('fa-car')"><i class="fa-solid fa-car"></i></div>
                     <div class="prof-opt" id="icon_fa-motorcycle" onclick="setIcon('fa-motorcycle')"><i class="fa-solid fa-motorcycle"></i></div>
                 </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="sec-head">Notifications</div>
+            <div class="card" style="padding:18px;margin-bottom:14px;">
+                <div class="prof-toggle-row">
+                    <div>
+                        <div style="font-size:.85rem;font-weight:600;">Bill Reminders</div>
+                        <div style="font-size:.72rem;color:var(--text-dim);">Alert when a bill is due within 3 days</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notif_bills" checked onchange="saveNotifPrefs()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="prof-toggle-row">
+                    <div>
+                        <div style="font-size:.85rem;font-weight:600;">Partner Activity</div>
+                        <div style="font-size:.72rem;color:var(--text-dim);">Show when your partner logs a transaction</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notif_partner" checked onchange="saveNotifPrefs()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="prof-toggle-row" style="border-bottom:none;">
+                    <div>
+                        <div style="font-size:.85rem;font-weight:600;">Weekly Recap</div>
+                        <div style="font-size:.72rem;color:var(--text-dim);">AI summary every Sunday</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notif_recap" checked onchange="saveNotifPrefs()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Security -->
+            <div class="sec-head">Security</div>
+            <div class="input-card">
                 <label class="lbl">Update Password</label>
                 <input type="password" id="newPass" placeholder="New password (min 6 chars)">
                 <button class="btn btn-gold" onclick="updatePassword()">Update Password</button>
+            </div>
+
+            <!-- About -->
+            <div class="sec-head">About</div>
+            <div class="card" style="padding:18px;margin-bottom:14px;">
+                <div class="stat-row"><span class="stat-key">App</span><span class="stat-val" style="font-family:'Outfit',sans-serif;background:linear-gradient(90deg,#f97316,#e8c252);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;">Flint</span></div>
+                <div class="stat-row"><span class="stat-key">Version</span><span class="stat-val">1.0.0</span></div>
+                <div class="stat-row"><span class="stat-key">Powered by</span><span class="stat-val">Claude AI · Supabase</span></div>
+                <div class="stat-row" style="border:none;"><span class="stat-key">Tagline</span><span class="stat-val" style="color:var(--text-dim);font-style:italic;">Spark your financial future</span></div>
+            </div>
+
+            <!-- Danger zone -->
+            <div class="sec-head" style="color:var(--rose);">Account</div>
+            <div class="card" style="padding:18px;margin-bottom:14px;border-color:rgba(251,113,133,.15);">
+                <button class="btn" style="background:rgba(251,113,133,.1);color:var(--rose);border:1px solid rgba(251,113,133,.3);margin-bottom:0;" onclick="logoutApp()">
+                    <i class="fa-solid fa-right-from-bracket" style="margin-right:8px;"></i>Sign Out
+                </button>
             </div>
         </div>
 
@@ -2171,6 +2445,11 @@ async function loadApp() {
     if (data?.length) {
         config = data[0];
         currentGroup = config.group_id;
+        // Populate cycle day selector
+        const cycleEl = document.getElementById('conf_cycle_day');
+        if (cycleEl && config.cycle_start_day) {
+            cycleEl.value = config.cycle_start_day;
+        }
         document.getElementById('keyDisplay').innerText = currentGroup;
         document.getElementById('conf_income').value = config.budget;
         const wcEl = document.getElementById('conf_want_cap'); if(wcEl) wcEl.value = config.want_cap||0;
@@ -2589,6 +2868,8 @@ function renderMonthOverMonth() {
 }
 
 function renderAnalytics() {
+    renderCategoryBreakdown();
+    renderSpendByDay();
     let spent=0,mPay=0,cPay=0,tots={};
     history.forEach(i=>{spent+=i.amount;tots[i.category]=(tots[i.category]||0)+i.amount;if(i.category==='Mortgage')mPay+=i.amount;if(i.category==='Car')cPay+=i.amount;});
     document.getElementById('cycleTotal').innerText='$'+fmt(spent);
@@ -2730,7 +3011,7 @@ function renderNotifs() {
     notes.forEach(n=>acts.push({user:n.author,text:'posted a note',time:new Date(n.created_at)}));
     acts.sort((a,b)=>b.time-a.time).slice(0,10).forEach(a=>{
         const div=document.createElement('div'); div.style.cssText='padding:10px 0;border-bottom:1px solid var(--border);';
-        div.innerHTML=`<div style="font-size:.82rem;color:var(--text);"><b>${a.user}</b> ${a.text}</div><div style="font-size:.62rem;color:var(--text-dim);font-family:'DM Mono',monospace;margin-top:2px;">${a.time.toLocaleDateString('en-US')} ${a.time.toLocaleTimeString('en-US')}</div>`;
+        div.innerHTML=`<div style="font-size:.82rem;color:var(--text);"><b>${a.user}</b> ${a.text}</div><div style="font-size:.62rem;color:var(--text-dim);margin-top:2px;">${a.time.toLocaleDateString('en-US')} ${a.time.toLocaleTimeString('en-US')}</div>`;
         list.appendChild(div);
     });
     const lastV=parseInt(localStorage.getItem('montoya_notifs')||'0');
@@ -3437,6 +3718,263 @@ function runIntelligenceChecks() {
     try { if (typeof checkBudgetWarning === 'function') checkBudgetWarning(); } catch(e) {}
     try { if (typeof checkAnomalies === 'function') checkAnomalies(); } catch(e) {}
     try { if (typeof shouldShowRecap === 'function' && shouldShowRecap()) generateWeeklyRecap(); } catch(e) {}
+}
+
+// ── Profile ──
+function populateProfile() {
+    // Name
+    const nameEl = document.getElementById('profHeroName');
+    const emailEl = document.getElementById('profHeroEmail');
+    const sinceEl = document.getElementById('profHeroSince');
+    const avatarEl = document.getElementById('profAvatarLarge');
+
+    if (nameEl) {
+        let name = 'User';
+        if (currentUser === USERS.Brandon || currentEmail.toLowerCase().includes('brandon')) name = 'Brandon';
+        else if (currentUser === USERS.Gina || currentEmail.toLowerCase().includes('gina')) name = 'Gina';
+        nameEl.innerText = name;
+    }
+    if (emailEl) emailEl.innerText = currentEmail || '';
+    if (sinceEl) {
+        const joined = new Date();
+        joined.setMonth(joined.getMonth() - 2); // estimate
+        sinceEl.innerText = 'Member since ' + joined.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    }
+    if (avatarEl) {
+        const icon = localStorage.getItem('montoya_icon') || 'fa-user';
+        avatarEl.innerHTML = '<i class="fa-solid ' + icon + '"></i>';
+    }
+
+    // Stats
+    const txnEl = document.getElementById('profStatTxns');
+    const streakEl2 = document.getElementById('profStatStreak');
+    const vaultEl = document.getElementById('profStatVaults');
+    const cyclesEl = document.getElementById('profStatCycles');
+
+    if (txnEl) txnEl.innerText = history.length;
+    if (streakEl2) streakEl2.innerText = document.getElementById('streakVal')?.innerText || '0';
+    if (vaultEl) vaultEl.innerText = vaults.length;
+    if (cyclesEl) {
+        // Estimate cycles by date range of transactions
+        const dates = history.map(t => new Date(t.created_at));
+        if (dates.length > 0) {
+            const oldest = new Date(Math.min(...dates));
+            const months = Math.max(1, Math.round((new Date() - oldest) / (30 * 24 * 60 * 60 * 1000)));
+            cyclesEl.innerText = months;
+        } else {
+            cyclesEl.innerText = '1';
+        }
+    }
+
+    // Load notif prefs
+    const prefs = JSON.parse(localStorage.getItem('montoya_notif_prefs') || '{"bills":true,"partner":true,"recap":true}');
+    const b = document.getElementById('notif_bills');
+    const p = document.getElementById('notif_partner');
+    const r = document.getElementById('notif_recap');
+    if (b) b.checked = prefs.bills !== false;
+    if (p) p.checked = prefs.partner !== false;
+    if (r) r.checked = prefs.recap !== false;
+}
+
+function saveNotifPrefs() {
+    const prefs = {
+        bills: document.getElementById('notif_bills')?.checked !== false,
+        partner: document.getElementById('notif_partner')?.checked !== false,
+        recap: document.getElementById('notif_recap')?.checked !== false
+    };
+    localStorage.setItem('montoya_notif_prefs', JSON.stringify(prefs));
+    showToast('Notification preferences saved', 'success');
+}
+
+// ── Category Limits UI ──
+function addCategoryLimit() {
+    const cat = document.getElementById('newLimitCat')?.value;
+    const amt = parseFloat(document.getElementById('newLimitAmt')?.value);
+    if (!cat || !amt || amt <= 0) { showToast('Enter a valid category and amount', 'warning'); return; }
+    setCategoryLimit(cat, amt);
+    renderCatLimits();
+    document.getElementById('newLimitAmt').value = '';
+    showToast(cat + ' limit set to $' + amt, 'success');
+}
+
+function renderCatLimits() {
+    const list = document.getElementById('catLimitsList');
+    if (!list) return;
+    const limits = getCategoryLimits();
+    const catSpend = getCatSpendThisCycle();
+    if (!Object.keys(limits).length) {
+        list.innerHTML = '<div style="font-size:.78rem;color:var(--text-dim);padding:8px 0;">No limits set yet. Add one below.</div>';
+        return;
+    }
+    list.innerHTML = '';
+    Object.entries(limits).forEach(([cat, limit]) => {
+        const spent = catSpend[cat] || 0;
+        const pct = Math.min(100, Math.round((spent/limit)*100));
+        const color = pct >= 100 ? 'var(--rose)' : pct >= 80 ? '#fbbf24' : 'var(--green)';
+        const div = document.createElement('div');
+        div.style.cssText = 'margin-bottom:12px;';
+        div.innerHTML =
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">' +
+            '<span style="font-size:.82rem;font-weight:600;">' + cat + '</span>' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+            '<span style="font-size:.72rem;color:var(--text-dim);">$' + spent.toFixed(0) + ' / $' + limit + '</span>' +
+            '<button onclick="removeCatLimit(\'' + cat + '\')" style="background:none;border:none;color:var(--rose);cursor:pointer;font-size:.7rem;">✕</button>' +
+            '</div></div>' +
+            '<div style="height:5px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden;">' +
+            '<div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:100px;transition:width .5s;"></div></div>';
+        list.appendChild(div);
+    });
+}
+
+function removeCatLimit(cat) {
+    setCategoryLimit(cat, 0);
+    renderCatLimits();
+}
+
+// ── Net Worth Goal + Emergency Fund ──
+function saveNwGoal() {
+    const goal = parseFloat(document.getElementById('nw_goal')?.value) || 0;
+    if (!goal) return;
+    localStorage.setItem('flint_nw_goal', goal);
+    updateNwGoalProgress();
+    showToast('Net worth goal set! ✓', 'success');
+}
+
+function updateNwGoalProgress() {
+    const goal = parseFloat(localStorage.getItem('flint_nw_goal')) || 0;
+    const goalEl = document.getElementById('nw_goal');
+    if (goalEl && !goalEl.value) goalEl.value = goal || '';
+
+    const nwEl = document.getElementById('nwNumber');
+    const current = parseFloat(nwEl?.innerText?.replace(/[$,]/g,'')) || 0;
+    const progressWrap = document.getElementById('nwGoalProgress');
+    const pctEl = document.getElementById('nwGoalPct');
+    const barEl = document.getElementById('nwGoalBar');
+
+    if (goal > 0 && progressWrap) {
+        progressWrap.style.display = 'block';
+        const pct = Math.max(0, Math.min(100, Math.round((current/goal)*100)));
+        if (pctEl) pctEl.innerText = pct + '%';
+        if (barEl) barEl.style.width = pct + '%';
+    }
+}
+
+function updateEmergencyFund() {
+    const fund = parseFloat(document.getElementById('nw_emergency')?.value) || 0;
+    const monthlyExp = parseFloat(document.getElementById('nw_monthly_exp')?.value) || (config.budget || 0);
+    const statusEl = document.getElementById('emergencyFundStatus');
+    if (!statusEl) return;
+
+    if (!fund || !monthlyExp) {
+        statusEl.innerText = 'Enter your emergency fund and monthly expenses above.';
+        return;
+    }
+    const months = fund / monthlyExp;
+    let msg, color;
+    if (months >= 6) { msg = '✅ Excellent! You have ' + months.toFixed(1) + ' months covered. That is above the 6-month recommendation.'; color = 'var(--green)'; }
+    else if (months >= 3) { msg = '✓ Good. You have ' + months.toFixed(1) + ' months covered. The goal is 6 months.'; color = '#fbbf24'; }
+    else { msg = '⚠️ You have ' + months.toFixed(1) + ' months covered. Aim for at least 3 months ($' + (monthlyExp * 3).toLocaleString() + ').'; color = 'var(--rose)'; }
+    statusEl.innerText = msg;
+    statusEl.style.color = color;
+}
+
+// ── Enhanced renderAnalytics ──
+function renderCategoryBreakdown() {
+    const el = document.getElementById('categoryBreakdown');
+    if (!el || !history.length) return;
+
+    const cats = {};
+    history.forEach(t => { cats[t.category] = (cats[t.category]||0) + t.amount; });
+    const total = Object.values(cats).reduce((s,v)=>s+v,0);
+    const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+
+    const colors = ['#f97316','#e8c252','#60a5fa','#34d399','#a78bfa','#fb7185','#2dd4bf','#fbbf24'];
+
+    let html = '';
+    sorted.forEach(([cat, amt], i) => {
+        const pct = Math.round((amt/total)*100);
+        const color = colors[i % colors.length];
+        html +=
+            '<div style="margin-bottom:12px;">' +
+            '<div style="display:flex;justify-content:space-between;margin-bottom:5px;">' +
+            '<span style="font-size:.82rem;font-weight:600;">' + cat + '</span>' +
+            '<span style="font-size:.78rem;color:var(--text-soft);">$' + amt.toFixed(2) + ' (' + pct + '%)</span>' +
+            '</div>' +
+            '<div style="height:6px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden;">' +
+            '<div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:100px;transition:width .6s ' + (i*0.05) + 's;"></div></div></div>';
+    });
+    el.innerHTML = html || '<div style="color:var(--text-dim);font-size:.82rem;">No transactions this cycle.</div>';
+}
+
+function renderSpendByDay() {
+    const el = document.getElementById('spendByDay');
+    if (!el || !history.length) return;
+
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const dayTotals = [0,0,0,0,0,0,0];
+    const dayCounts = [0,0,0,0,0,0,0];
+
+    history.forEach(t => {
+        const d = new Date(t.created_at).getDay();
+        dayTotals[d] += t.amount;
+        dayCounts[d]++;
+    });
+
+    const max = Math.max(...dayTotals) || 1;
+    let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:80px;margin-bottom:10px;">';
+    dayTotals.forEach((amt, i) => {
+        const h = Math.round((amt/max)*100);
+        const isMax = amt === max;
+        html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">' +
+            '<div style="width:100%;height:' + h + '%;background:' + (isMax ? 'linear-gradient(180deg,#f97316,#e8c252)' : 'rgba(255,255,255,.1)') + ';border-radius:6px 6px 0 0;transition:height .5s ' + (i*0.05) + 's;min-height:3px;"></div>' +
+            '<div style="font-size:.58rem;color:' + (isMax?'var(--g1,#f97316)':'var(--text-dim)') + ';font-weight:' + (isMax?'700':'400') + ';">' + days[i] + '</div></div>';
+    });
+    html += '</div>';
+
+    // Best and worst
+    const bestDay = days[dayTotals.indexOf(max)];
+    const minAmt = Math.min(...dayTotals.filter(v=>v>0));
+    const worstDay = minAmt ? days[dayTotals.indexOf(minAmt)] : 'N/A';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">' +
+        '<div style="background:rgba(251,113,133,.08);border:1px solid rgba(251,113,133,.2);border-radius:10px;padding:10px;text-align:center;">' +
+        '<div style="font-size:.6rem;color:var(--rose);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Highest Spend</div>' +
+        '<div style="font-size:.88rem;font-weight:700;">' + bestDay + '</div>' +
+        '<div style="font-size:.65rem;color:var(--text-dim);">$' + max.toFixed(2) + '</div></div>' +
+        '<div style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:10px;padding:10px;text-align:center;">' +
+        '<div style="font-size:.6rem;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Lowest Spend</div>' +
+        '<div style="font-size:.88rem;font-weight:700;">' + worstDay + '</div>' +
+        '<div style="font-size:.65rem;color:var(--text-dim);">$' + (minAmt||0).toFixed(2) + '</div></div></div>';
+
+    el.innerHTML = html;
+}
+
+// ── Subscriptions enhanced render ──
+function renderSubSummary() {
+    const subs = JSON.parse(localStorage.getItem('montoya_subs') || '[]');
+    const totalEl = document.getElementById('subTotalDisplay');
+    const countEl = document.getElementById('subCountDisplay');
+    const yearlyEl = document.getElementById('subYearlyDisplay');
+    const dailyEl = document.getElementById('subDailyDisplay');
+    if (!totalEl) return;
+    const total = subs.reduce((s,sub) => s + (parseFloat(sub.amount)||0), 0);
+    if (totalEl) totalEl.innerText = '$' + total.toFixed(2) + '/mo';
+    if (countEl) countEl.innerText = subs.length;
+    if (yearlyEl) yearlyEl.innerText = '$' + (total*12).toFixed(0);
+    if (dailyEl) dailyEl.innerText = '$' + (total/30).toFixed(2);
+}
+
+function confirmClearCycle() {
+    showConfirm('This will delete all transactions from the current cycle. This cannot be undone.', async () => {
+        const cycleStart = (() => {
+            const n = new Date(); const d = config.cycle_start_day||16;
+            const s = new Date(n.getFullYear(), n.getMonth(), d);
+            if (s > n) s.setMonth(s.getMonth()-1);
+            return s;
+        })();
+        await _sb.from('app_history').delete().gte('created_at', cycleStart.toISOString()).eq('group_id', currentGroup);
+        showToast('Cycle data cleared', 'info');
+        fetchData();
+    });
 }
 
 // ── Live Market Feed ──
