@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Montoya Ledger Elite</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>Flint — Spark your financial future</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -107,8 +107,17 @@
             color: var(--gold); font-size: 1rem; flex-shrink: 0;
             box-shadow: 0 4px 16px rgba(232,194,82,.2), inset 0 1px 0 rgba(255,255,255,.1);
         }
-        .logo-text { font-family: 'Instrument Serif', serif; font-size: 1.2rem; color: var(--text); line-height: 1.2; }
-        .logo-text span { color: var(--gold); }
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.3rem;
+            background: linear-gradient(90deg, #f97316 0%, #e8c252 50%, #f0d97a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+        .logo-text span { -webkit-text-fill-color: transparent; }
         .logo-sub { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); margin-top: 2px; }
 
         .nav-section-label {
@@ -988,9 +997,9 @@
             letter-spacing: .3px;
         }
         .dash-name {
-            font-family: 'Instrument Serif', serif;
-            font-size: 1.45rem; font-weight: 400;
-            background: linear-gradient(135deg, #e8c252 0%, #f0d97a 40%, #b8941c 100%);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem; font-weight: 700;
+            background: linear-gradient(90deg, #f97316 0%, #e8c252 50%, #f0d97a 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -1454,9 +1463,9 @@
 <!-- LOGIN -->
 <div id="loginScreen">
     <div class="login-box">
-        <div class="login-icon"><i class="fa-solid fa-shield-halved"></i></div>
-        <div class="login-title">Montoya Ledger</div>
-        <div class="login-sub">Elite · Family Finance</div>
+        <div class="login-icon" style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.6rem;background:linear-gradient(90deg,#f97316,#e8c252,#f0d97a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">F</div>
+        <div class="login-title">Flint</div>
+        <div class="login-sub">Spark your financial future</div>
         <input type="email" id="emailField" placeholder="Email address">
         <input type="password" id="passwordField" placeholder="Password">
         <button class="btn btn-gold" id="authBtn" onclick="authenticateUser()" style="margin-bottom:14px;">Secure Login</button>
@@ -1472,7 +1481,7 @@
     <div id="sideMenu" class="side-menu">
         <div class="menu-logo">
             <div id="sideAvatar" class="logo-mark"><i class="fa-solid fa-user"></i></div>
-            <div class="logo-text">Montoya <span>Ledger</span></div>
+            <div class="logo-text">Flint</div>
         </div>
         <div class="nav-item active" onclick="switchView('app')" id="nav-app"><i class="fa-solid fa-house"></i> Dashboard</div>
         <div class="nav-item" onclick="switchView('networth')" id="nav-networth"><i class="fa-solid fa-chart-pie"></i> Net Worth</div>
@@ -3251,7 +3260,7 @@ async function generateWeeklyRecap() {
     body.innerHTML = '<div class="ai-tip-loading"><div class="ai-spinner" style="border-top-color:var(--gold);width:18px;height:18px;"></div><span>Generating recap…</span></div>';
 
     try {
-        const prompt = `You are a friendly family finance coach for the Montoya family. Generate a warm, encouraging weekly spending recap in 2-3 sentences.
+        const prompt = `You are a friendly personal finance coach. Generate a warm, encouraging weekly spending recap in 2-3 sentences.
 
 Week data: $${weekTotal.toFixed(0)} total spent, $${weekNeeds.toFixed(0)} on needs, $${weekWants.toFixed(0)} on wants, ${txCount} transactions, top category: ${topCat}. Budget this cycle: $${config.budget||0}.
 
@@ -3704,7 +3713,7 @@ function triggerCelebration(type){ celebratedMilestones[type]=true; confetti({pa
 function exportCSV() {
     let csv='Date,Category,Member,Amount,Note\n';
     history.forEach(i=>csv+=`${new Date(i.created_at).toLocaleDateString()},${i.category},${i.member},${i.amount},${i.note}\n`);
-    const a=document.createElement('a'); a.setAttribute('href','data:text/csv;charset=utf-8,'+encodeURIComponent(csv)); a.setAttribute('download','Montoya_Ledger.csv'); a.click();
+    const a=document.createElement('a'); a.setAttribute('href','data:text/csv;charset=utf-8,'+encodeURIComponent(csv)); a.setAttribute('download','Flint_Export.csv'); a.click();
 }
 
 function setType(t){ 
