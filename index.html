@@ -3610,8 +3610,8 @@ async function fetchAiTip(force = false) {
 
     const today = new Date().toDateString();
 
-    // Use cached tip if same day and not forcing refresh
-    if (!force && aiTipCache && aiTipDate === today && aiTipCache.includes('ai-tip-text')) {
+    // Use cached tip if same day, not forcing, and cache has actual content
+    if (!force && aiTipCache && aiTipDate === today && aiTipCache.length > 80) {
         body.innerHTML = aiTipCache;
         return;
     }
@@ -3644,25 +3644,37 @@ TIP: [1-2 sentences max, specific and actionable, friendly tone]`;
         const data = await res.json();
         const text = data.content?.[0]?.text || '';
 
-        // Robust parsing - handle various AI response formats
-        const catMatch = text.match(/CATEGORY:\s*(.+)/i);
-        const tipMatch = text.match(/TIP:\s*([\s\S]+)/i);
-
-        const category = catMatch ? catMatch[1].trim() : 'Finance';
+        // Parse AI response - try structured format first, fallback to raw text
+        let category = 'Tip';
         let tip = '';
-        if (tipMatch) {
-            tip = tipMatch[1].trim();
-        } else {
-            // If AI didn't follow format, just use the whole response
-            tip = text.split('\n').filter(function(l){ return !l.match(/^CATEGORY:/i) && !l.match(/^TIP:/i); }).join(' ').trim();
-            if (!tip) tip = text.trim();
+
+        const lines = text.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+        
+        lines.forEach(function(line) {
+            if (line.match(/^CATEGORY:/i)) {
+                category = line.replace(/^CATEGORY:\s*/i, '').trim();
+            } else if (line.match(/^TIP:/i)) {
+                tip = line.replace(/^TIP:\s*/i, '').trim();
+            }
+        });
+
+        // If structured parsing failed, use the full text as the tip
+        if (!tip) {
+            tip = lines.filter(function(l){
+                return !l.match(/^CATEGORY:/i);
+            }).join(' ').trim();
         }
+        if (!tip) tip = text.trim();
 
-        // Clean up any leftover format artifacts
-        tip = tip.replace(/^TIP:\s*/i, '').trim();
+        // Emoji map for categories
+        const catEmoji = {
+            'saving':'💰', 'spending':'💳', 'investing':'📈',
+            'mindset':'🧠', 'budget':'📊', 'finance':'💡', 'debt':'🏦'
+        };
+        const emoji = catEmoji[category.toLowerCase()] || '💡';
 
-        const html = '<div class="ai-tip-category">✦ ' + category + '</div>' +
-                     '<div class="ai-tip-text">' + tip + '</div>';
+        const html = '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(167,139,250,.8);margin-bottom:10px;">' + emoji + ' ' + category + '</div>' +
+                     '<div style="font-size:.83rem;line-height:1.65;color:rgba(240,244,255,.75);">' + tip + '</div>';
 
         body.innerHTML = html;
         localStorage.setItem('aiTipCache', html);
