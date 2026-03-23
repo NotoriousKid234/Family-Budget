@@ -2529,17 +2529,21 @@ function renderMonthOverMonth() {
     const color = diff > 0 ? 'var(--rose)' : diff < 0 ? 'var(--green)' : 'var(--text-dim)';
 
     const el = document.getElementById('momComparison');
-    if (el) el.innerHTML =
-        '<div class="card" style="margin-bottom:12px;">' +
-        '<div class="sec-head" style="margin-bottom:10px;">📅 Month-over-Month</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
-        '<div style="text-align:center;padding:12px;background:rgba(0,0,0,.2);border-radius:12px;">' +
-        '<div style="font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">This Cycle</div>' +
-        '<div style="font-family:'DM Mono',monospace;font-size:1rem;color:var(--text);">$' + fmt(currentSpend) + '</div></div>' +
-        '<div style="text-align:center;padding:12px;background:rgba(0,0,0,.2);border-radius:12px;">' +
-        '<div style="font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Last Cycle</div>' +
-        '<div style="font-family:'DM Mono',monospace;font-size:1rem;color:var(--text-soft);">$' + fmt(prevSpend) + '</div></div></div>' +
-        '<div style="font-size:.82rem;font-weight:700;color:' + color + ';text-align:center;">' + trend + '</div></div>';
+    if (el) {
+        const momoHTML = [
+            '<div class="card" style="margin-bottom:12px;">',
+            '<div class="sec-head" style="margin-bottom:10px;">&#128197; Month-over-Month</div>',
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">',
+            '<div style="text-align:center;padding:12px;background:rgba(0,0,0,.2);border-radius:12px;">',
+            '<div style="font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">This Cycle</div>',
+            '<div style="font-size:1rem;color:var(--text);">$' + fmt(currentSpend) + '</div></div>',
+            '<div style="text-align:center;padding:12px;background:rgba(0,0,0,.2);border-radius:12px;">',
+            '<div style="font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Last Cycle</div>',
+            '<div style="font-size:1rem;color:var(--text-soft);">$' + fmt(prevSpend) + '</div></div></div>',
+            '<div style="font-size:.82rem;font-weight:700;color:' + color + ';text-align:center;">' + trend + '</div></div>'
+        ].join('');
+        el.innerHTML = momoHTML;
+    }
 }
 
 function renderAnalytics() {
@@ -3267,11 +3271,11 @@ function checkBudgetWarning() {
     if (projectedOverage > 50 && daysLeft > 3) {
         card.style.display = 'block';
         if (title) title.innerText = `⚠️ Budget Alert — ${daysLeft} days left`;
-        if (msg) msg.innerText = 'At your current pace of $' + dailyRate.toFixed(0) + '/day, you'll exceed your budget by $' + fmt(projectedOverage) + ' before the cycle ends. Consider slowing spending on wants.';
+        if (msg) msg.innerText = 'At your current pace of $' + dailyRate.toFixed(0) + '/day, you will exceed your budget by $' + fmt(projectedOverage) + ' before the cycle ends. Consider slowing spending on wants.';
     } else if (pctUsed >= 85) {
         card.style.display = 'block';
         if (title) title.innerText = '⚠️ Budget Running Low';
-        if (msg) msg.innerText = 'You've used ' + Math.round(pctUsed) + '% of your $' + fmt(budget) + ' budget with $' + fmt(remaining) + ' remaining and ' + daysLeft + ' days to go.';
+        if (msg) msg.innerText = 'You have used ' + Math.round(pctUsed) + '% of your $' + fmt(budget) + ' budget with $' + fmt(remaining) + ' remaining and ' + daysLeft + ' days to go.';
     } else {
         card.style.display = 'none';
     }
@@ -3354,7 +3358,7 @@ function buildReactionHTML(txnId) {
         const reacted = myReaction === e;
         const countSpan = count > 0 ? '<span class="txn-reaction-count">' + count + '</span>' : '';
         const cls = 'txn-reaction-btn' + (reacted ? ' reacted' : '');
-        btns += '<button class="' + cls + '" onclick="reactToTxn('' + txnId + '','' + e + '')" title="' + labels[e] + '">' + e + countSpan + '</button>';
+        btns += '<button class="' + cls + '" onclick="reactToTxn(\'' + txnId + '\',\'' + e + '\')" title="' + labels[e] + '">' + e + countSpan + '</button>';
     });
     return '<div class="txn-reaction-row">' + btns + '</div>';
 }
