@@ -412,28 +412,71 @@
             padding: 3px 10px; border-radius: 100px;
         }
 
+        /* ── Premium Transaction Card ── */
         .hist-item {
-            background: rgba(13,26,48,.5); border: 1px solid var(--border);
-            border-radius: 16px; display: flex; align-items: center;
-            justify-content: space-between; padding: 14px 16px;
-            margin-bottom: 8px; transition: all .2s; gap: 12px;
+            background: rgba(10,18,36,.6);
+            border: 1px solid rgba(255,255,255,.06);
+            border-radius: 18px;
+            display: flex; align-items: center;
+            justify-content: space-between;
+            padding: 0;
+            margin-bottom: 8px;
+            transition: border-color .2s, box-shadow .2s, transform .15s;
+            gap: 0;
+            overflow: hidden;
+            position: relative;
         }
-        .hist-item:hover { border-color: var(--border-hi); background: rgba(20,36,64,.7); transform: translateX(2px); }
-        .cat-badge { font-size: .56rem; font-weight: 700; padding: 3px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: .8px; width: fit-content; }
-        .hist-note { font-size: .9rem; font-weight: 600; color: var(--text); display: block; margin: 4px 0 4px; }
-        .hist-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-        .mpill { font-size: .56rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: .4px; }
-        .mp-brandon { background: rgba(96,165,250,.15); color: var(--brandon); }
-        .mp-gina { background: rgba(244,114,182,.15); color: var(--gina); }
-        .mp-split { background: var(--teal-dim); color: var(--teal); }
-        .hist-date { font-size: .58rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
-        .hist-right { text-align: right; flex-shrink: 0; }
-        .hist-amt { font-family: 'DM Mono', monospace; font-size: .9rem; font-weight: 500; }
-        .hist-actions { display: flex; gap: 2px; justify-content: flex-end; margin-top: 4px; }
-        .act-btn { background: none; border: none; cursor: pointer; padding: 5px 6px; border-radius: 8px; font-size: .75rem; transition: all .18s; }
-        .act-edit { color: var(--blue); opacity: .7; }
-        .act-del { color: var(--rose); opacity: .7; }
-        .act-btn:hover { opacity: 1; background: rgba(255,255,255,.06); }
+        .hist-item:hover {
+            border-color: rgba(255,255,255,.13);
+            box-shadow: 0 4px 20px rgba(0,0,0,.3);
+            transform: translateY(-1px);
+        }
+        /* Left accent stripe = category color */
+        .hist-accent {
+            width: 4px; min-height: 64px; align-self: stretch;
+            flex-shrink: 0; border-radius: 18px 0 0 18px;
+        }
+        /* Category icon circle */
+        .hist-icon {
+            width: 38px; height: 38px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0; margin: 14px 0 14px 14px;
+        }
+        .hist-body { flex: 1; min-width: 0; padding: 13px 12px 13px 10px; }
+        .hist-note { font-size: .88rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .hist-tags { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+        .htag {
+            font-size: .58rem; font-weight: 700; padding: 2px 8px;
+            border-radius: 100px; text-transform: uppercase; letter-spacing: .6px;
+            white-space: nowrap;
+        }
+        .htag-cat  { background: rgba(255,255,255,.07); color: var(--text-soft); }
+        .htag-need { background: rgba(52,211,153,.1);  color: #34d399; border: 1px solid rgba(52,211,153,.2); }
+        .htag-want { background: rgba(251,191,36,.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,.2); }
+        .htag-recur{ background: rgba(167,139,250,.1); color: #a78bfa; border: 1px solid rgba(167,139,250,.2); }
+        .hist-sub { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+        .hist-who {
+            font-size: .6rem; font-weight: 800; padding: 2px 8px;
+            border-radius: 100px; text-transform: uppercase; letter-spacing: .5px;
+        }
+        .hist-date { font-size: .6rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+        /* Right side */
+        .hist-right { text-align: right; flex-shrink: 0; padding: 13px 14px 13px 8px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; }
+        .hist-amt { font-family: 'DM Mono', monospace; font-size: .95rem; font-weight: 600; color: var(--text); letter-spacing: -.3px; }
+        .hist-actions { display: flex; gap: 4px; }
+        .act-btn { background: none; border: none; cursor: pointer; padding: 5px 7px; border-radius: 8px; font-size: .72rem; transition: all .18s; }
+        .act-edit { color: var(--blue); opacity: .6; }
+        .act-del  { color: var(--rose); opacity: .6; }
+        .act-btn:hover { opacity: 1; background: rgba(255,255,255,.07); }
+        /* Reactions row */
+        .txn-reaction-row { display: flex; gap: 4px; padding: 0 14px 10px 66px; flex-wrap: wrap; }
+        .txn-reaction-btn { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 100px; padding: 2px 8px; font-size: .72rem; cursor: pointer; transition: all .18s; display: flex; align-items: center; gap: 3px; }
+        .txn-reaction-btn:hover { background: rgba(255,255,255,.1); transform: scale(1.1); }
+        .txn-reaction-btn.reacted { background: rgba(232,194,82,.15); border-color: rgba(232,194,82,.3); }
+        .txn-reaction-count { font-size: .62rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+        /* Legacy aliases */
+        .cat-badge { font-size: .56rem; font-weight: 700; padding: 3px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: .8px; }
+        .mpill, .mp-brandon, .mp-gina, .mp-split { display: none; }
 
         /* ─── Section heading ─── */
         .sec-head { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 10px; padding-left: 2px; }
@@ -1098,105 +1141,53 @@
             .bubble-wrap { max-width: 85%; }
         }
 
-        /* ─── Hero Stats Bar ─── */
-        .hero-stats-bar {
-            background: linear-gradient(135deg, rgba(15,25,50,.9) 0%, rgba(10,20,40,.95) 100%);
-            border: 1px solid rgba(232,194,82,.15);
-            border-radius: 24px;
-            padding: 24px 28px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-        .hero-stats-bar::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--gold), rgba(232,194,82,.3), transparent);
-        }
-        .hero-stats-bar::after {
-            content: '';
-            position: absolute; top: -60px; right: -60px;
-            width: 200px; height: 200px; border-radius: 50%;
-            background: radial-gradient(circle, rgba(232,194,82,.06), transparent);
-            pointer-events: none;
-        }
-
-        /* Left: big balance */
-        .hero-balance-block {
-            flex: 1; min-width: 0;
-        }
+        /* ─── Premium Hero ─── */
+        .balance-hero { display: none !important; }
+        .hero-stats-bar { margin-bottom: 24px; }
         .hero-balance-label {
-            font-size: .6rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 3px;
-            color: rgba(232,194,82,.6); margin-bottom: 6px;
+            font-size: .6rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 3px; color: var(--text-dim); margin-bottom: 8px;
         }
         .hero-balance-num {
             font-family: 'Instrument Serif', serif;
-            font-size: 3.2rem; line-height: 1;
-            background: linear-gradient(135deg, #f0d97a, #e8c252, #b8941c);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text; margin-bottom: 12px;
+            font-size: 3.6rem; font-weight: 300; letter-spacing: -2px;
+            color: var(--text); line-height: 1; margin-bottom: 16px;
         }
-        .hero-balance-pills {
-            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-        }
+        .hero-balance-num .gold-accent { color: var(--gold); -webkit-text-fill-color: var(--gold); }
+        .hero-balance-pills { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .cycle-pill-inline {
-            background: rgba(255,255,255,.06);
-            border: 1px solid rgba(255,255,255,.1);
-            color: var(--text-soft);
-            font-size: .7rem; font-weight: 600;
-            padding: 5px 12px; border-radius: 100px;
-            cursor: pointer; outline: none;
+            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+            color: var(--text-soft); font-size: .72rem; font-weight: 600;
+            padding: 5px 14px; border-radius: 100px; cursor: pointer; outline: none;
             font-family: 'DM Sans', sans-serif;
         }
         .cycle-pill-inline option { background: var(--ink-2); }
 
-        /* Right: stat cards */
-        .hero-stat-cards {
-            display: flex; gap: 12px; flex-shrink: 0;
-        }
+        /* Stat strip */
+        .hero-stat-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 20px; }
         .hero-stat-card {
-            background: rgba(255,255,255,.04);
-            border: 1px solid rgba(255,255,255,.07);
-            border-radius: 18px;
-            padding: 16px 20px;
-            text-align: center;
-            min-width: 80px;
-            transition: all .2s;
+            background: var(--ink-2); border: 1px solid var(--border);
+            border-radius: 16px; padding: 16px; position: relative;
+            overflow: hidden; transition: border-color .2s, transform .15s;
         }
-        .hero-stat-card:hover {
-            background: rgba(255,255,255,.07);
-            border-color: rgba(255,255,255,.12);
-            transform: translateY(-2px);
-        }
-        .hero-stat-icon { font-size: 1.3rem; margin-bottom: 6px; }
+        .hero-stat-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+        .hero-stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+        .hsc-fire::before  { background: linear-gradient(90deg,#f97316,transparent); }
+        .hsc-spent::before { background: linear-gradient(90deg,var(--gold),transparent); }
+        .hsc-save::before  { background: linear-gradient(90deg,var(--green),transparent); }
+        .hsc-days::before  { background: linear-gradient(90deg,var(--blue),transparent); }
+        .hero-stat-icon { font-size: 1.2rem; margin-bottom: 8px; display: block; }
         .hero-stat-val {
-            font-family: 'Instrument Serif', serif;
-            font-size: 1.3rem; color: var(--text);
-            line-height: 1; margin-bottom: 4px;
+            font-family: 'DM Mono', monospace; font-size: 1.25rem;
+            font-weight: 600; color: var(--text); line-height: 1; margin-bottom: 4px;
         }
         .hero-stat-lbl {
-            font-size: .58rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 1.5px;
-            color: var(--text-dim);
+            font-size: .58rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--text-dim);
         }
-
-        /* Hide old balance hero since we moved it to the top */
-        .balance-hero { display: none !important; }
-
-        /* On desktop: hero bar spans full width */
-
-
-        /* On mobile: stack vertically */
         @media (max-width: 600px) {
-            .hero-stats-bar { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }
-            .hero-balance-num { font-size: 2.6rem; }
-            .hero-stat-cards { width: 100%; justify-content: space-between; gap: 8px; }
-            .hero-stat-card { flex: 1; padding: 12px 8px; min-width: 0; }
-            .hero-stat-val { font-size: 1.1rem; }
+            .hero-balance-num { font-size: 2.8rem; }
+            .hero-stat-cards { grid-template-columns: repeat(2,1fr); }
         }
 
         /* ═══ WEEKLY RECAP CARD ═══ */
@@ -1553,11 +1544,20 @@
     <div class="login-box">
         <div class="login-icon" style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.6rem;background:linear-gradient(90deg,#f97316,#e8c252,#f0d97a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">F</div>
         <div class="login-title">Flint</div>
-        <div class="login-sub">Spark your financial future</div>
-        <input type="email" id="emailField" placeholder="Email address">
-        <input type="password" id="passwordField" placeholder="Password">
-        <button class="btn btn-gold" id="authBtn" onclick="authenticateUser()" style="margin-bottom:14px;">Secure Login</button>
-        <div><span id="authToggleText" style="color:var(--text-dim);font-size:.82rem;cursor:pointer;" onclick="toggleAuthMode()">New user? <b style="color:var(--gold);">Sign Up</b></span></div>
+        <div class="login-sub" id="loginSubText">Sign in to your account</div>
+        <input type="email" id="emailField" placeholder="Email address" style="margin-bottom:10px;">
+        <div style="position:relative;margin-bottom:10px;">
+            <input type="password" id="passwordField" placeholder="Password" style="margin:0;padding-right:46px;width:100%;">
+            <button onclick="togglePassVis()" id="passToggleBtn" type="button" style="position:absolute;right:0;top:0;bottom:0;width:44px;background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:color .2s;" title="Show/hide password">
+                <i class="fa-solid fa-eye" id="passEyeIcon"></i>
+            </button>
+        </div>
+        <div id="signupExtras" style="display:none;">
+            <input type="password" id="confirmPasswordField" placeholder="Confirm password" style="margin-bottom:10px;">
+            <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:12px;line-height:1.5;text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.08);">&#128274; Your data is encrypted and stored securely.</div>
+        </div>
+        <button class="btn btn-gold" id="authBtn" onclick="authenticateUser()" style="margin-bottom:14px;">Sign In</button>
+        <div><span id="authToggleText" style="color:var(--text-dim);font-size:.82rem;cursor:pointer;" onclick="toggleAuthMode()">Don&#39;t have an account? <b style="color:var(--gold);">Create one</b></span></div>
     </div>
 </div>
 
@@ -1613,35 +1613,32 @@
 
             <!-- ══ HERO STATS BAR ══ -->
             <div class="hero-stats-bar">
-                <!-- Big balance -->
-                <div class="hero-balance-block">
-                    <div class="hero-balance-label">Remaining This Cycle</div>
-                    <div id="balanceNum" class="hero-balance-num">$0.00</div>
-                    <div class="hero-balance-pills">
-                        <div id="paceChip" class="pill pill-green" title="Your average daily spending this cycle">Pace: $0/day</div>
-                        <div id="safeChip" class="pill pill-blue" title="Budget remaining — safe to spend">Remaining: $0</div>
-                        <select id="cycleSelect" class="cycle-pill-inline" onchange="changeCycle()"></select>
-                    </div>
+                <div class="hero-balance-label">Remaining This Cycle</div>
+                <div id="balanceNum" class="hero-balance-num">$0.00</div>
+                <div class="hero-balance-pills">
+                    <div id="paceChip" class="pill pill-green" style="font-size:.7rem;padding:5px 13px;border-radius:100px;">Pace: $0/day</div>
+                    <div id="safeChip" class="pill pill-blue" style="font-size:.7rem;padding:5px 13px;border-radius:100px;">Remaining: $0</div>
+                    <select id="cycleSelect" class="cycle-pill-inline" onchange="changeCycle()"></select>
                 </div>
-                <!-- Stat cards -->
+                <!-- Stat strip -->
                 <div class="hero-stat-cards">
-                    <div class="hero-stat-card">
-                        <div class="hero-stat-icon" style="color:#f97316;">🔥</div>
+                    <div class="hero-stat-card hsc-fire">
+                        <span class="hero-stat-icon">🔥</span>
                         <div id="streakVal" class="hero-stat-val">0</div>
                         <div class="hero-stat-lbl">Day Streak</div>
                     </div>
-                    <div class="hero-stat-card">
-                        <div class="hero-stat-icon" style="color:var(--gold);">💰</div>
+                    <div class="hero-stat-card hsc-spent">
+                        <span class="hero-stat-icon">💰</span>
                         <div id="heroTotalSpent" class="hero-stat-val">$0</div>
                         <div class="hero-stat-lbl">Spent</div>
                     </div>
-                    <div class="hero-stat-card">
-                        <div class="hero-stat-icon" style="color:var(--green);">📈</div>
+                    <div class="hero-stat-card hsc-save">
+                        <span class="hero-stat-icon">📈</span>
                         <div id="powerVal" class="hero-stat-val">0%</div>
-                        <div class="hero-stat-lbl" title="% of your budget remaining this cycle">Savings Rate</div>
+                        <div class="hero-stat-lbl">Savings Rate</div>
                     </div>
-                    <div class="hero-stat-card">
-                        <div class="hero-stat-icon" style="color:var(--blue);">📅</div>
+                    <div class="hero-stat-card hsc-days">
+                        <span class="hero-stat-icon">📅</span>
                         <div id="heroDaysLeft" class="hero-stat-val">0</div>
                         <div class="hero-stat-lbl">Days Left</div>
                     </div>
@@ -1687,41 +1684,60 @@
                 </div>
             </div>
 
-            <div class="loan-grid">
-                <div class="loan-tile mortgage"><div class="loan-lbl mortgage">Mortgage</div><div id="mortgageBalText" class="loan-val">$0.00</div></div>
-                <div class="loan-tile car"><div class="loan-lbl car">Car Loan</div><div id="carBalText" class="loan-val">$0.00</div></div>
-            </div>
-
-            <div class="prog-wrap">
-                <div class="prog-card">
-                    <div class="prog-head"><span class="prog-name">Mortgage Payoff</span><span id="mortgPct" class="prog-pct" style="color:var(--violet)">0%</span></div>
-                    <div class="prog-bar"><div id="mortgBar" class="prog-fill fill-mortgage" style="width:0%"></div></div>
-                    <div class="prog-meta"><span id="mortgPaid">Paid: $0</span><span id="mortgRem">Rem: $0</span></div>
+            <!-- Payoff Trackers + Member Cards -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+                <!-- Mortgage -->
+                <div style="background:var(--ink-2);border:1px solid var(--border);border-radius:18px;padding:18px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),transparent);"></div>
+                    <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--violet);margin-bottom:8px;">Mortgage</div>
+                    <div id="mortgageBalText" style="font-family:'Instrument Serif',serif;font-size:1.5rem;font-weight:300;color:var(--text);margin-bottom:14px;">$0.00</div>
+                    <div style="height:3px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;margin-bottom:8px;">
+                        <div id="mortgBar" class="prog-fill fill-mortgage" style="width:0%;height:100%;border-radius:100px;"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span id="mortgPaid" style="font-size:.62rem;color:var(--text-dim);font-family:'DM Mono',monospace;"></span>
+                        <span id="mortgPct" style="font-size:.7rem;font-weight:700;color:var(--violet);font-family:'DM Mono',monospace;">0%</span>
+                    </div>
+                    <div id="mortgRem" style="font-size:.62rem;color:var(--text-dim);font-family:'DM Mono',monospace;margin-top:2px;"></div>
                 </div>
-                <div class="prog-card">
-                    <div class="prog-head"><span class="prog-name">Car Payoff</span><span id="carPct" class="prog-pct" style="color:var(--blue)">0%</span></div>
-                    <div class="prog-bar"><div id="carBar" class="prog-fill fill-car" style="width:0%"></div></div>
-                    <div class="prog-meta"><span id="carPaid">Paid: $0</span><span id="carRem">Rem: $0</span></div>
+                <!-- Car Loan -->
+                <div style="background:var(--ink-2);border:1px solid var(--border);border-radius:18px;padding:18px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--teal),transparent);"></div>
+                    <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--blue);margin-bottom:8px;">Car Loan</div>
+                    <div id="carBalText" style="font-family:'Instrument Serif',serif;font-size:1.5rem;font-weight:300;color:var(--text);margin-bottom:14px;">$0.00</div>
+                    <div style="height:3px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;margin-bottom:8px;">
+                        <div id="carBar" class="prog-fill fill-car" style="width:0%;height:100%;border-radius:100px;"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span id="carPaid" style="font-size:.62rem;color:var(--text-dim);font-family:'DM Mono',monospace;"></span>
+                        <span id="carPct" style="font-size:.7rem;font-weight:700;color:var(--blue);font-family:'DM Mono',monospace;">0%</span>
+                    </div>
+                    <div id="carRem" style="font-size:.62rem;color:var(--text-dim);font-family:'DM Mono',monospace;margin-top:2px;"></div>
                 </div>
             </div>
 
-            <div class="milestone-row">
-                <div class="ms-card"><div class="ms-icon">🔥</div><div id="streakValOld" class="ms-val">0</div><div class="ms-lbl">Day Streak</div></div>
-                <div class="ms-card"><div class="ms-icon">🏆</div><div id="powerValOld" class="ms-val">0%</div><div class="ms-lbl">Savings Power</div></div>
+            <!-- Hidden legacy IDs for JS compat -->
+            <div style="display:none;">
+                <div id="streakValOld">0</div><div id="powerValOld">0%</div>
+                <div id="paceChipOld"></div><div id="safeChipOld"></div>
             </div>
 
-            <div class="balance-hero">
-                <div class="bal-eyebrow">Remaining This Cycle</div>
-                <div id="balanceNum" class="bal-number">$0.00</div>
-                <div class="pills">
-                    <div id="paceChipOld" class="pill pill-green">Pace: $0/day</div>
-                    <div id="safeChipOld" class="pill pill-blue">Safe: $0</div>
+            <!-- Member spend cards -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+                <div class="member-card brandon" onclick="openMemberView('Brandon')" style="border-radius:16px;padding:16px 18px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div style="width:26px;height:26px;border-radius:50%;background:rgba(96,165,250,.2);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--blue);">B</div>
+                        <div class="member-name brandon" style="font-size:.62rem;">Brandon</div>
+                    </div>
+                    <div id="bSpend" class="member-amt" style="font-size:1.2rem;">$0.00</div>
                 </div>
-            </div>
-
-            <div class="member-grid">
-                <div class="member-card brandon" onclick="openMemberView('Brandon')"><div class="member-name brandon">Brandon</div><div id="bSpend" class="member-amt">$0.00</div></div>
-                <div class="member-card gina"    onclick="openMemberView('Gina')">   <div class="member-name gina">Gina</div>    <div id="gSpend" class="member-amt">$0.00</div></div>
+                <div class="member-card gina" onclick="openMemberView('Gina')" style="border-radius:16px;padding:16px 18px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <div style="width:26px;height:26px;border-radius:50%;background:rgba(244,114,182,.2);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--gina);">G</div>
+                        <div class="member-name gina" style="font-size:.62rem;">Gina</div>
+                    </div>
+                    <div id="gSpend" class="member-amt" style="font-size:1.2rem;">$0.00</div>
+                </div>
             </div>
 
             <!-- Need vs Want Split -->
@@ -1906,18 +1922,23 @@
 
 
 
-            <!-- Pinned Add Transaction Button -->
+            <!-- Add Transaction Button -->
             <button class="add-txn-btn" onclick="openSheet()" id="addTxnBtn">
                 <i class="fa-solid fa-plus" style="font-size:.85rem;"></i>
                 <span>Add Transaction</span>
             </button>
 
-            <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="searchBar" placeholder="Search transactions…" onkeyup="filterHistory()"></div>
-            <div class="history-header">
-                <div class="history-title"><i class="fa-solid fa-clock-rotate-left" style="color:var(--gold);margin-right:7px;font-size:.8rem;"></i>Transaction History</div>
-                <div id="historyCount" class="history-count">0 transactions</div>
+            <!-- Premium Transaction List -->
+            <div style="background:var(--ink-2);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:12px;">
+                <!-- Search bar -->
+                <div style="display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.05);">
+                    <i class="fa-solid fa-magnifying-glass" style="color:var(--text-dim);font-size:.8rem;flex-shrink:0;"></i>
+                    <input type="text" id="searchBar" placeholder="Search transactions…" onkeyup="filterHistory()" style="background:none;border:none;outline:none;color:var(--text);font-size:.85rem;flex:1;font-family:'DM Sans',sans-serif;padding:0;margin:0;">
+                    <div id="historyCount" style="font-size:.65rem;font-weight:700;color:var(--text-dim);font-family:'DM Mono',monospace;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);padding:2px 10px;border-radius:100px;white-space:nowrap;flex-shrink:0;">0 transactions</div>
+                </div>
+                <!-- Grouped transaction list -->
+                <div id="historyList"></div>
             </div>
-            <div id="historyList"></div>
         </div>
 
         <!-- ══ MEMBER BREAKDOWN ══ -->
@@ -2612,28 +2633,40 @@ function renderDashboard() {
         let submitter='Partner';
         if(item.user_id===USERS.Brandon) submitter='Brandon';
         else if(item.user_id===USERS.Gina) submitter='Gina';
-        const mpClass=item.member==='Gina'?'mp-gina':(item.member==='Split'?'mp-split':'mp-brandon');
         const d=new Date(item.created_at);
-        const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
         const timeStr=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-        const intentBg = item.intent==='Want' ? 'rgba(251,191,36,.06)' : 'rgba(52,211,153,.04)';
-        const intentBorder = item.intent==='Want' ? 'rgba(251,191,36,.15)' : 'rgba(52,211,153,.1)';
-        const intentTag = item.intent==='Want'
-            ? `<span style="font-size:.55rem;font-weight:800;padding:2px 7px;border-radius:100px;background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.2);text-transform:uppercase;letter-spacing:.5px;">Want</span>`
-            : `<span style="font-size:.55rem;font-weight:800;padding:2px 7px;border-radius:100px;background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.2);text-transform:uppercase;letter-spacing:.5px;">Need</span>`;
-        const div=document.createElement('div'); div.className='hist-item'; div.style.background=intentBg; div.style.borderColor=intentBorder;
+        const color = CAT_COLORS[item.category]||'#64748b';
+        // Category emoji map
+        const CAT_EMOJI = {Groceries:'🛒',Dining:'🍔',Utilities:'💡',Mortgage:'🏠',Car:'🚗',CreditCard:'💳',Subscription:'📺',Beauty:'✂️',Goal:'🎯',Misc:'📦'};
+        const emoji = CAT_EMOJI[item.category]||'📦';
+        // Who posted colors
+        const whoColor = submitter==='Brandon'?'#60a5fa':submitter==='Gina'?'#f472b6':'#a78bfa';
+        const whoBg   = submitter==='Brandon'?'rgba(96,165,250,.15)':submitter==='Gina'?'rgba(244,114,182,.15)':'rgba(167,139,250,.15)';
+        // Build reaction HTML inline inside the card
+        const rxData = txnReactions[item.id]||{};
+        const myRx   = myTxnReactions[item.id];
+        const rxEmojis = ['✅','😬','🔥','😂','💸'];
+        const rxHTML = rxEmojis.map(e=>{
+            const cnt=rxData[e]||0;
+            const active=myRx===e;
+            return `<button class="txn-reaction-btn${active?' reacted':''}" onclick="reactToTxn('${item.id}','${e}')">${e}${cnt>0?`<span class='txn-reaction-count'>${cnt}</span>`:''}</button>`;
+        }).join('');
+        const div=document.createElement('div');
+        div.className='hist-item';
         div.innerHTML=`
-            <div style="min-width:0;flex:1;">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">
-                    <span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${item.category}</span>
-                    ${intentTag}
-                    <span class="mpill ${mpClass}">${item.member}</span>
-                </div>
+            <div class="hist-accent" style="background:${color};"></div>
+            <div class="hist-icon" style="background:${color}18;">${emoji}</div>
+            <div class="hist-body">
                 <span class="hist-note">${item.note||item.category}</span>
-                <div class="hist-meta" style="margin-top:5px;gap:6px;flex-wrap:wrap;align-items:center;">
-                    <span style="font-size:.62rem;font-weight:800;padding:2px 9px;border-radius:100px;background:${submitter==='Brandon'?'rgba(96,165,250,.18)':submitter==='Gina'?'rgba(244,114,182,.18)':'rgba(167,139,250,.18)'};color:${submitter==='Brandon'?'#60a5fa':submitter==='Gina'?'#f472b6':'#a78bfa'};">${submitter}</span>
-                    ${item.is_recurring?'<span style="font-size:.56rem;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.2);">&#128260; Recurring</span>':''}
-                    <span class="hist-date" style="color:var(--text-dim);">${dateStr} &middot; ${timeStr}</span>
+                <div class="hist-tags">
+                    <span class="htag htag-cat">${item.category}</span>
+                    <span class="htag ${item.intent==='Want'?'htag-want':'htag-need'}">${item.intent||'Need'}</span>
+                    ${item.is_recurring?'<span class="htag htag-recur">↻ Recurring</span>':''}
+                </div>
+                <div class="hist-sub">
+                    <span class="hist-who" style="background:${whoBg};color:${whoColor};">${submitter}</span>
+                    <span class="hist-date">${dateStr} · ${timeStr}</span>
                 </div>
             </div>
             <div class="hist-right">
@@ -2643,11 +2676,14 @@ function renderDashboard() {
                     <button class="act-btn act-del" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             </div>`;
-        // Add emoji reactions
-        const reactionDiv = document.createElement('div');
-        reactionDiv.innerHTML = typeof buildReactionHTML === 'function' ? buildReactionHTML(item.id) : '';
-        if (reactionDiv.firstChild) list.appendChild(reactionDiv.firstChild);
         list.appendChild(div);
+        // Reactions row below the card
+        if(Object.keys(rxData).some(k=>rxData[k]>0)||true){
+            const rxRow=document.createElement('div');
+            rxRow.className='txn-reaction-row';
+            rxRow.innerHTML=rxHTML;
+            list.appendChild(rxRow);
+        }
     });
 
     // Update history count
@@ -3175,10 +3211,16 @@ async function addEntry() {
 
 function editEntry(id) {
     const item=history.find(h=>h.id===id); if(!item) return; editingId=id;
-    document.getElementById('amount').value=item.amount; document.getElementById('noteInput').value=item.note;
-    document.getElementById('memberSelect').value=item.member; document.getElementById('category').value=item.category;
-    setType(item.intent); document.getElementById('syncBtn').innerText='Update Transaction'; document.getElementById('recurRow').style.display='none';
-    switchView('app'); window.scrollTo(0,0);
+    document.getElementById('amount').value=item.amount;
+    document.getElementById('noteInput').value=item.note||'';
+    document.getElementById('memberSelect').value=item.member||'Brandon';
+    document.getElementById('category').value=item.category||'Misc';
+    selectMember(item.member||'Brandon');
+    setType(item.intent||'Need');
+    document.getElementById('syncBtn').innerText='Update Transaction';
+    document.getElementById('recurRow').style.display='none';
+    if(document.getElementById('app').style.display==='none') switchView('app');
+    setTimeout(()=>{ openSheet(); }, 50);
 }
 
 async function deleteEntry(id){ if(confirm('Delete?')){ await _sb.from('transactions').delete().eq('id',id); fetchData(); } }
@@ -3203,13 +3245,32 @@ async function addSub() {
 
 // ── Auth ──
 async function authenticateUser() {
-    const email=document.getElementById('emailField').value, pass=document.getElementById('passwordField').value;
-    if(!email||!pass) return;
-    try {
-        const {data,error}=isSignUpMode?await _sb.auth.signUp({email,password:pass}):await _sb.auth.signInWithPassword({email,password:pass});
+    const email=document.getElementById('emailField').value.trim();
+    const pass=document.getElementById('passwordField').value;
+    if(!email||!pass){showToast('Please enter your email and password','warning');return;}
+    if(isSignUpMode){
+        const conf=document.getElementById('confirmPasswordField')?.value;
+        if(conf&&conf!==pass){showToast('Passwords do not match','error');return;}
+        if(pass.length<6){showToast('Password must be at least 6 characters','warning');return;}
+    }
+    const btn=document.getElementById('authBtn');
+    btn.innerText=isSignUpMode?'Creating account...':'Signing in...';
+    btn.disabled=true;
+    try{
+        const {data,error}=isSignUpMode
+            ?await _sb.auth.signUp({email,password:pass})
+            :await _sb.auth.signInWithPassword({email,password:pass});
         if(error) throw error;
+        if(isSignUpMode&&data.user&&!data.session){
+            showToast('Check your email to confirm your account!','success');
+            btn.innerText='Check your email'; return;
+        }
         if(data.session) location.reload();
-    } catch(e){ alert(e.message); }
+    }catch(e){
+        showToast(e.message||'Login failed. Please try again.','error');
+        btn.innerText=isSignUpMode?'Create Account':'Sign In';
+        btn.disabled=false;
+    }
 }
 
 async function saveConfig() {
@@ -4421,7 +4482,31 @@ function showToast(msg, type='success') {
 function filterHistory(){ const q=document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('#historyList .hist-item').forEach(i=>{ i.style.display=i.innerText.toLowerCase().includes(q)?'flex':'none'; }); }
 function toggleNotif(){ const m=document.getElementById('notifModal'),o=document.getElementById('notifOverlay'),v=m.style.display==='block'; m.style.display=v?'none':'block'; o.style.display=v?'none':'block'; if(!v) localStorage.setItem('montoya_notifs',Date.now().toString()); }
 function toggleMenu(){ if(window.innerWidth>=1100)return; const m=document.getElementById('sideMenu'),o=document.getElementById('sideOverlay'); m.classList.toggle('open'); o.style.display=m.classList.contains('open')?'block':'none'; }
-function toggleAuthMode(){ isSignUpMode=!isSignUpMode; document.getElementById('authBtn').innerText=isSignUpMode?'Sign Up':'Secure Login'; }
+function togglePassVis() {
+    const f=document.getElementById('passwordField');
+    const i=document.getElementById('passEyeIcon');
+    const b=document.getElementById('passToggleBtn');
+    if(f.type==='password'){f.type='text';i.className='fa-solid fa-eye-slash';b.style.color='var(--gold)';}
+    else{f.type='password';i.className='fa-solid fa-eye';b.style.color='var(--text-dim)';}
+}
+function toggleAuthMode(){
+    isSignUpMode=!isSignUpMode;
+    const btn=document.getElementById('authBtn');
+    const sub=document.getElementById('loginSubText');
+    const tog=document.getElementById('authToggleText');
+    const ext=document.getElementById('signupExtras');
+    if(isSignUpMode){
+        btn.innerText='Create Account';
+        if(sub) sub.innerText='Create your free account';
+        if(tog) tog.innerHTML='Already have an account? <b style="color:var(--gold);">Sign In</b>';
+        if(ext) ext.style.display='block';
+    } else {
+        btn.innerText='Sign In';
+        if(sub) sub.innerText='Sign in to your account';
+        if(tog) tog.innerHTML="Don't have an account? <b style='color:var(--gold);'>Create one</b>";
+        if(ext) ext.style.display='none';
+    }
+}
 
 let _viewHistory = ['app'];
 function goBack() {
