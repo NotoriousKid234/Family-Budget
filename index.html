@@ -2081,6 +2081,10 @@
 // ══════════════════════════════════════════════
 //  CONFIG — update with your actual values
 // ══════════════════════════════════════════════
+// ── Reaction state (declared early so renderDashboard can use them) ──
+let txnReactions = JSON.parse(localStorage.getItem('montoya_txn_reactions') || '{}');
+let myTxnReactions = JSON.parse(localStorage.getItem('montoya_my_txn_reactions') || '{}');
+
 const SUPABASE_URL  = 'https://hieqohmhrpjvhotutwls.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX';
 // AI calls go through Netlify proxy — no key needed here
@@ -2246,6 +2250,10 @@ function renderDashboard() {
                     <button class="act-btn act-del" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             </div>`;
+        // Add emoji reactions
+        const reactionDiv = document.createElement('div');
+        reactionDiv.innerHTML = typeof buildReactionHTML === 'function' ? buildReactionHTML(item.id) : '';
+        if (reactionDiv.firstChild) list.appendChild(reactionDiv.firstChild);
         list.appendChild(div);
     });
 
@@ -3319,9 +3327,6 @@ function checkAnomalies() {
 // ═══════════════════════════════════════════════
 // FEATURE 5: TRANSACTION EMOJI REACTIONS
 // ═══════════════════════════════════════════════
-let txnReactions = JSON.parse(localStorage.getItem('montoya_txn_reactions') || '{}');
-let myTxnReactions = JSON.parse(localStorage.getItem('montoya_my_txn_reactions') || '{}');
-
 function reactToTxn(txnId, emoji) {
     if (!txnReactions[txnId]) txnReactions[txnId] = {};
     const prev = myTxnReactions[txnId];
@@ -3383,9 +3388,9 @@ function checkCategoryLimits() {
 
 // Run all intelligence checks after data loads
 function runIntelligenceChecks() {
-    checkBudgetWarning();
-    checkAnomalies();
-    if (shouldShowRecap()) generateWeeklyRecap();
+    try { if (typeof checkBudgetWarning === 'function') checkBudgetWarning(); } catch(e) {}
+    try { if (typeof checkAnomalies === 'function') checkAnomalies(); } catch(e) {}
+    try { if (typeof shouldShowRecap === 'function' && shouldShowRecap()) generateWeeklyRecap(); } catch(e) {}
 }
 
 // ── Live Market Feed ──
