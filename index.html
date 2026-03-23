@@ -73,7 +73,7 @@
         }
 
         /* ─── Toast ─── */
-        #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+        #toastContainer { position: fixed; top: 24px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; min-width: 260px; max-width: 340px; }
         .toast { background: var(--ink-3); border: 1px solid var(--gold); color: var(--gold); padding: 10px 24px; border-radius: 100px; font-size: .78rem; font-weight: 600; letter-spacing: .4px; box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 20px var(--gold-glow); animation: toastPop .3s cubic-bezier(.34,1.56,.64,1); }
         @keyframes toastPop { from { opacity:0; transform:translateY(-8px) scale(.95); } to { opacity:1; transform:none; } }
 
@@ -1306,8 +1306,9 @@
             text-transform: uppercase; letter-spacing: 1px;
             color: var(--violet); background: rgba(167,139,250,.1);
             border: 1px solid rgba(167,139,250,.2);
-            padding: 2px 8px; border-radius: 100px;
-            margin-bottom: 8px;
+            padding: 3px 10px; border-radius: 100px;
+            margin-bottom: 10px; cursor: default;
+            user-select: none; pointer-events: none;
         }
 
         /* ─── Market Panel ─── */
@@ -1413,15 +1414,27 @@
 
         @media (min-width: 1100px) {
             /* On desktop the sheet should appear centered over the content area, not the whole screen */
-            .sheet-overlay { background: rgba(4,8,20,.6); }
+            .sheet-overlay { background: rgba(4,8,20,.7); left: 0; right: 0; }
             .bottom-sheet {
-                max-width: 580px;
-                left: calc(240px + ((100vw - 240px - 268px) / 2) + 240px);
-                right: auto;
-                transform: translateX(-50%) translateY(110%);
-                border-radius: 32px 32px 0 0;
+                max-width: 520px;
+                width: 90vw;
+                left: 50% !important;
+                right: auto !important;
+                bottom: auto !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) scale(.96);
+                border-radius: 28px !important;
+                max-height: 90vh;
+                opacity: 0;
+                transition: transform .3s cubic-bezier(.34,1.2,.64,1), opacity .25s ease;
             }
-            .bottom-sheet.open { transform: translateX(-50%) translateY(0); }
+            .bottom-sheet.open {
+                transform: translate(-50%, -50%) scale(1) !important;
+                opacity: 1 !important;
+            }
+            .sheet-handle { display: none; }
+            .sheet-amount-input { text-align: center !important; width: 100% !important; }
+            .sheet-amount-wrap { padding: 20px 0 24px; }
         }
     </style>
 </head>
@@ -1508,8 +1521,8 @@
                     <div class="hero-balance-label">Remaining This Cycle</div>
                     <div id="balanceNum" class="hero-balance-num">$0.00</div>
                     <div class="hero-balance-pills">
-                        <div id="paceChip" class="pill pill-green">Pace: $0/day</div>
-                        <div id="safeChip" class="pill pill-blue">Safe: $0</div>
+                        <div id="paceChip" class="pill pill-green" title="Your average daily spending this cycle">Pace: $0/day</div>
+                        <div id="safeChip" class="pill pill-blue" title="Budget remaining — safe to spend">Remaining: $0</div>
                         <select id="cycleSelect" class="cycle-pill-inline" onchange="changeCycle()"></select>
                     </div>
                 </div>
@@ -1528,7 +1541,7 @@
                     <div class="hero-stat-card">
                         <div class="hero-stat-icon" style="color:var(--green);">📈</div>
                         <div id="powerVal" class="hero-stat-val">0%</div>
-                        <div class="hero-stat-lbl">Savings</div>
+                        <div class="hero-stat-lbl" title="% of your budget remaining this cycle">Savings Rate</div>
                     </div>
                     <div class="hero-stat-card">
                         <div class="hero-stat-icon" style="color:var(--blue);">📅</div>
@@ -1783,7 +1796,7 @@
                 <div id="aiTipPanel">
                     <div class="side-panel-header">
                         <span>🤖 Daily Money Tip</span>
-                        <button onclick="fetchAiTip(true)" class="side-panel-link">↻ New</button>
+                        <button onclick="fetchAiTip(true)" class="side-panel-link" title="Get a new tip">↻ Refresh tip</button>
                     </div>
                     <div id="aiTipBody" class="ai-tip-body">
                         <div class="ai-tip-loading">
@@ -2081,6 +2094,26 @@
 // ══════════════════════════════════════════════
 //  CONFIG — update with your actual values
 // ══════════════════════════════════════════════
+// ── Custom confirm dialog ──
+function showConfirm(msg, onConfirm) {
+    const existing = document.getElementById('confirmOverlay');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'confirmOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(4,8,20,.8);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML = '<div style="background:#0d1628;border:1px solid rgba(100,150,230,.2);border-radius:20px;padding:28px 24px;max-width:320px;width:100%;text-align:center;">' +
+        '<div style="font-size:1.8rem;margin-bottom:12px;">&#128465;</div>' +
+        '<div style="font-size:.95rem;font-weight:600;color:white;margin-bottom:6px;">Are you sure?</div>' +
+        '<div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:20px;">' + msg + '</div>' +
+        '<div style="display:flex;gap:10px;">' +
+        '<button id="confirmCancelBtn" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:white;cursor:pointer;font-size:.88rem;font-weight:600;">Cancel</button>' +
+        '<button id="confirmOkBtn" style="flex:1;padding:12px;border-radius:12px;border:none;background:#f87171;color:white;cursor:pointer;font-size:.88rem;font-weight:700;">Delete</button>' +
+        '</div></div>';
+    document.getElementById('confirmCancelBtn').onclick = () => overlay.remove();
+    document.body.appendChild(overlay);
+    document.getElementById('confirmOkBtn').onclick = () => { overlay.remove(); onConfirm(); };
+}
+
 // ── Reaction state (declared early so renderDashboard can use them) ──
 let txnReactions = JSON.parse(localStorage.getItem('montoya_txn_reactions') || '{}');
 let myTxnReactions = JSON.parse(localStorage.getItem('montoya_my_txn_reactions') || '{}');
@@ -2293,7 +2326,7 @@ function renderDashboard() {
     const paceEl = document.getElementById('paceChip');
     const safeEl = document.getElementById('safeChip');
     if (paceEl) paceEl.innerText = 'Pace: $' + paceVal + '/day';
-    if (safeEl) safeEl.innerText = 'Safe: $' + safeVal;
+    if (safeEl) safeEl.innerText = 'Remaining: $' + safeVal;
 
     // Need vs Want split
     let needTotal=0, wantTotal=0;
@@ -2637,7 +2670,7 @@ function renderNotes() {
     });
 
     if (!notes.length) {
-        chatArea.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:40px 20px;font-size:.88rem;">No messages yet.<br><span style="font-size:.78rem;opacity:.6;">Send the first note to your family!</span></div>';
+        chatArea.innerHTML = '<div style="text-align:center;padding:48px 20px;"><div style="font-size:2.5rem;margin-bottom:12px;">💬</div><div style="color:var(--text-soft);font-size:.9rem;font-weight:600;margin-bottom:6px;">No messages yet</div><div style="color:var(--text-dim);font-size:.78rem;">Send your first note to the family!</div></div>';
     }
 
     // Scroll to bottom
@@ -3578,7 +3611,7 @@ async function fetchAiTip(force = false) {
     const today = new Date().toDateString();
 
     // Use cached tip if same day and not forcing refresh
-    if (!force && aiTipCache && aiTipDate === today) {
+    if (!force && aiTipCache && aiTipDate === today && aiTipCache.includes('ai-tip-text')) {
         body.innerHTML = aiTipCache;
         return;
     }
@@ -3611,14 +3644,25 @@ TIP: [1-2 sentences max, specific and actionable, friendly tone]`;
         const data = await res.json();
         const text = data.content?.[0]?.text || '';
 
+        // Robust parsing - handle various AI response formats
         const catMatch = text.match(/CATEGORY:\s*(.+)/i);
-        const tipMatch = text.match(/TIP:\s*(.+)/i);
+        const tipMatch = text.match(/TIP:\s*([\s\S]+)/i);
 
-        const category = catMatch?.[1]?.trim() || 'Finance';
-        const tip = tipMatch?.[1]?.trim() || text.trim();
+        const category = catMatch ? catMatch[1].trim() : 'Finance';
+        let tip = '';
+        if (tipMatch) {
+            tip = tipMatch[1].trim();
+        } else {
+            // If AI didn't follow format, just use the whole response
+            tip = text.split('\n').filter(function(l){ return !l.match(/^CATEGORY:/i) && !l.match(/^TIP:/i); }).join(' ').trim();
+            if (!tip) tip = text.trim();
+        }
 
-        const html = `<div class="ai-tip-category">✦ ${category}</div>
-<div class="ai-tip-text">${tip}</div>`;
+        // Clean up any leftover format artifacts
+        tip = tip.replace(/^TIP:\s*/i, '').trim();
+
+        const html = '<div class="ai-tip-category">✦ ' + category + '</div>' +
+                     '<div class="ai-tip-text">' + tip + '</div>';
 
         body.innerHTML = html;
         localStorage.setItem('aiTipCache', html);
@@ -3703,7 +3747,18 @@ async function joinLedger(){ const k=document.getElementById('joinKey').value.tr
 function initCycles(){ const s=document.getElementById('cycleSelect'); s.innerHTML=''; let now=new Date(); for(let i=0;i<6;i++){let d=new Date(now.getFullYear(),now.getMonth()-i,16);let o=document.createElement('option');o.value=d.toISOString();o.text=d.toLocaleString('default',{month:'long',year:'numeric'})+' Cycle';s.appendChild(o);} }
 async function changeCycle(){ currentViewDate=new Date(document.getElementById('cycleSelect').value); await fetchData(); }
 async function logoutApp(){ await _sb.auth.signOut(); location.reload(); }
-function showToast(m){ const c=document.getElementById('toastContainer'),t=document.createElement('div'); t.className='toast'; t.innerText=m; c.appendChild(t); setTimeout(()=>t.remove(),3000); }
+function showToast(msg, type='success') {
+    const icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠️' };
+    const colors = { success:'var(--green)', error:'var(--rose)', info:'var(--blue)', warning:'var(--amber)' };
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.style.cssText = 'border-left: 3px solid ' + (colors[type]||colors.success) + ';display:flex;align-items:center;gap:10px;';
+    t.innerHTML = '<span style="font-size:1rem;font-weight:700;color:' + (colors[type]||colors.success) + '">' + (icons[type]||'✓') + '</span><span>' + msg + '</span>';
+    const c = document.getElementById('toastContainer');
+    c.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
+}
 function filterHistory(){ const q=document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('#historyList .hist-item').forEach(i=>{ i.style.display=i.innerText.toLowerCase().includes(q)?'flex':'none'; }); }
 function toggleNotif(){ const m=document.getElementById('notifModal'),o=document.getElementById('notifOverlay'),v=m.style.display==='block'; m.style.display=v?'none':'block'; o.style.display=v?'none':'block'; if(!v) localStorage.setItem('montoya_notifs',Date.now().toString()); }
 function toggleMenu(){ if(window.innerWidth>=1100)return; const m=document.getElementById('sideMenu'),o=document.getElementById('sideOverlay'); m.classList.toggle('open'); o.style.display=m.classList.contains('open')?'block':'none'; }
