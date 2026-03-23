@@ -2441,7 +2441,9 @@ try {
 
 // ── Load ──
 async function loadApp() {
-    const { data } = await _sb.from('app_settings').select('*').limit(1);
+    let { data } = await _sb.from('app_settings').select('*').eq('user_id', currentUser).limit(1);
+    if (!data?.length) { const jg=localStorage.getItem('flint_group_'+currentUser); if(jg){const r2=await _sb.from('app_settings').select('*').eq('group_id',jg).limit(1);data=r2.data;} }
+    if (!data?.length) { const ng='grp_'+currentUser.substring(0,8)+'_'+Date.now(); const fr={user_id:currentUser,group_id:ng,budget:3000,want_cap:0,m_balance:0,c_balance:0,m_orig:0,c_orig:0,cycle_start_day:1}; await _sb.from('app_settings').insert([fr]); data=[fr]; showToast('Welcome to Flint! Your ledger is ready.','success'); }
     if (data?.length) {
         config = data[0];
         currentGroup = config.group_id;
@@ -2559,9 +2561,10 @@ function renderDashboard() {
                     <span class="mpill ${mpClass}">${item.member}</span>
                 </div>
                 <span class="hist-note">${item.note||item.category}</span>
-                <div class="hist-meta" style="margin-top:5px;gap:5px;">
-                    <i class="fa-solid ${isMe?savedIcon:'fa-user-group'}" style="font-size:.65rem;color:var(--text-dim);"></i>
-                    <span class="hist-date">By <b style="color:var(--text-soft);font-weight:700;">${submitter}</b> &nbsp;·&nbsp; ${dateStr} &nbsp;·&nbsp; ${timeStr}</span>
+                <div class="hist-meta" style="margin-top:5px;gap:6px;flex-wrap:wrap;align-items:center;">
+                    <span style="font-size:.62rem;font-weight:800;padding:2px 9px;border-radius:100px;background:${submitter==='Brandon'?'rgba(96,165,250,.18)':submitter==='Gina'?'rgba(244,114,182,.18)':'rgba(167,139,250,.18)'};color:${submitter==='Brandon'?'#60a5fa':submitter==='Gina'?'#f472b6':'#a78bfa'};">${submitter}</span>
+                    ${item.is_recurring?'<span style="font-size:.56rem;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.2);">&#128260; Recurring</span>':''}
+                    <span class="hist-date" style="color:var(--text-dim);">${dateStr} &middot; ${timeStr}</span>
                 </div>
             </div>
             <div class="hist-right">
@@ -3082,9 +3085,17 @@ async function addEntry() {
     }
     if(cat==='Mortgage'&&!editingId) config.m_balance-=amt;
     if(cat==='Car'&&!editingId)      config.c_balance-=amt;
-    const payload={amount:amt,member:document.getElementById('memberSelect').value,category:cat,note:document.getElementById('noteInput').value,intent:currentType,user_id:currentUser,group_id:currentGroup};
+    const isRecurChecked=document.getElementById('isRecur')?document.getElementById('isRecur').checked:false;
+    const payload={amount:amt,member:document.getElementById('memberSelect').value,category:cat,note:document.getElementById('noteInput').value,intent:currentType,user_id:currentUser,group_id:currentGroup,is_recurring:isRecurChecked};
     if(editingId){await _sb.from('transactions').update(payload).eq('id',editingId);editingId=null;document.getElementById('syncBtn').innerText='Sync Transaction';document.getElementById('recurRow').style.display='flex';}
-    else{await _sb.from('transactions').insert([payload]);if(isRecur) await _sb.from('recurring_expenses').insert([{name:payload.note||cat,amount:amt,group_id:currentGroup,user_id:currentUser,billing_day:new Date().getDate()}]);}
+    else{
+        await _sb.from('transactions').insert([payload]);
+        if(isRecurChecked){
+            const bd=new Date().getDate();
+            await _sb.from('recurring_expenses').insert([{name:payload.note||cat,amount:amt,category:cat,intent:currentType,member:payload.member,group_id:currentGroup,user_id:currentUser,billing_day:bd}]);
+            showToast('Saved as recurring! Auto-logs on the '+bd+'th each month','success');
+        }
+    }
     await _sb.from('app_settings').update({m_balance:config.m_balance,c_balance:config.c_balance}).eq('group_id',currentGroup);
     document.getElementById('amount').value=''; document.getElementById('noteInput').value=''; document.getElementById('isRecur').checked=false;
     closeSheet();
@@ -3365,25 +3376,29 @@ function reactTo(itemId, emoji) {
 
 // ── Recurring Auto-Sync ──
 async function checkAutoSync() {
-    if (!currentGroup || !billReminders.length) return;
+    if (!currentGroup) return;
     const today = new Date().getDate();
-    const synced = JSON.parse(localStorage.getItem('montoya_autosynced') || '{}');
-    const monthKey = new Date().getFullYear() + '-' + new Date().getMonth();
+    const synced = JSON.parse(localStorage.getItem('flint_autosynced') || '{}');
+    const monthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
     if (!synced[monthKey]) synced[monthKey] = [];
-
-    for (const bill of billReminders) {
-        const billKey = bill.name + '_' + bill.day;
-        if (bill.day === today && !synced[monthKey].includes(billKey)) {
-            await _sb.from('transactions').insert([{
-                amount: bill.amount, member: 'Split', category: 'Utilities',
-                note: '🔄 Auto: ' + bill.name, intent: 'Need',
-                user_id: currentUser, group_id: currentGroup
-            }]);
-            synced[monthKey].push(billKey);
-            showToast('🔄 Auto-synced: ' + bill.name);
+    for (const bill of (billReminders || [])) {
+        const key = 'bill_' + bill.name + '_' + bill.day;
+        if (bill.day === today && !synced[monthKey].includes(key)) {
+            await _sb.from('transactions').insert([{amount:bill.amount,member:'Split',category:bill.category||'Utilities',note:bill.name,intent:'Need',is_recurring:true,user_id:currentUser,group_id:currentGroup}]);
+            synced[monthKey].push(key);
+            showToast('Auto-logged: ' + bill.name + ' -$' + bill.amount, 'info');
         }
     }
-    localStorage.setItem('montoya_autosynced', JSON.stringify(synced));
+    for (const rec of (recurring || [])) {
+        const key = 'rec_' + (rec.name || '') + '_' + rec.billing_day;
+        if (rec.billing_day === today && !synced[monthKey].includes(key)) {
+            await _sb.from('transactions').insert([{amount:rec.amount,member:rec.member||'Split',category:rec.category||'Utilities',note:rec.name,intent:rec.intent||'Need',is_recurring:true,user_id:currentUser,group_id:currentGroup}]);
+            synced[monthKey].push(key);
+            showToast('Recurring: ' + rec.name + ' -$' + rec.amount, 'info');
+        }
+    }
+    localStorage.setItem('flint_autosynced', JSON.stringify(synced));
+    if ((billReminders||[]).some(b=>b.day===today)||(recurring||[]).some(r=>r.billing_day===today)) fetchData();
 }
 
 // ── AI Purchase Coach ──
@@ -4302,7 +4317,7 @@ function sheetQuick(amt, cat, note, type) {
 function quickFill(a,c,n,t){ document.getElementById('amount').value=a; document.getElementById('category').value=c; document.getElementById('noteInput').value=n; setType(t); window.scrollTo(0,document.querySelector('.type-toggle').offsetTop-20); }
 function autoSuggest(c){ if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
 function copyKey(){ navigator.clipboard.writeText(currentGroup); showToast('Key copied!'); }
-async function joinLedger(){ const k=document.getElementById('joinKey').value.trim(); if(k.length>20){await _sb.from('app_settings').update({group_id:k}).eq('user_id',currentUser);location.reload();} }
+async function joinLedger(){ const k=document.getElementById('joinKey').value.trim(); if(k.length>20){await _sb.from('app_settings').update({group_id:k}).eq('user_id',currentUser);localStorage.setItem('flint_group_'+currentUser,k);location.reload();} }
 function initCycles(){ const s=document.getElementById('cycleSelect'); s.innerHTML=''; let now=new Date(); for(let i=0;i<6;i++){let d=new Date(now.getFullYear(),now.getMonth()-i,16);let o=document.createElement('option');o.value=d.toISOString();o.text=d.toLocaleString('default',{month:'long',year:'numeric'})+' Cycle';s.appendChild(o);} }
 async function changeCycle(){ currentViewDate=new Date(document.getElementById('cycleSelect').value); await fetchData(); }
 async function logoutApp(){ await _sb.auth.signOut(); location.reload(); }
