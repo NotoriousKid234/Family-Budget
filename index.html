@@ -2441,23 +2441,56 @@ try {
 
 // ── Load ──
 async function loadApp() {
-    const { data } = await _sb.from('app_settings').select('*').limit(1);
-    if (data?.length) {
+    // 1. Strictly query for the CURRENT user's settings
+    const { data, error } = await _sb.from('app_settings').select('*').eq('user_id', currentUser).limit(1);
+    
+    if (data && data.length > 0) {
+        // Existing User: Load their specific data
         config = data[0];
         currentGroup = config.group_id;
-        // Populate cycle day selector
-        const cycleEl = document.getElementById('conf_cycle_day');
-        if (cycleEl && config.cycle_start_day) {
-            cycleEl.value = config.cycle_start_day;
-        }
-        document.getElementById('keyDisplay').innerText = currentGroup;
-        document.getElementById('conf_income').value = config.budget;
-        const wcEl = document.getElementById('conf_want_cap'); if(wcEl) wcEl.value = config.want_cap||0;
-        document.getElementById('conf_mbal').value   = config.m_balance||0;
-        document.getElementById('conf_cbal').value   = config.c_balance||0;
-        document.getElementById('conf_morig').value  = config.m_orig||500000;
-        document.getElementById('conf_corig').value  = config.c_orig||45000;
+    } else {
+        // 2. New User: Generate a blank slate
+        const newGroupId = 'FLINT-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        const defaultSettings = { 
+            user_id: currentUser, 
+            group_id: newGroupId, 
+            budget: 7400, 
+            want_cap: 0,
+            m_balance: 0, 
+            c_balance: 0, 
+            m_orig: 500000, 
+            c_orig: 45000,
+            cycle_start_day: 16
+        };
+        // Insert into database
+        await _sb.from('app_settings').insert([defaultSettings]);
+        
+        config = defaultSettings;
+        currentGroup = newGroupId;
     }
+
+    // 3. Populate the UI with whichever config was loaded/created
+    const cycleEl = document.getElementById('conf_cycle_day');
+    if (cycleEl && config.cycle_start_day) cycleEl.value = config.cycle_start_day;
+    
+    document.getElementById('keyDisplay').innerText = currentGroup;
+    document.getElementById('conf_income').value = config.budget;
+    const wcEl = document.getElementById('conf_want_cap'); if(wcEl) wcEl.value = config.want_cap||0;
+    document.getElementById('conf_mbal').value   = config.m_balance||0;
+    document.getElementById('conf_cbal').value   = config.c_balance||0;
+    document.getElementById('conf_morig').value  = config.m_orig||500000;
+    document.getElementById('conf_corig').value  = config.c_orig||45000;
+
+    config.m_orig = config.m_orig||500000;
+    config.c_orig = config.c_orig||45000;
+
+    loadStoredData();
+    loadIcon();
+    initCycles();
+    fetchData();
+    startMarketFeed();
+    fetchAiTip();
+}
     config.m_orig = config.m_orig||500000;
     config.c_orig = config.c_orig||45000;
     loadStoredData();
