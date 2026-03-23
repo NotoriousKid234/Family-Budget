@@ -122,14 +122,15 @@
 
         /* ─── Side Menu ─── */
         .side-menu {
-            position: fixed; top: 0; left: -310px; width: 288px; height: 100%;
+            position: fixed; top: 0; left: 0; width: 288px; height: 100%;
             background: linear-gradient(180deg, #0a1628 0%, #0d1a30 100%);
             border-right: 1px solid rgba(100,150,230,.15);
-            z-index: 9001; transition: left .32s cubic-bezier(.4,0,.2,1);
+            z-index: 9001; transition: transform .32s cubic-bezier(.4,0,.2,1);
+            transform: translateX(-110%);
             display: flex; flex-direction: column;
             box-shadow: 4px 0 32px rgba(0,0,0,.4);
         }
-        .side-menu.open { left: 0; }
+        .side-menu.open { transform: translateX(0); }
 
         .menu-logo {
             padding: 28px 22px 24px;
@@ -560,11 +561,13 @@
             body.logged-in .side-menu {
                 position: sticky !important;
                 top: 0 !important;
-                left: 0 !important;
+                left: auto !important;
+                transform: none !important;
                 width: 240px !important;
                 height: 100vh !important;
                 border-radius: 0 !important;
                 flex-shrink: 0 !important;
+                z-index: 10 !important;
                 border-right: 1px solid rgba(100,150,230,.12) !important;
                 box-shadow: 4px 0 24px rgba(0,0,0,.3) !important;
                 overflow-y: auto !important;
@@ -577,11 +580,12 @@
                 max-width: none !important;
                 padding: 28px 300px 28px 32px !important;
                 overflow-x: hidden !important;
+                position: relative !important;
+                z-index: 1 !important;
             }
 
             /* 4. #app: simple block, natural flow, no grid */
             #app {
-                display: block !important;
                 width: 100% !important;
             }
 
@@ -4119,46 +4123,37 @@ async function fetchCrypto(panel) {
 }
 
 async function fetchStocks(panel) {
-    const symbols = STOCK_SYMBOLS.map(s => s.symbol).join(',');
-    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/quote?symbols=${symbols}&fields=regularMarketPrice,regularMarketChangePercent,shortName`;
-    // Try multiple proxies in sequence
-    const proxies = [
-        `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
-        `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`,
-    ];
-    let data = null;
-    for (const proxyUrl of proxies) {
-        try {
-            const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
-            const raw = await res.json();
-            // allorigins wraps in {contents: "..."}
-            const parsed = raw?.contents ? JSON.parse(raw.contents) : raw;
-            const quotes = parsed?.quoteResponse?.result || [];
-            if (quotes.length) { data = parsed; break; }
-        } catch(e) { continue; }
-    }
-    if (!data) throw new Error('no quotes');
-    const quotes = data?.quoteResponse?.result || [];
-    if (!quotes.length) throw new Error('no quotes');
+    // Route through Netlify proxy — no CORS issues, works from any browser
+    const STOCK_SYMS = STOCK_SYMBOLS.map(s => s.symbol);
+    const res = await fetch('/.netlify/functions/ai-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stocks', symbols: STOCK_SYMS }),
+        signal: AbortSignal.timeout(10000)
+    });
+    const data = await res.json();
+    const quotes = data?.quotes || [];
+    if (!quotes.length) throw new Error(data?.error || 'no quotes');
 
-    const indices = quotes.filter(q => STOCK_SYMBOLS.find(s => s.symbol === q.symbol && s.type === 'index'));
-    const stocks  = quotes.filter(q => STOCK_SYMBOLS.find(s => s.symbol === q.symbol && s.type === 'stock'));
+    const indices = quotes.filter(q => q.type === 'index');
+    const stocks  = quotes.filter(q => q.type === 'stock');
 
     if (indices.length) {
         addSectionLabel(panel, '📈 Indices');
         indices.forEach(q => {
-            panel.appendChild(renderTicker(q.symbol, STOCK_SYMBOLS.find(s=>s.symbol===q.symbol)?.name||q.symbol, q.regularMarketPrice, q.regularMarketChangePercent||0, 'index'));
+            panel.appendChild(renderTicker(q.symbol, q.name, q.price, q.change, 'index'));
         });
         const div = document.createElement('div'); div.className = 'market-divider'; panel.appendChild(div);
     }
     if (stocks.length) {
         addSectionLabel(panel, '🏢 Stocks');
         stocks.forEach(q => {
-            panel.appendChild(renderTicker(q.symbol, STOCK_SYMBOLS.find(s=>s.symbol===q.symbol)?.name||q.symbol, q.regularMarketPrice, q.regularMarketChangePercent||0, 'stock'));
+            panel.appendChild(renderTicker(q.symbol, q.name, q.price, q.change, 'stock'));
         });
         const div = document.createElement('div'); div.className = 'market-divider'; panel.appendChild(div);
     }
 }
+
 
 async function fetchMarkets() {
     const panel = document.getElementById('marketTickers');
