@@ -74,6 +74,45 @@
 
         /* ─── Toast ─── */
         #toastContainer { position: fixed; top: 24px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; min-width: 260px; max-width: 340px; }
+
+        /* ─── Mobile Bottom Nav ─── */
+        #mobileNav {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 64px;
+            background: linear-gradient(180deg, #0a1628, #060c1c);
+            border-top: 1px solid rgba(100,150,230,.15);
+            z-index: 8000;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -4px 24px rgba(0,0,0,.4);
+        }
+        #mobileNav .mob-nav-inner {
+            display: flex; align-items: center;
+            height: 64px; padding: 0 8px;
+        }
+        .mob-nav-btn {
+            flex: 1; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 4px;
+            background: none; border: none;
+            color: var(--text-dim); cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: color .2s; -webkit-tap-highlight-color: transparent;
+            padding: 8px 4px;
+        }
+        .mob-nav-btn i { font-size: 1.1rem; }
+        .mob-nav-btn span { font-size: .55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .mob-nav-btn:active { color: var(--gold); }
+        .mob-nav-btn.mob-home { color: var(--text-soft); }
+        .mob-nav-btn.mob-home:active { color: var(--gold); }
+        .mob-nav-divider { width: 1px; height: 32px; background: rgba(255,255,255,.08); flex-shrink: 0; }
+
+        @media (max-width: 1099px) {
+            body.logged-in #mobileNav { display: block; }
+            /* Push content up so it's not hidden behind bottom nav */
+            body.logged-in .wrap { padding-bottom: 80px !important; }
+        }
         .toast { background: var(--ink-3); border: 1px solid var(--gold); color: var(--gold); padding: 10px 24px; border-radius: 100px; font-size: .78rem; font-weight: 600; letter-spacing: .4px; box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 20px var(--gold-glow); animation: toastPop .3s cubic-bezier(.34,1.56,.64,1); }
         @keyframes toastPop { from { opacity:0; transform:translateY(-8px) scale(.95); } to { opacity:1; transform:none; } }
 
@@ -1873,7 +1912,7 @@
 
         <!-- ══ MEMBER BREAKDOWN ══ -->
         <div id="memberBreakdown" class="app-panel">
-            <div class="top-bar"><div class="top-left"></div><div class="page-title" id="memberTitle">SPEND</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
+            <div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title" id="memberTitle">SPEND</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div></div>
             <div class="card card-hi" style="padding:20px;margin-bottom:14px;"><div style="height:240px;position:relative;"><canvas id="memberChart"></canvas></div></div>
             <div class="sec-head">Transactions</div>
             <div id="memberList"></div>
@@ -2372,6 +2411,26 @@
 
     </div><!-- end wrap -->
 </div><!-- end dashboard -->
+
+<!-- ++ MOBILE BOTTOM NAV ++ -->
+<div id="mobileNav">
+    <div class="mob-nav-inner">
+        <button class="mob-nav-btn" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+            <span>Menu</span>
+        </button>
+        <div class="mob-nav-divider"></div>
+        <button class="mob-nav-btn mob-home" onclick="switchView('app')">
+            <i class="fa-solid fa-house"></i>
+            <span>Home</span>
+        </button>
+        <div class="mob-nav-divider"></div>
+        <button class="mob-nav-btn" onclick="goBack()">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back</span>
+        </button>
+    </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════════
@@ -4338,12 +4397,30 @@ function toggleNotif(){ const m=document.getElementById('notifModal'),o=document
 function toggleMenu(){ if(window.innerWidth>=1100)return; const m=document.getElementById('sideMenu'),o=document.getElementById('sideOverlay'); m.classList.toggle('open'); o.style.display=m.classList.contains('open')?'block':'none'; }
 function toggleAuthMode(){ isSignUpMode=!isSignUpMode; document.getElementById('authBtn').innerText=isSignUpMode?'Sign Up':'Secure Login'; }
 
-function switchView(id) {
+let _viewHistory = ['app'];
+function goBack() {
+    if (_viewHistory.length > 1) {
+        _viewHistory.pop();
+        switchView(_viewHistory[_viewHistory.length - 1], true);
+    } else {
+        switchView('app', true);
+    }
+}
+
+function switchView(id, isBack) {
     const panels=['app','memberBreakdown','networth','vaults','bills','aiInsights','receiptScanner','challenges','familyFeed','subManager','notesManager','analyticsModal','configManager','shareManager','profileManager'];
     panels.forEach(p=>{ const el=document.getElementById(p); if(el) el.style.display='none'; });
     const target=document.getElementById(id); if(target) target.style.display='block';
     document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
     const nav=document.getElementById('nav-'+id); if(nav) nav.classList.add('active');
+    // Track history for back button (don't double-push if going back)
+    if (!isBack) {
+        if (_viewHistory[_viewHistory.length - 1] !== id) _viewHistory.push(id);
+        if (_viewHistory.length > 20) _viewHistory.shift();
+    }
+    // Update back button visibility
+    const backBtn = document.querySelector('.mob-nav-btn:last-child');
+    if (backBtn) backBtn.style.opacity = (_viewHistory.length > 1 && id !== 'app') ? '1' : '0.3';
     window.scrollTo(0,0);
     if(id==='app'||id==='analyticsModal') fetchData();
     if(id==='notesManager') { lastSeenNoteTime=Date.now(); localStorage.setItem('montoya_notes_seen', lastSeenNoteTime); const b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none'; }
