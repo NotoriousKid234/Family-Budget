@@ -699,11 +699,12 @@
             padding: 10px 24px 44px;
             z-index: 3002;
             transform: translateY(110%);
+            pointer-events: none;
             transition: transform .4s cubic-bezier(.4,0,.2,1);
             max-height: 94vh; overflow-y: auto;
             box-shadow: 0 -20px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06);
         }
-        .bottom-sheet.open { transform: translateY(0); }
+        .bottom-sheet.open { transform: translateY(0); pointer-events: all; }
 
         .sheet-handle {
             width: 40px; height: 4px;
@@ -1517,11 +1518,16 @@
                 border-radius: 28px !important;
                 max-height: 90vh;
                 opacity: 0;
-                transition: transform .3s cubic-bezier(.34,1.2,.64,1), opacity .25s ease;
+                pointer-events: none;
+                visibility: hidden;
+                transition: transform .3s cubic-bezier(.34,1.2,.64,1), opacity .25s ease, visibility 0s .3s;
             }
             .bottom-sheet.open {
                 transform: translate(-50%, -50%) scale(1) !important;
                 opacity: 1 !important;
+                pointer-events: all !important;
+                visibility: visible !important;
+                transition: transform .3s cubic-bezier(.34,1.2,.64,1), opacity .25s ease, visibility 0s 0s !important;
             }
             .sheet-handle { display: none; }
             .sheet-amount-input { text-align: center !important; width: 100% !important; }
@@ -4172,8 +4178,8 @@ async function fetchMarkets() {
         } catch(e) {
             addSectionLabel(panel, '📈 Stocks & Indices');
             const msg = document.createElement('div');
-            msg.style.cssText = 'font-size:.72rem;color:var(--text-dim);padding:8px 12px 12px;';
-            msg.innerText = 'Market closed or data unavailable';
+            msg.style.cssText = 'font-size:.72rem;color:var(--text-dim);padding:8px 12px 12px;line-height:1.5;';
+            msg.innerText = 'US markets closed\n(Mon–Fri 9:30am–4pm ET)';
             panel.appendChild(msg);
         }
         // Remove last divider
