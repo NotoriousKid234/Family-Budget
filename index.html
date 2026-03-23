@@ -160,9 +160,9 @@
         /* Desktop: center over content area, not full viewport */
         @media (min-width: 1100px) {
             .float-modal {
-                left: calc(240px + ((100vw - 240px) / 2));
+                left: calc(240px + ((100vw - 240px - 268px) / 2) + 240px);
                 transform: translate(-50%, -50%);
-                max-width: 520px;
+                max-width: 500px;
             }
         }
 
@@ -498,19 +498,21 @@
 
         /* ─── Responsive desktop ─── */
         @media (min-width: 1100px) {
-            /* ── Full-width desktop layout ── */
+            /* ── CLEAN DESKTOP LAYOUT ── */
+
+            /* 1. Wrapper: flex row, sidebar + content side by side */
             body.logged-in .dashboard-wrapper {
                 display: flex !important;
-                align-items: stretch;
                 min-height: 100vh;
                 padding: 0;
-                gap: 0;
+                align-items: flex-start;
             }
 
-            /* Sidebar: flush left, full height */
+            /* 2. Sidebar: flush to left edge, full height, fixed width */
             body.logged-in .side-menu {
                 position: sticky !important;
-                top: 0 !important; left: 0 !important;
+                top: 0 !important;
+                left: 0 !important;
                 width: 240px !important;
                 height: 100vh !important;
                 border-radius: 0 !important;
@@ -520,62 +522,49 @@
                 overflow-y: auto !important;
             }
 
-            /* Wrap: fills all remaining space with comfortable padding */
+            /* 3. Wrap: takes remaining space, right padding leaves room for market panel */
             .wrap {
                 flex: 1 !important;
-                width: auto !important;
-                max-width: none !important;
                 min-width: 0 !important;
-                padding: 28px 32px !important;
+                max-width: none !important;
+                padding: 28px 300px 28px 32px !important;
                 overflow-x: hidden !important;
             }
 
-            /* ── Dashboard: 2-column layout ── */
+            /* 4. #app: simple block, natural flow, no grid */
             #app {
-                display: grid !important;
-                grid-template-columns: minmax(0, 1fr) 280px !important;
-                column-gap: 20px !important;
-                align-items: start !important;
-            }
-
-            /* Row 1: Header full width */
-            #app > .dash-header {
-                grid-column: 1 / -1;
-                margin-bottom: 12px;
-            }
-
-            /* Row 2: Cycle pill left, nothing right */
-            #app > .cycle-pill {
-                grid-column: 1;
-                justify-self: start;
-                margin-bottom: 12px;
-            }
-
-            /* Left column: rows 2-8 */
-            #app > .loan-grid      { grid-column: 1; }
-            #app > .prog-wrap      { grid-column: 1; }
-            #app > .milestone-row  { grid-column: 1; }
-            #app > .balance-hero   { grid-column: 1; }
-            #app > .member-grid    { grid-column: 1; }
-            #app > #needWantCard   { grid-column: 1; }
-
-            /* Right column: market panel spans rows 2-8, sticky */
-            #app > #marketPanel {
-                grid-column: 2;
-                grid-row: 2 / 10;
-                position: sticky;
-                top: 20px;
                 display: block !important;
-                max-height: calc(100vh - 40px);
-                overflow-y: auto;
+                width: 100% !important;
             }
 
-            /* Bottom full-width section */
-            #app > .add-txn-btn    { grid-column: 1 / -1; margin-top: 4px; }
-            #app > .search-wrap    { grid-column: 1 / -1; }
-            #app > .history-header { grid-column: 1 / -1; }
-            #app > #historyList    { grid-column: 1 / -1; }
-            #app > .input-card     { display: none !important; }
+            /* 5. Market panel: fixed to right edge */
+            #marketPanel {
+                display: block !important;
+                position: fixed !important;
+                top: 0 !important;
+                right: 0 !important;
+                width: 268px !important;
+                height: 100vh !important;
+                border-radius: 0 !important;
+                border-left: 1px solid rgba(100,150,230,.12) !important;
+                border-top: none !important;
+                border-right: none !important;
+                border-bottom: none !important;
+                background: linear-gradient(180deg, #0a1628 0%, #0d1a30 100%) !important;
+                overflow-y: auto !important;
+                padding: 24px 16px !important;
+                margin: 0 !important;
+                z-index: 100 !important;
+            }
+
+            /* 6. Hero stats bar: full content width */
+            .hero-stats-bar { width: 100%; }
+
+            /* 7. Hide old cycle pill since it's in the hero bar */
+            #app > .cycle-pill { display: none !important; }
+
+            /* 8. Hide old input card */
+            .input-card { display: none !important; }
 
             .hamburger { display: none !important; }
         }
@@ -1056,6 +1045,271 @@
             .bubble-wrap { max-width: 85%; }
         }
 
+        /* ─── Hero Stats Bar ─── */
+        .hero-stats-bar {
+            background: linear-gradient(135deg, rgba(15,25,50,.9) 0%, rgba(10,20,40,.95) 100%);
+            border: 1px solid rgba(232,194,82,.15);
+            border-radius: 24px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-stats-bar::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), rgba(232,194,82,.3), transparent);
+        }
+        .hero-stats-bar::after {
+            content: '';
+            position: absolute; top: -60px; right: -60px;
+            width: 200px; height: 200px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(232,194,82,.06), transparent);
+            pointer-events: none;
+        }
+
+        /* Left: big balance */
+        .hero-balance-block {
+            flex: 1; min-width: 0;
+        }
+        .hero-balance-label {
+            font-size: .6rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 3px;
+            color: rgba(232,194,82,.6); margin-bottom: 6px;
+        }
+        .hero-balance-num {
+            font-family: 'Instrument Serif', serif;
+            font-size: 3.2rem; line-height: 1;
+            background: linear-gradient(135deg, #f0d97a, #e8c252, #b8941c);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin-bottom: 12px;
+        }
+        .hero-balance-pills {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .cycle-pill-inline {
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.1);
+            color: var(--text-soft);
+            font-size: .7rem; font-weight: 600;
+            padding: 5px 12px; border-radius: 100px;
+            cursor: pointer; outline: none;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .cycle-pill-inline option { background: var(--ink-2); }
+
+        /* Right: stat cards */
+        .hero-stat-cards {
+            display: flex; gap: 12px; flex-shrink: 0;
+        }
+        .hero-stat-card {
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 18px;
+            padding: 16px 20px;
+            text-align: center;
+            min-width: 80px;
+            transition: all .2s;
+        }
+        .hero-stat-card:hover {
+            background: rgba(255,255,255,.07);
+            border-color: rgba(255,255,255,.12);
+            transform: translateY(-2px);
+        }
+        .hero-stat-icon { font-size: 1.3rem; margin-bottom: 6px; }
+        .hero-stat-val {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.3rem; color: var(--text);
+            line-height: 1; margin-bottom: 4px;
+        }
+        .hero-stat-lbl {
+            font-size: .58rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-dim);
+        }
+
+        /* Hide old balance hero since we moved it to the top */
+        .balance-hero { display: none !important; }
+
+        /* On desktop: hero bar spans full width */
+
+
+        /* On mobile: stack vertically */
+        @media (max-width: 600px) {
+            .hero-stats-bar { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }
+            .hero-balance-num { font-size: 2.6rem; }
+            .hero-stat-cards { width: 100%; justify-content: space-between; gap: 8px; }
+            .hero-stat-card { flex: 1; padding: 12px 8px; min-width: 0; }
+            .hero-stat-val { font-size: 1.1rem; }
+        }
+
+        /* ═══ WEEKLY RECAP CARD ═══ */
+        .weekly-recap-card {
+            background: linear-gradient(135deg, rgba(167,139,250,.1), rgba(96,165,250,.06));
+            border: 1px solid rgba(167,139,250,.25);
+            border-radius: 20px; padding: 20px;
+            margin-bottom: 14px; position: relative;
+            animation: fadeUp .4s ease both;
+        }
+        .recap-header {
+            display: flex; justify-content: space-between;
+            align-items: flex-start; margin-bottom: 14px;
+        }
+        .recap-eyebrow {
+            font-size: .72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
+            color: var(--violet); margin-bottom: 3px;
+        }
+        .recap-date { font-size: .65rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+        .recap-dismiss {
+            background: rgba(255,255,255,.06); border: 1px solid var(--border);
+            color: var(--text-dim); border-radius: 8px;
+            width: 26px; height: 26px; cursor: pointer;
+            font-size: .75rem; display: flex; align-items: center; justify-content: center;
+            transition: all .2s; flex-shrink: 0;
+        }
+        .recap-dismiss:hover { background: rgba(255,255,255,.12); color: var(--text); }
+        .recap-stats-row {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 8px; margin-bottom: 14px;
+        }
+        .recap-stat {
+            background: rgba(0,0,0,.2); border-radius: 12px;
+            padding: 10px; text-align: center;
+        }
+        .recap-stat-val { font-family: 'DM Mono', monospace; font-size: .9rem; font-weight: 600; color: var(--text); }
+        .recap-stat-lbl { font-size: .58rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+        .recap-body { font-size: .82rem; line-height: 1.65; color: var(--text-soft); }
+        .recap-generate-btn {
+            width: 100%; margin-top: 12px; padding: 10px;
+            background: rgba(167,139,250,.15); border: 1px solid rgba(167,139,250,.3);
+            color: #c4b5fd; border-radius: 12px; font-size: .78rem;
+            font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif;
+            transition: all .2s;
+        }
+        .recap-generate-btn:hover { background: rgba(167,139,250,.25); }
+
+        /* ═══ PREDICTIVE WARNING ═══ */
+        .budget-warning-card {
+            background: rgba(251,191,36,.06);
+            border: 1px solid rgba(251,191,36,.25);
+            border-radius: 16px; padding: 14px 16px;
+            margin-bottom: 12px; animation: fadeUp .3s ease both;
+        }
+
+        /* ═══ ANOMALY ALERT ═══ */
+        .anomaly-card {
+            background: rgba(167,139,250,.06);
+            border: 1px solid rgba(167,139,250,.25);
+            border-radius: 16px; padding: 14px 16px;
+            margin-bottom: 12px; animation: fadeUp .3s ease both;
+        }
+
+        /* ═══ TRANSACTION REACTIONS ═══ */
+        .txn-reaction-row {
+            display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap;
+        }
+        .txn-reaction-btn {
+            background: rgba(255,255,255,.05); border: 1px solid var(--border);
+            border-radius: 100px; padding: 2px 8px;
+            font-size: .72rem; cursor: pointer; transition: all .18s;
+            display: flex; align-items: center; gap: 3px;
+        }
+        .txn-reaction-btn:hover { background: rgba(255,255,255,.1); transform: scale(1.1); }
+        .txn-reaction-btn.reacted { background: rgba(232,194,82,.15); border-color: rgba(232,194,82,.3); }
+        .txn-reaction-count { font-size: .62rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+
+        /* ═══ CATEGORY LIMIT BADGE ═══ */
+        .cat-limit-badge {
+            font-size: .6rem; font-weight: 700; padding: 2px 7px;
+            border-radius: 100px; margin-left: 6px;
+        }
+        .cat-limit-warn { background: rgba(251,191,36,.15); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+        .cat-limit-over { background: rgba(251,113,133,.15); color: var(--rose); border: 1px solid rgba(251,113,133,.3); }
+
+        /* ─── Right Side Panels ─── */
+        .side-panel-card {
+            background: var(--ink-2);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .side-panel-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 12px;
+            font-size: .68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-soft);
+        }
+        .side-panel-link {
+            background: none; border: none;
+            color: var(--gold); font-size: .65rem;
+            font-weight: 700; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0; text-transform: none;
+            transition: opacity .2s;
+        }
+        .side-panel-link:hover { opacity: .7; }
+
+        /* Vault mini bars */
+        .vault-mini-item { margin-bottom: 12px; }
+        .vault-mini-item:last-child { margin-bottom: 0; }
+        .vault-mini-top {
+            display: flex; justify-content: space-between;
+            align-items: baseline; margin-bottom: 5px;
+        }
+        .vault-mini-name {
+            font-size: .78rem; font-weight: 600;
+            color: var(--text); display: flex;
+            align-items: center; gap: 5px;
+        }
+        .vault-mini-pct {
+            font-size: .65rem; font-weight: 700;
+            color: var(--gold); font-family: 'DM Mono', monospace;
+        }
+        .vault-mini-bar-bg {
+            height: 5px; background: rgba(255,255,255,.07);
+            border-radius: 100px; overflow: hidden;
+        }
+        .vault-mini-bar-fill {
+            height: 100%; border-radius: 100px;
+            background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+            transition: width .6s cubic-bezier(.4,0,.2,1);
+        }
+        .vault-mini-amounts {
+            display: flex; justify-content: space-between;
+            font-size: .6rem; color: var(--text-dim);
+            font-family: 'DM Mono', monospace; margin-top: 3px;
+        }
+
+        /* AI tip */
+        .ai-tip-body {
+            font-size: .82rem; line-height: 1.6;
+            color: var(--text-soft);
+        }
+        .ai-tip-loading {
+            display: flex; align-items: center; gap: 8px;
+            color: var(--text-dim); font-size: .75rem;
+        }
+        .ai-tip-text {
+            font-size: .82rem; line-height: 1.65;
+            color: var(--text-soft);
+        }
+        .ai-tip-text strong { color: var(--gold); }
+        .ai-tip-category {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: .58rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: var(--violet); background: rgba(167,139,250,.1);
+            border: 1px solid rgba(167,139,250,.2);
+            padding: 2px 8px; border-radius: 100px;
+            margin-bottom: 8px;
+        }
+
         /* ─── Market Panel ─── */
         .market-panel {
             background: var(--ink-2);
@@ -1133,9 +1387,7 @@
         }
 
         /* Show market panel on desktop only */
-        @media (min-width: 1100px) {
-            .market-panel { display: block; }
-        }
+
 
         /* ─── Pinned Add Button ─── */
         .add-txn-btn {
@@ -1164,7 +1416,7 @@
             .sheet-overlay { background: rgba(4,8,20,.6); }
             .bottom-sheet {
                 max-width: 580px;
-                left: calc(240px + ((100vw - 240px) / 2));
+                left: calc(240px + ((100vw - 240px - 268px) / 2) + 240px);
                 right: auto;
                 transform: translateX(-50%) translateY(110%);
                 border-radius: 32px 32px 0 0;
@@ -1231,6 +1483,7 @@
 
         <!-- ══ DASHBOARD ══ -->
         <div id="app" class="app-panel">
+            <!-- ══ RICH DASHBOARD HEADER ══ -->
             <div class="dash-header">
                 <div class="dash-header-left">
                     <i class="fa-solid fa-bars hamburger" onclick="toggleMenu()" style="margin-right:12px;flex-shrink:0;"></i>
@@ -1248,7 +1501,81 @@
                 </div>
             </div>
 
-            <select id="cycleSelect" class="cycle-pill" onchange="changeCycle()"></select>
+            <!-- ══ HERO STATS BAR ══ -->
+            <div class="hero-stats-bar">
+                <!-- Big balance -->
+                <div class="hero-balance-block">
+                    <div class="hero-balance-label">Remaining This Cycle</div>
+                    <div id="balanceNum" class="hero-balance-num">$0.00</div>
+                    <div class="hero-balance-pills">
+                        <div id="paceChip" class="pill pill-green">Pace: $0/day</div>
+                        <div id="safeChip" class="pill pill-blue">Safe: $0</div>
+                        <select id="cycleSelect" class="cycle-pill-inline" onchange="changeCycle()"></select>
+                    </div>
+                </div>
+                <!-- Stat cards -->
+                <div class="hero-stat-cards">
+                    <div class="hero-stat-card">
+                        <div class="hero-stat-icon" style="color:#f97316;">🔥</div>
+                        <div id="streakVal" class="hero-stat-val">0</div>
+                        <div class="hero-stat-lbl">Day Streak</div>
+                    </div>
+                    <div class="hero-stat-card">
+                        <div class="hero-stat-icon" style="color:var(--gold);">💰</div>
+                        <div id="heroTotalSpent" class="hero-stat-val">$0</div>
+                        <div class="hero-stat-lbl">Spent</div>
+                    </div>
+                    <div class="hero-stat-card">
+                        <div class="hero-stat-icon" style="color:var(--green);">📈</div>
+                        <div id="powerVal" class="hero-stat-val">0%</div>
+                        <div class="hero-stat-lbl">Savings</div>
+                    </div>
+                    <div class="hero-stat-card">
+                        <div class="hero-stat-icon" style="color:var(--blue);">📅</div>
+                        <div id="heroDaysLeft" class="hero-stat-val">0</div>
+                        <div class="hero-stat-lbl">Days Left</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ WEEKLY RECAP CARD ══ -->
+            <div id="weeklyRecapCard" style="display:none;" class="weekly-recap-card">
+                <div class="recap-header">
+                    <div>
+                        <div class="recap-eyebrow">📊 Weekly Family Recap</div>
+                        <div id="recapDateRange" class="recap-date"></div>
+                    </div>
+                    <button onclick="dismissRecap()" class="recap-dismiss">✕</button>
+                </div>
+                <div id="recapStats" class="recap-stats-row"></div>
+                <div id="recapBody" class="recap-body">
+                    <div class="ai-tip-loading"><div class="ai-spinner" style="border-top-color:var(--gold);width:18px;height:18px;"></div><span>Generating your recap…</span></div>
+                </div>
+            </div>
+
+            <!-- ══ PREDICTIVE WARNING ══ -->
+            <div id="budgetWarningCard" style="display:none;" class="budget-warning-card">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.4rem;">⚠️</span>
+                    <div>
+                        <div id="budgetWarningTitle" style="font-size:.8rem;font-weight:700;color:#fbbf24;margin-bottom:2px;">Budget Warning</div>
+                        <div id="budgetWarningMsg" style="font-size:.75rem;color:var(--text-soft);line-height:1.4;"></div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.style.display='none'" style="margin-left:auto;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1rem;">✕</button>
+                </div>
+            </div>
+
+            <!-- ══ ANOMALY ALERT ══ -->
+            <div id="anomalyCard" style="display:none;" class="anomaly-card">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.4rem;">🔍</span>
+                    <div>
+                        <div style="font-size:.8rem;font-weight:700;color:var(--violet);margin-bottom:2px;">Spending Anomaly Detected</div>
+                        <div id="anomalyMsg" style="font-size:.75rem;color:var(--text-soft);line-height:1.4;"></div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.style.display='none'" style="margin-left:auto;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1rem;">✕</button>
+                </div>
+            </div>
 
             <div class="loan-grid">
                 <div class="loan-tile mortgage"><div class="loan-lbl mortgage">Mortgage</div><div id="mortgageBalText" class="loan-val">$0.00</div></div>
@@ -1269,16 +1596,16 @@
             </div>
 
             <div class="milestone-row">
-                <div class="ms-card"><div class="ms-icon">🔥</div><div id="streakVal" class="ms-val">0</div><div class="ms-lbl">Day Streak</div></div>
-                <div class="ms-card"><div class="ms-icon">🏆</div><div id="powerVal" class="ms-val">0%</div><div class="ms-lbl">Savings Power</div></div>
+                <div class="ms-card"><div class="ms-icon">🔥</div><div id="streakValOld" class="ms-val">0</div><div class="ms-lbl">Day Streak</div></div>
+                <div class="ms-card"><div class="ms-icon">🏆</div><div id="powerValOld" class="ms-val">0%</div><div class="ms-lbl">Savings Power</div></div>
             </div>
 
             <div class="balance-hero">
                 <div class="bal-eyebrow">Remaining This Cycle</div>
                 <div id="balanceNum" class="bal-number">$0.00</div>
                 <div class="pills">
-                    <div id="paceChip" class="pill pill-green">Pace: $0/day</div>
-                    <div id="safeChip" class="pill pill-blue">Safe: $0</div>
+                    <div id="paceChipOld" class="pill pill-green">Pace: $0/day</div>
+                    <div id="safeChipOld" class="pill pill-blue">Safe: $0</div>
                 </div>
             </div>
 
@@ -1436,7 +1763,38 @@
                     <span style="font-size:.58rem;color:var(--text-dim);">Data via Yahoo Finance · Refreshes every 60s</span>
                     <button onclick="fetchMarkets()" style="background:none;border:none;color:var(--gold);font-size:.65rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">↻ Refresh</button>
                 </div>
+
+                <!-- Divider -->
+                <div style="height:1px;background:rgba(255,255,255,.06);margin:16px 0;"></div>
+
+                <!-- Savings Vaults Mini -->
+                <div id="vaultMiniPanel" style="display:none;margin-bottom:16px;">
+                    <div class="side-panel-header">
+                        <span>🏦 Savings Goals</span>
+                        <button onclick="switchView('vaults')" class="side-panel-link">View all →</button>
+                    </div>
+                    <div id="vaultMiniList"></div>
+                </div>
+
+                <!-- Divider for vaults -->
+                <div id="vaultMiniDivider" style="display:none;height:1px;background:rgba(255,255,255,.06);margin-bottom:16px;"></div>
+
+                <!-- AI Daily Tip -->
+                <div id="aiTipPanel">
+                    <div class="side-panel-header">
+                        <span>🤖 Daily Money Tip</span>
+                        <button onclick="fetchAiTip(true)" class="side-panel-link">↻ New</button>
+                    </div>
+                    <div id="aiTipBody" class="ai-tip-body">
+                        <div class="ai-tip-loading">
+                            <div class="ai-spinner" style="border-top-color:var(--gold);width:18px;height:18px;"></div>
+                            <span>Getting your tip…</span>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+
 
             <!-- Pinned Add Transaction Button -->
             <button class="add-txn-btn" onclick="openSheet()" id="addTxnBtn">
@@ -1782,6 +2140,7 @@ async function loadApp() {
     initCycles();
     fetchData();
     startMarketFeed();
+    fetchAiTip();
 }
 
 function loadStoredData() {
@@ -1893,9 +2252,40 @@ function renderDashboard() {
     // Update history count
     const countEl = document.getElementById('historyCount');
     if(countEl) countEl.innerText = history.length === 1 ? '1 transaction' : history.length + ' transactions';
+    renderVaultMini();
 
     const remaining=config.budget-total;
     document.getElementById('balanceNum').innerText='$'+fmt(remaining);
+
+    // Update hero stats bar
+    const heroSpent = document.getElementById('heroTotalSpent');
+    if (heroSpent) heroSpent.innerText = '$' + fmt(total);
+
+    const heroDays = document.getElementById('heroDaysLeft');
+    if (heroDays) {
+        const cycleStart = config.cycle_start_day || 16;
+        const now2 = new Date();
+        const nextCycle = new Date(now2.getFullYear(), now2.getMonth(), cycleStart);
+        if (nextCycle <= now2) nextCycle.setMonth(nextCycle.getMonth() + 1);
+        const daysLeft = Math.ceil((nextCycle - now2) / (1000 * 60 * 60 * 24));
+        heroDays.innerText = daysLeft;
+    }
+
+    // Update pace and safe chips in hero bar
+    const days = config.cycle_days || 30;
+    const cycleStart2 = config.cycle_start_day || 16;
+    const elapsed = (() => {
+        const n = new Date();
+        const s = new Date(n.getFullYear(), n.getMonth(), cycleStart2);
+        if (s > n) s.setMonth(s.getMonth() - 1);
+        return Math.max(1, Math.ceil((n - s) / 86400000));
+    })();
+    const paceVal = elapsed > 0 ? (total / elapsed).toFixed(2) : '0.00';
+    const safeVal = fmt(remaining);
+    const paceEl = document.getElementById('paceChip');
+    const safeEl = document.getElementById('safeChip');
+    if (paceEl) paceEl.innerText = 'Pace: $' + paceVal + '/day';
+    if (safeEl) safeEl.innerText = 'Safe: $' + safeVal;
 
     // Need vs Want split
     let needTotal=0, wantTotal=0;
@@ -2107,6 +2497,43 @@ function addAIHistory(q,a) {
 }
 
 // ── Analytics ──
+function renderMonthOverMonth() {
+    // Compare current cycle vs previous cycle spending
+    const currentCycleStart = (() => {
+        const n = new Date(); const d = config.cycle_start_day||16;
+        const s = new Date(n.getFullYear(), n.getMonth(), d);
+        if (s > n) s.setMonth(s.getMonth()-1);
+        return s;
+    })();
+    const prevCycleStart = new Date(currentCycleStart);
+    prevCycleStart.setMonth(prevCycleStart.getMonth()-1);
+    const prevCycleEnd = new Date(currentCycleStart);
+
+    const currentSpend = history.filter(t => new Date(t.created_at) >= currentCycleStart).reduce((s,t)=>s+t.amount,0);
+    const prevSpend = history.filter(t => {
+        const d = new Date(t.created_at);
+        return d >= prevCycleStart && d < prevCycleEnd;
+    }).reduce((s,t)=>s+t.amount,0);
+
+    const diff = currentSpend - prevSpend;
+    const pct = prevSpend > 0 ? Math.round((diff/prevSpend)*100) : 0;
+    const trend = diff > 0 ? `▲ $${fmt(Math.abs(diff))} more (${Math.abs(pct)}% up)` : diff < 0 ? `▼ $${fmt(Math.abs(diff))} less (${Math.abs(pct)}% down)` : 'Same as last cycle';
+    const color = diff > 0 ? 'var(--rose)' : diff < 0 ? 'var(--green)' : 'var(--text-dim)';
+
+    const el = document.getElementById('momComparison');
+    if (el) el.innerHTML =
+        '<div class="card" style="margin-bottom:12px;">' +
+        '<div class="sec-head" style="margin-bottom:10px;">📅 Month-over-Month</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
+        '<div style="text-align:center;padding:12px;background:rgba(0,0,0,.2);border-radius:12px;">' +
+        '<div style="font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">This Cycle</div>' +
+        '<div style="font-family:'DM Mono',monospace;font-size:1rem;color:var(--text);">$' + fmt(currentSpend) + '</div></div>' +
+        '<div style="text-align:center;padding:12px;background:rgba(0,0,0,.2);border-radius:12px;">' +
+        '<div style="font-size:.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Last Cycle</div>' +
+        '<div style="font-family:'DM Mono',monospace;font-size:1rem;color:var(--text-soft);">$' + fmt(prevSpend) + '</div></div></div>' +
+        '<div style="font-size:.82rem;font-weight:700;color:' + color + ';text-align:center;">' + trend + '</div></div>';
+}
+
 function renderAnalytics() {
     let spent=0,mPay=0,cPay=0,tots={};
     history.forEach(i=>{spent+=i.amount;tots[i.category]=(tots[i.category]||0)+i.amount;if(i.category==='Mortgage')mPay+=i.amount;if(i.category==='Car')cPay+=i.amount;});
@@ -2262,12 +2689,48 @@ function renderNotifs() {
 }
 
 function calcMilestones() {
-    const combined=[...history,...notes].map(x=>new Date(x.created_at).toDateString());
-    const unique=[...new Set(combined)]; let streak=0,check=new Date();
-    while(unique.includes(check.toDateString())){streak++;check.setDate(check.getDate()-1);}
-    document.getElementById('streakVal').innerText=streak;
+    // Streak: transactions only, 1-day forgiveness window
+    const txDates = new Set(history.map(x => new Date(x.created_at).toDateString()));
+    let streak = 0;
+    let missedOne = false; // forgiveness flag — allows one gap
+    let check = new Date();
+    check.setHours(0,0,0,0);
+
+    // If nothing logged today, that's okay — start checking from yesterday
+    if (!txDates.has(check.toDateString())) {
+        check.setDate(check.getDate() - 1);
+    }
+
+    while (true) {
+        const dateStr = check.toDateString();
+        if (txDates.has(dateStr)) {
+            streak++;
+            missedOne = false;
+        } else if (!missedOne) {
+            // Use the forgiveness window — skip one gap
+            missedOne = true;
+        } else {
+            // Two consecutive misses — streak is broken
+            break;
+        }
+        check.setDate(check.getDate() - 1);
+        // Safety: don't look back more than 365 days
+        if (streak > 365) break;
+    }
+
+    // Show ⚡ if currently on a forgiveness day (logged yesterday but not today)
+    const todayHasTx = txDates.has(new Date().toDateString());
+    const streakLabel = !todayHasTx && streak > 0 ? '⚡' : '🔥';
+    const streakEl = document.getElementById('streakVal');
+    if (streakEl) streakEl.innerText = streak;
+    // Update the icon in the hero card
+    const streakIcon = streakEl ? streakEl.closest('.hero-stat-card')?.querySelector('.hero-stat-icon') : null;
+    if (streakIcon) streakIcon.innerText = streakLabel;
+    const streakOld = document.getElementById('streakValOld'); if(streakOld) streakOld.innerText = streak;
     let spent=0;history.forEach(i=>spent+=i.amount);
-    document.getElementById('powerVal').innerText=Math.round(((config.budget-spent)/config.budget)*100)+'%';
+    const savPct = config.budget > 0 ? Math.max(0, Math.min(100, Math.round(((config.budget - spent) / config.budget) * 100))) : 0;
+    document.getElementById('powerVal').innerText = savPct + '%';
+    const powerOldEl = document.getElementById('powerValOld'); if(powerOldEl) powerOldEl.innerText = savPct + '%';
 }
 
 // ── Transactions ──
@@ -2676,6 +3139,255 @@ Should they buy this right now? Give specific advice using their numbers.`
     }
 }
 
+// ═══════════════════════════════════════════════
+// FEATURE 1: WEEKLY AI FAMILY RECAP
+// ═══════════════════════════════════════════════
+const RECAP_DISMISSED_KEY = 'montoya_recap_dismissed';
+
+function shouldShowRecap() {
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun
+    const dismissed = localStorage.getItem(RECAP_DISMISSED_KEY);
+    const thisWeekSunday = new Date(now);
+    thisWeekSunday.setDate(now.getDate() - day);
+    thisWeekSunday.setHours(0,0,0,0);
+    // Show on Sunday OR if it's been 7 days since last dismiss
+    if (dismissed) {
+        const lastDismiss = new Date(parseInt(dismissed));
+        if (lastDismiss >= thisWeekSunday) return false;
+    }
+    return history.length > 0;
+}
+
+function dismissRecap() {
+    localStorage.setItem(RECAP_DISMISSED_KEY, Date.now().toString());
+    document.getElementById('weeklyRecapCard').style.display = 'none';
+}
+
+async function generateWeeklyRecap() {
+    const card = document.getElementById('weeklyRecapCard');
+    const body = document.getElementById('recapBody');
+    const statsRow = document.getElementById('recapStats');
+    const dateRange = document.getElementById('recapDateRange');
+    if (!card || !body) return;
+
+    card.style.display = 'block';
+
+    // Date range label
+    const now = new Date();
+    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
+    if (dateRange) dateRange.innerText = weekAgo.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' – ' + now.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+    // Calculate week stats
+    const weekTx = history.filter(t => new Date(t.created_at) >= weekAgo);
+    const weekTotal = weekTx.reduce((s,t) => s + t.amount, 0);
+    const weekWants = weekTx.filter(t => t.intent==='Want').reduce((s,t) => s + t.amount, 0);
+    const weekNeeds = weekTx.filter(t => t.intent==='Need').reduce((s,t) => s + t.amount, 0);
+    const topCat = (() => {
+        const cats = {};
+        weekTx.forEach(t => { cats[t.category] = (cats[t.category]||0) + t.amount; });
+        return Object.entries(cats).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'None';
+    })();
+    const txCount = weekTx.length;
+
+    // Stats row
+    if (statsRow) {
+        statsRow.innerHTML =
+            '<div class="recap-stat"><div class="recap-stat-val">$' + fmt(weekTotal) + '</div><div class="recap-stat-lbl">Spent</div></div>' +
+            '<div class="recap-stat"><div class="recap-stat-val">' + txCount + '</div><div class="recap-stat-lbl">Transactions</div></div>' +
+            '<div class="recap-stat"><div class="recap-stat-val">' + topCat + '</div><div class="recap-stat-lbl">Top Category</div></div>';
+    }
+
+    if (weekTx.length === 0) {
+        body.innerHTML = '<div style="color:var(--text-dim);font-size:.8rem;">No transactions this week yet.</div>';
+        return;
+    }
+
+    body.innerHTML = '<div class="ai-tip-loading"><div class="ai-spinner" style="border-top-color:var(--gold);width:18px;height:18px;"></div><span>Generating recap…</span></div>';
+
+    try {
+        const prompt = `You are a friendly family finance coach for the Montoya family. Generate a warm, encouraging weekly spending recap in 2-3 sentences.
+
+Week data: $${weekTotal.toFixed(0)} total spent, $${weekNeeds.toFixed(0)} on needs, $${weekWants.toFixed(0)} on wants, ${txCount} transactions, top category: ${topCat}. Budget this cycle: $${config.budget||0}.
+
+Be specific, warm, and end with one actionable tip for next week. Keep it under 60 words.`;
+
+        const res = await fetch('/.netlify/functions/ai-proxy', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ message: prompt, system: 'You are a concise, warm family finance coach.' })
+        });
+        const data = await res.json();
+        const text = data.content?.[0]?.text || '';
+        body.innerHTML = `<div class="recap-body">${text}</div>`;
+    } catch(e) {
+        body.innerHTML = `<div class="recap-body">Great job tracking your spending this week! You logged ${txCount} transactions totaling $${fmt(weekTotal)}. Your top category was ${topCat} — keep an eye on that next week!</div>`;
+    }
+}
+
+// ═══════════════════════════════════════════════
+// FEATURE 2: PREDICTIVE BUDGET WARNING
+// ═══════════════════════════════════════════════
+function checkBudgetWarning() {
+    const card = document.getElementById('budgetWarningCard');
+    const msg = document.getElementById('budgetWarningMsg');
+    const title = document.getElementById('budgetWarningTitle');
+    if (!card || !config.budget) return;
+
+    const budget = parseFloat(config.budget) || 0;
+    const total = history.reduce((s,t) => s + t.amount, 0);
+    const remaining = budget - total;
+    const pctUsed = budget > 0 ? (total / budget) * 100 : 0;
+
+    // Calculate days left in cycle
+    const cycleStart = config.cycle_start_day || 16;
+    const now = new Date();
+    const nextCycle = new Date(now.getFullYear(), now.getMonth(), cycleStart);
+    if (nextCycle <= now) nextCycle.setMonth(nextCycle.getMonth() + 1);
+    const daysLeft = Math.ceil((nextCycle - now) / (1000*60*60*24));
+
+    // Daily spend rate
+    const elapsed = (() => {
+        const s = new Date(now.getFullYear(), now.getMonth(), cycleStart);
+        if (s > now) s.setMonth(s.getMonth()-1);
+        return Math.max(1, Math.ceil((now-s)/86400000));
+    })();
+    const dailyRate = total / elapsed;
+    const projectedTotal = total + (dailyRate * daysLeft);
+    const projectedOverage = projectedTotal - budget;
+
+    if (projectedOverage > 50 && daysLeft > 3) {
+        card.style.display = 'block';
+        if (title) title.innerText = `⚠️ Budget Alert — ${daysLeft} days left`;
+        if (msg) msg.innerText = 'At your current pace of $' + dailyRate.toFixed(0) + '/day, you'll exceed your budget by $' + fmt(projectedOverage) + ' before the cycle ends. Consider slowing spending on wants.';
+    } else if (pctUsed >= 85) {
+        card.style.display = 'block';
+        if (title) title.innerText = '⚠️ Budget Running Low';
+        if (msg) msg.innerText = 'You've used ' + Math.round(pctUsed) + '% of your $' + fmt(budget) + ' budget with $' + fmt(remaining) + ' remaining and ' + daysLeft + ' days to go.';
+    } else {
+        card.style.display = 'none';
+    }
+}
+
+// ═══════════════════════════════════════════════
+// FEATURE 3: SPENDING ANOMALY DETECTION
+// ═══════════════════════════════════════════════
+function checkAnomalies() {
+    const card = document.getElementById('anomalyCard');
+    const msg = document.getElementById('anomalyMsg');
+    if (!card || history.length < 5) return;
+
+    const now = new Date();
+    const thisWeek = new Date(now); thisWeek.setDate(now.getDate()-7);
+    const lastWeek = new Date(now); lastWeek.setDate(now.getDate()-14);
+
+    // Compare category spending this week vs last week
+    const getCatSpend = (from, to) => {
+        const cats = {};
+        history.filter(t => {
+            const d = new Date(t.created_at);
+            return d >= from && d < to;
+        }).forEach(t => { cats[t.category] = (cats[t.category]||0) + t.amount; });
+        return cats;
+    };
+
+    const thisWeekCats = getCatSpend(thisWeek, now);
+    const lastWeekCats = getCatSpend(lastWeek, thisWeek);
+
+    let biggestAnomaly = null;
+    let biggestRatio = 2.0; // only alert if 2x+ more than last week
+
+    Object.entries(thisWeekCats).forEach(([cat, thisAmt]) => {
+        const lastAmt = lastWeekCats[cat] || 0;
+        if (lastAmt > 10 && thisAmt > 20) {
+            const ratio = thisAmt / lastAmt;
+            if (ratio > biggestRatio) {
+                biggestRatio = ratio;
+                biggestAnomaly = { cat, thisAmt, lastAmt, ratio };
+            }
+        }
+    });
+
+    if (biggestAnomaly) {
+        card.style.display = 'block';
+        if (msg) msg.innerText = 'Your ' + biggestAnomaly.cat + ' spending this week ($' + fmt(biggestAnomaly.thisAmt) + ') is ' + Math.round(biggestAnomaly.ratio) + 'x higher than last week ($' + fmt(biggestAnomaly.lastAmt) + '). Want to review those transactions?';
+    } else {
+        card.style.display = 'none';
+    }
+}
+
+// ═══════════════════════════════════════════════
+// FEATURE 5: TRANSACTION EMOJI REACTIONS
+// ═══════════════════════════════════════════════
+let txnReactions = JSON.parse(localStorage.getItem('montoya_txn_reactions') || '{}');
+let myTxnReactions = JSON.parse(localStorage.getItem('montoya_my_txn_reactions') || '{}');
+
+function reactToTxn(txnId, emoji) {
+    if (!txnReactions[txnId]) txnReactions[txnId] = {};
+    const prev = myTxnReactions[txnId];
+    if (prev === emoji) {
+        txnReactions[txnId][emoji] = Math.max(0,(txnReactions[txnId][emoji]||1)-1);
+        delete myTxnReactions[txnId];
+    } else {
+        if (prev) txnReactions[txnId][prev] = Math.max(0,(txnReactions[txnId][prev]||1)-1);
+        txnReactions[txnId][emoji] = (txnReactions[txnId][emoji]||0)+1;
+        myTxnReactions[txnId] = emoji;
+    }
+    localStorage.setItem('montoya_txn_reactions', JSON.stringify(txnReactions));
+    localStorage.setItem('montoya_my_txn_reactions', JSON.stringify(myTxnReactions));
+    renderDashboard();
+}
+
+function buildReactionHTML(txnId) {
+    const reactions = txnReactions[txnId] || {};
+    const myReaction = myTxnReactions[txnId];
+    const emojis = ['✅','😬','🔥','😂','💸'];
+    const labels = { '✅':'Approved','😬':'Yikes','🔥':'Nice','😂':'Lol','💸':'Big spend' };
+    let btns = '';
+    emojis.forEach(function(e) {
+        const count = reactions[e] || 0;
+        const reacted = myReaction === e;
+        const countSpan = count > 0 ? '<span class="txn-reaction-count">' + count + '</span>' : '';
+        const cls = 'txn-reaction-btn' + (reacted ? ' reacted' : '');
+        btns += '<button class="' + cls + '" onclick="reactToTxn('' + txnId + '','' + e + '')" title="' + labels[e] + '">' + e + countSpan + '</button>';
+    });
+    return '<div class="txn-reaction-row">' + btns + '</div>';
+}
+
+// ═══════════════════════════════════════════════
+// FEATURE 6: CATEGORY SPENDING LIMITS
+// ═══════════════════════════════════════════════
+function getCategoryLimits() {
+    return JSON.parse(localStorage.getItem('montoya_cat_limits') || '{}');
+}
+function setCategoryLimit(cat, limit) {
+    const limits = getCategoryLimits();
+    if (limit > 0) limits[cat] = limit;
+    else delete limits[cat];
+    localStorage.setItem('montoya_cat_limits', JSON.stringify(limits));
+}
+function getCatSpendThisCycle() {
+    const cats = {};
+    history.forEach(t => { cats[t.category] = (cats[t.category]||0) + t.amount; });
+    return cats;
+}
+function checkCategoryLimits() {
+    const limits = getCategoryLimits();
+    const catSpend = getCatSpendThisCycle();
+    // Returns array of { cat, spent, limit, pct } for any that are 80%+
+    return Object.entries(limits).map(([cat, limit]) => ({
+        cat, limit, spent: catSpend[cat]||0,
+        pct: ((catSpend[cat]||0)/limit)*100
+    })).filter(x => x.pct >= 80).sort((a,b) => b.pct-a.pct);
+}
+
+// Run all intelligence checks after data loads
+function runIntelligenceChecks() {
+    checkBudgetWarning();
+    checkAnomalies();
+    if (shouldShowRecap()) generateWeeklyRecap();
+}
+
 // ── Live Market Feed ──
 // Uses CoinGecko (free, no key, always on) for crypto
 // Uses Frankfurter for currency context
@@ -2807,6 +3519,106 @@ async function fetchMarkets() {
             <div style="font-size:.7rem;opacity:.6;">Check connection and retry</div>
         </div>`;
         if (updateEl) updateEl.innerText = 'Offline';
+    }
+}
+
+// ── Vault Mini Panel ──
+function renderVaultMini() {
+    const panel = document.getElementById('vaultMiniPanel');
+    const list = document.getElementById('vaultMiniList');
+    if (!panel || !list) return;
+    if (!vaults || !vaults.length) { panel.style.display = 'none'; return; }
+
+    panel.style.display = 'block';
+    const divider = document.getElementById('vaultMiniDivider');
+    if(divider) divider.style.display = 'block';
+    list.innerHTML = '';
+
+    // Show up to 4 vaults
+    vaults.slice(0, 4).forEach(v => {
+        const saved = parseFloat(v.saved) || 0;
+        const target = parseFloat(v.target) || 1;
+        const pct = Math.min(100, Math.round((saved / target) * 100));
+        const div = document.createElement('div');
+        div.className = 'vault-mini-item';
+        div.innerHTML = `
+            <div class="vault-mini-top">
+                <span class="vault-mini-name">${v.emoji || '🏦'} ${v.name}</span>
+                <span class="vault-mini-pct">${pct}%</span>
+            </div>
+            <div class="vault-mini-bar-bg">
+                <div class="vault-mini-bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="vault-mini-amounts">
+                <span>$${saved.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</span>
+                <span>$${target.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</span>
+            </div>`;
+        list.appendChild(div);
+    });
+}
+
+// ── AI Daily Tip ──
+let aiTipFetched = false;
+let aiTipDate = localStorage.getItem('aiTipDate');
+let aiTipCache = localStorage.getItem('aiTipCache');
+
+async function fetchAiTip(force = false) {
+    const body = document.getElementById('aiTipBody');
+    if (!body) return;
+
+    const today = new Date().toDateString();
+
+    // Use cached tip if same day and not forcing refresh
+    if (!force && aiTipCache && aiTipDate === today) {
+        body.innerHTML = aiTipCache;
+        return;
+    }
+
+    body.innerHTML = '<div class="ai-tip-loading"><div class="ai-spinner" style="border-top-color:var(--gold);width:18px;height:18px;"></div><span>Getting your tip…</span></div>';
+
+    try {
+        // Build context from user's actual data
+        const totalSpent = history.reduce((s, t) => s + parseFloat(t.amount), 0);
+        const wantSpend = history.filter(t => t.intent === 'Want').reduce((s, t) => s + parseFloat(t.amount), 0);
+        const topCat = (() => {
+            const cats = {};
+            history.forEach(t => { cats[t.category] = (cats[t.category] || 0) + parseFloat(t.amount); });
+            return Object.entries(cats).sort((a,b) => b[1]-a[1])[0]?.[0] || 'General';
+        })();
+
+        const prompt = `You are a friendly personal finance coach. Give ONE short, specific, actionable money tip for today. 
+
+The user's current cycle data: spent $${totalSpent.toFixed(0)} total, $${wantSpend.toFixed(0)} on wants, top spending category is ${topCat}.
+
+Format your response EXACTLY like this (no extra text):
+CATEGORY: [one of: Saving, Spending, Investing, Mindset, Budget]
+TIP: [1-2 sentences max, specific and actionable, friendly tone]`;
+
+        const res = await fetch('/.netlify/functions/ai-proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: prompt, system: 'You are a concise personal finance coach. Respond only in the exact format requested.' })
+        });
+        const data = await res.json();
+        const text = data.content?.[0]?.text || '';
+
+        const catMatch = text.match(/CATEGORY:\s*(.+)/i);
+        const tipMatch = text.match(/TIP:\s*(.+)/i);
+
+        const category = catMatch?.[1]?.trim() || 'Finance';
+        const tip = tipMatch?.[1]?.trim() || text.trim();
+
+        const html = `<div class="ai-tip-category">✦ ${category}</div>
+<div class="ai-tip-text">${tip}</div>`;
+
+        body.innerHTML = html;
+        localStorage.setItem('aiTipCache', html);
+        localStorage.setItem('aiTipDate', today);
+        aiTipCache = html;
+        aiTipDate = today;
+
+    } catch(e) {
+        body.innerHTML = '<div class="ai-tip-text" style="color:var(--text-dim);font-size:.75rem;">Tip unavailable — check your connection.</div>';
     }
 }
 
