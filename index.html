@@ -611,8 +611,8 @@
             /* 7. Hide old cycle pill since it's in the hero bar */
             #app > .cycle-pill { display: none !important; }
 
-            /* 8. Hide old input card */
-            .input-card { display: none !important; }
+            /* 8. Hide dashboard add-transaction input card only */
+            #app > .input-card { display: none !important; }
 
             .hamburger { display: none !important; }
         }
@@ -1882,8 +1882,8 @@
                 <!-- AI Daily Tip -->
                 <div id="aiTipPanel">
                     <div class="side-panel-header">
-                        <span>🤖 Daily Money Tip</span>
-                        <button onclick="fetchAiTip(true)" class="side-panel-link" title="Get a new tip">↻ Refresh tip</button>
+                        <span>🤖 AI Spending Insights</span>
+                        <button onclick="fetchAiTip(true)" class="side-panel-link" title="Refresh insights">↻ Refresh</button>
                     </div>
                     <div id="aiTipBody" class="ai-tip-body">
                         <div class="ai-tip-loading">
@@ -4119,12 +4119,25 @@ async function fetchCrypto(panel) {
 }
 
 async function fetchStocks(panel) {
-    // Try Yahoo Finance via corsproxy.io (more reliable than allorigins)
     const symbols = STOCK_SYMBOLS.map(s => s.symbol).join(',');
-    const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`;
-    const res = await fetch(proxyUrl);
-    const data = await res.json();
+    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/quote?symbols=${symbols}&fields=regularMarketPrice,regularMarketChangePercent,shortName`;
+    // Try multiple proxies in sequence
+    const proxies = [
+        `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
+        `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`,
+    ];
+    let data = null;
+    for (const proxyUrl of proxies) {
+        try {
+            const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
+            const raw = await res.json();
+            // allorigins wraps in {contents: "..."}
+            const parsed = raw?.contents ? JSON.parse(raw.contents) : raw;
+            const quotes = parsed?.quoteResponse?.result || [];
+            if (quotes.length) { data = parsed; break; }
+        } catch(e) { continue; }
+    }
+    if (!data) throw new Error('no quotes');
     const quotes = data?.quoteResponse?.result || [];
     if (!quotes.length) throw new Error('no quotes');
 
@@ -4231,82 +4244,94 @@ async function fetchAiTip(force = false) {
 
     const today = new Date().toDateString();
 
-    // Use cached tip if same day, not forcing, and cache has actual content
-    if (!force && aiTipCache && aiTipDate === today && aiTipCache.length > 80) {
+    // Validate cache — reject the broken "TIP" placeholder
+    const cacheValid = aiTipCache && aiTipDate === today &&
+        aiTipCache.length > 120 && !aiTipCache.includes('>TIP<');
+    if (!force && cacheValid) {
         body.innerHTML = aiTipCache;
         return;
     }
 
-    body.innerHTML = '<div class="ai-tip-loading"><div class="ai-spinner" style="border-top-color:var(--gold);width:18px;height:18px;"></div><span>Getting your tip…</span></div>';
+    body.innerHTML = '<div class="ai-tip-loading"><div class="ai-spinner" style="border-top-color:var(--gold);width:18px;height:18px;"></div><span>Analyzing your spending\u2026</span></div>';
 
     try {
-        // Build context from user's actual data
-        const totalSpent = history.reduce((s, t) => s + parseFloat(t.amount), 0);
-        const wantSpend = history.filter(t => t.intent === 'Want').reduce((s, t) => s + parseFloat(t.amount), 0);
-        const topCat = (() => {
-            const cats = {};
-            history.forEach(t => { cats[t.category] = (cats[t.category] || 0) + parseFloat(t.amount); });
-            return Object.entries(cats).sort((a,b) => b[1]-a[1])[0]?.[0] || 'General';
-        })();
+        // Build real context from actual transaction data
+        const totalSpent = history.reduce((s, t) => s + parseFloat(t.amount||0), 0);
+        const wantSpend  = history.filter(t => t.intent === 'Want').reduce((s, t) => s + parseFloat(t.amount||0), 0);
+        const needSpend  = totalSpent - wantSpend;
+        const budget     = config.budget || 0;
+        const remaining  = budget - totalSpent;
+        const wantCap    = config.want_cap || 0;
 
-        const prompt = `You are a friendly personal finance coach. Give ONE short, specific, actionable money tip for today. 
+        // Top 3 spending categories
+        const cats = {};
+        history.forEach(t => { cats[t.category] = (cats[t.category]||0) + parseFloat(t.amount||0); });
+        const topCats = Object.entries(cats).sort((a,b) => b[1]-a[1]).slice(0,3)
+            .map(([k,v]) => k + ' $' + v.toFixed(0)).join(', ') || 'none yet';
 
-The user's current cycle data: spent $${totalSpent.toFixed(0)} total, $${wantSpend.toFixed(0)} on wants, top spending category is ${topCat}.
+        // Days left in cycle
+        const now = new Date();
+        const csd = config.cycle_start_day || 16;
+        const next = new Date(now.getFullYear(), now.getMonth(), csd);
+        if (next <= now) next.setMonth(next.getMonth()+1);
+        const daysLeft = Math.ceil((next - now) / 86400000);
 
-Format your response EXACTLY like this (no extra text):
-CATEGORY: [one of: Saving, Spending, Investing, Mindset, Budget]
-TIP: [1-2 sentences max, specific and actionable, friendly tone]`;
+        const ctx = [
+            'Budget: $' + budget,
+            'Spent: $' + totalSpent.toFixed(0),
+            'Remaining: $' + remaining.toFixed(0),
+            'Days left in cycle: ' + daysLeft,
+            'Needs: $' + needSpend.toFixed(0),
+            'Wants: $' + wantSpend.toFixed(0),
+            wantCap ? 'Want cap: $' + wantCap : '',
+            'Top categories: ' + topCats,
+            'Transactions this cycle: ' + history.length,
+        ].filter(Boolean).join(' | ');
 
         const res = await fetch('/.netlify/functions/ai-proxy', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: prompt, system: 'You are a concise personal finance coach. Respond only in the exact format requested.' })
+            body: JSON.stringify({
+                system: 'You are a direct, data-driven personal finance coach. Always reference the actual numbers provided. Be specific, never generic. Write exactly 3 numbered insights, nothing else.',
+                prompt: 'Review this real spending data and write exactly 3 numbered insights (1. 2. 3.), one per line. Each must be 1 sentence, use actual dollar figures from the data, and end with one concrete action they can take today.\n\nData: ' + ctx
+            })
         });
         const data = await res.json();
-        const text = data.content?.[0]?.text || '';
+        const text = (data.content?.[0]?.text || '').trim();
 
-        // Parse AI response - try structured format first, fallback to raw text
-        let category = 'Tip';
-        let tip = '';
+        if (!text || text.length < 20) throw new Error('empty');
 
-        const lines = text.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
-        
-        lines.forEach(function(line) {
-            if (line.match(/^CATEGORY:/i)) {
-                category = line.replace(/^CATEGORY:\s*/i, '').trim();
-            } else if (line.match(/^TIP:/i)) {
-                tip = line.replace(/^TIP:\s*/i, '').trim();
-            }
-        });
+        // Parse numbered lines — flexible matching
+        const lines = text.split('\n').map(l => l.trim()).filter(l => /^[1-3][\.\)]\s/.test(l));
+        const icons  = ['📊','💡','🎯'];
+        const colors = ['#60a5fa','#34d399','#f97316'];
 
-        // If structured parsing failed, use the full text as the tip
-        if (!tip) {
-            tip = lines.filter(function(l){
-                return !l.match(/^CATEGORY:/i);
-            }).join(' ').trim();
+        let html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+        if (lines.length > 0) {
+            lines.forEach((line, i) => {
+                const txt = line.replace(/^[1-3][\.\)]\s*/, '');
+                html += '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.07);">'
+                      + '<span style="font-size:.85rem;flex-shrink:0;">' + (icons[i]||'💡') + '</span>'
+                      + '<span style="font-size:.78rem;line-height:1.55;color:rgba(240,244,255,.85);">' + txt + '</span>'
+                      + '</div>';
+            });
+        } else {
+            // Fallback: show raw text formatted
+            html += '<div style="font-size:.78rem;line-height:1.65;color:rgba(240,244,255,.8);">' + text.replace(/\n/g,'<br>') + '</div>';
         }
-        if (!tip) tip = text.trim();
-
-        // Emoji map for categories
-        const catEmoji = {
-            'saving':'💰', 'spending':'💳', 'investing':'📈',
-            'mindset':'🧠', 'budget':'📊', 'finance':'💡', 'debt':'🏦'
-        };
-        const emoji = catEmoji[category.toLowerCase()] || '💡';
-
-        const html = '<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(167,139,250,.8);margin-bottom:10px;">' + emoji + ' ' + category + '</div>' +
-                     '<div style="font-size:.83rem;line-height:1.65;color:rgba(240,244,255,.75);">' + tip + '</div>';
+        html += '</div>';
 
         body.innerHTML = html;
         localStorage.setItem('aiTipCache', html);
         localStorage.setItem('aiTipDate', today);
         aiTipCache = html;
-        aiTipDate = today;
+        aiTipDate  = today;
 
     } catch(e) {
-        body.innerHTML = '<div class="ai-tip-text" style="color:var(--text-dim);font-size:.75rem;">Tip unavailable — check your connection.</div>';
+        body.innerHTML = '<div style="font-size:.75rem;color:var(--text-dim);">Could not load insights \u2014 tap Refresh to try again.</div>';
     }
 }
+
 
 function startMarketFeed() {
     fetchMarkets();
@@ -4424,11 +4449,15 @@ function switchView(id, isBack) {
     window.scrollTo(0,0);
     if(id==='app'||id==='analyticsModal') fetchData();
     if(id==='notesManager') { lastSeenNoteTime=Date.now(); localStorage.setItem('montoya_notes_seen', lastSeenNoteTime); const b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none'; }
-    if(id==='networth') renderNetWorth();
+    if(id==='networth') { renderNetWorth(); updateNwGoalProgress(); }
     if(id==='vaults') renderVaults();
     if(id==='bills') renderBills();
     if(id==='challenges') { loadChallenges(); renderChallenges(); }
     if(id==='familyFeed') renderFamilyFeed();
+    if(id==='configManager') { renderCatLimits(); }
+    if(id==='subManager') { renderSubSummary(); renderSubs(); }
+    if(id==='profileManager') { populateProfile(); }
+    if(id==='analyticsModal') { renderMonthOverMonth(); }
     if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
 }
 </script>
