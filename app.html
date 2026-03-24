@@ -236,8 +236,24 @@
         .avatar { width: 34px; height: 34px; background: linear-gradient(135deg, rgba(232,194,82,.2), rgba(96,165,250,.15)); border: 1px solid rgba(232,194,82,.35); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: .8rem; color: var(--gold); cursor: pointer; transition: all .2s; flex-shrink: 0; }
         .avatar:hover { box-shadow: 0 0 14px var(--gold-glow); }
         .notif-btn { position: relative; cursor: pointer; padding: 6px; }
-        .notif-btn i { font-size: .95rem; color: var(--text-soft); }
-        .ping { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--rose); border-radius: 50%; border: 2px solid var(--ink); display: none; }
+        .notif-btn i { font-size: .95rem; color: var(--text-soft); transition: color .2s; }
+        .notif-btn:hover i { color: var(--gold); }
+        .ping { position: absolute; top: 0px; right: 0px; min-width: 18px; height: 18px; padding: 0 4px; background: var(--rose); border-radius: 9px; border: 2px solid var(--ink); display: none; font-size: .6rem; font-weight: 800; color: #fff; text-align: center; line-height: 14px; font-family: 'DM Mono', monospace; }
+        @keyframes bellShake { 0%,100%{transform:rotate(0)} 15%{transform:rotate(12deg)} 30%{transform:rotate(-10deg)} 45%{transform:rotate(8deg)} 60%{transform:rotate(-6deg)} 75%{transform:rotate(4deg)} }
+        .bell-ring { animation: bellShake .7s ease; }
+        /* ─── Welcome Splash ─── */
+        #welcomeSplash { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(6,13,28,.92); backdrop-filter:blur(12px); opacity:0; transition:opacity .5s; pointer-events:none; }
+        #welcomeSplash.show { opacity:1; pointer-events:all; }
+        .splash-card { background:linear-gradient(145deg, var(--ink-3), var(--ink-4)); border:1px solid rgba(212,168,67,.3); border-radius:24px; padding:40px 48px; text-align:center; max-width:380px; width:90%; box-shadow:0 0 80px rgba(212,168,67,.15), 0 24px 60px rgba(0,0,0,.6); transform:scale(.85) translateY(20px); transition:transform .5s cubic-bezier(.34,1.56,.64,1); }
+        #welcomeSplash.show .splash-card { transform:scale(1) translateY(0); }
+        .splash-avatar { width:80px; height:80px; border-radius:20px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:2rem; border:2px solid rgba(212,168,67,.4); }
+        .splash-avatar.brandon { background:linear-gradient(135deg,rgba(74,159,212,.25),rgba(74,159,212,.1)); }
+        .splash-avatar.gina { background:linear-gradient(135deg,rgba(244,114,182,.25),rgba(244,114,182,.1)); }
+        .splash-greeting { font-size:.75rem; font-weight:600; color:var(--text-soft); text-transform:uppercase; letter-spacing:2px; margin-bottom:6px; }
+        .splash-name { font-family:'Instrument Serif',serif; font-size:2.6rem; color:var(--gold); margin-bottom:12px; }
+        .splash-msg { font-size:.9rem; color:var(--text-soft); line-height:1.6; margin-bottom:28px; }
+        .splash-btn { background:linear-gradient(135deg,#d4a843,#b8941c); color:#0a0e1a; font-weight:700; border:none; border-radius:12px; padding:14px 32px; cursor:pointer; font-size:.9rem; font-family:'DM Sans',sans-serif; transition:opacity .2s; }
+        .splash-btn:hover { opacity:.85; }
 
         /* ─── Cycle selector ─── */
         .cycle-pill { display: block; width: fit-content; margin: 0 auto 16px; background: var(--ink-3); border: 1px solid var(--border-hi); color: var(--text); padding: 8px 20px; border-radius: 100px; font-size: .72rem; font-weight: 600; letter-spacing: .5px; cursor: pointer; outline: none; font-family: 'DM Sans', sans-serif; appearance: none; transition: border-color .2s; }
@@ -1562,6 +1578,17 @@
     <button class="btn btn-gold" onclick="toggleNotif();switchView('notesManager')">View All Notes</button>
 </div>
 
+<!-- WELCOME SPLASH -->
+<div id="welcomeSplash">
+  <div class="splash-card">
+    <div class="splash-avatar" id="splashAvatar">🐺</div>
+    <div class="splash-greeting" id="splashGreeting">Good morning</div>
+    <div class="splash-name" id="splashName">Welcome</div>
+    <div class="splash-msg" id="splashMsg">Your finances are ready.</div>
+    <button class="splash-btn" onclick="dismissWelcome()">Let's Go 🔥</button>
+  </div>
+</div>
+
 <!-- LOGIN -->
 <div id="loginScreen">
     <div class="login-box">
@@ -1637,8 +1664,8 @@
                     </div>
                 </div>
                 <div class="dash-header-right">
-                    <div class="notif-btn" onclick="toggleNotif()">
-                        <i class="fa-solid fa-bell" style="font-size:1rem;color:var(--text-soft);"></i>
+                    <div class="notif-btn" id="notifBellBtn" onclick="toggleNotif()">
+                        <i class="fa-solid fa-bell" style="font-size:1rem;"></i>
                         <div id="ping" class="ping"></div>
                     </div>
                     <div id="topAvatar" class="avatar" onclick="switchView('profileManager')" style="width:40px;height:40px;padding:0;overflow:hidden;border:1px solid rgba(212,168,67,.4);box-shadow:0 0 14px rgba(212,168,67,.3);border-radius:10px;background:#0b1225;">
@@ -2562,6 +2589,7 @@ try {
                 if (wEl) wEl.innerText = name === 'PARTNER' ? 'Welcome Back' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
                 const greetEl = document.getElementById('timeOfDay');
                 if (greetEl) { const h = new Date().getHours(); greetEl.innerText = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'; }
+                showWelcomeSplash(name);
         loadApp();
     });
 } catch(e){ console.error(e); }
@@ -2595,6 +2623,7 @@ async function loadApp() {
     fetchData();
     startMarketFeed();
     fetchAiTip();
+    startActivityPolling();
 }
 
 function loadStoredData() {
@@ -2617,6 +2646,9 @@ async function fetchData() {
         _sb.from('app_notes').select('*').eq('group_id',currentGroup).order('created_at',{ascending:false})
     ]);
     history=tRes.data||[]; recurring=rRes.data||[]; notes=nRes.data||[];
+    // Keep polling baseline in sync
+    if (history.length > 0) _lastSeenTxnId = history[0].id;
+    if (notes.length > 0)   _lastSeenNoteId = notes[0].id;
     renderDashboard(); renderNotes(); renderSubs(); renderAnalytics(); renderNetWorth(); renderVaults(); renderBills(); renderNotifs(); calcMilestones(); checkAutoSync(); renderFamilyFeed(); renderChallenges();
 }
 
@@ -2807,12 +2839,18 @@ function openMemberView(name) {
     if(memberChartInst) memberChartInst.destroy();
     memberChartInst=new Chart(ctx,{type:'doughnut',data:{labels:Object.keys(tots),datasets:[{data:Object.values(tots),backgroundColor:Object.keys(tots).map(l=>CAT_COLORS[l]||'#64748b'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8ca0bf',font:{family:'DM Sans'}}}}}});
     const list=document.getElementById('memberList'); list.innerHTML='';
+    if(!mem.length){list.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:30px;font-size:.85rem;">No transactions yet this cycle.</div>';return;}
     mem.forEach(item=>{
         let a=item.member==='Split'?item.amount/2:item.amount;
         const intentColor = item.intent==='Want' ? 'rgba(251,191,36,.06)' : 'rgba(52,211,153,.04)';
         const intentBorder = item.intent==='Want' ? 'rgba(251,191,36,.15)' : 'rgba(52,211,153,.1)';
+        const intentBadge = item.intent==='Want'
+            ? '<span style="font-size:.6rem;font-weight:700;color:#fbbf24;background:rgba(251,191,36,.12);border-radius:6px;padding:2px 6px;margin-left:5px;">WANT</span>'
+            : '<span style="font-size:.6rem;font-weight:700;color:#34d399;background:rgba(52,211,153,.12);border-radius:6px;padding:2px 6px;margin-left:5px;">NEED</span>';
+        const splitBadge = item.member==='Split' ? '<span style="font-size:.6rem;font-weight:700;color:#8b7fd4;background:rgba(139,127,212,.12);border-radius:6px;padding:2px 6px;margin-left:4px;">SPLIT ÷2</span>' : '';
+        const dateStr = item.created_at ? (()=>{ const d=new Date(item.created_at); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); })() : '';
         const div=document.createElement('div'); div.className='hist-item'; div.style.background=intentColor; div.style.borderColor=intentBorder;
-        div.innerHTML=`<div style="min-width:0;flex:1;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${item.category}</span><span class="hist-note">${item.note||item.category}</span></div><div class="hist-right"><div class="hist-amt">-$${a.toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-edit" onclick="editEntry('${item.id}')"><i class="fa-solid fa-pen-to-square"></i></button><button class="act-btn act-del" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        div.innerHTML=`<div style="min-width:0;flex:1;"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-bottom:3px;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${item.category}</span>${intentBadge}${splitBadge}</div><span class="hist-note">${item.note||item.category}</span><div style="font-size:.66rem;color:var(--text-dim);margin-top:3px;">${dateStr}</div></div><div class="hist-right"><div class="hist-amt">-$${a.toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-edit" onclick="editEntry('${item.id}')"><i class="fa-solid fa-pen-to-square"></i></button><button class="act-btn act-del" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
         list.appendChild(div);
     });
 }
@@ -3152,16 +3190,32 @@ function renderSubs() {
 function renderNotifs() {
     const list=document.getElementById('notifList'); list.innerHTML='';
     let acts=[];
-    history.forEach(t=>{if(t.user_id!==currentUser){let n='Partner';if(t.user_id===USERS.Brandon)n='Brandon';else if(t.user_id===USERS.Gina)n='Gina';acts.push({user:n,text:`synced $${t.amount.toFixed(2)} — ${t.note||t.category}`,time:new Date(t.created_at)});}});
-    notes.forEach(n=>acts.push({user:n.author,text:'posted a note',time:new Date(n.created_at)}));
-    acts.sort((a,b)=>b.time-a.time).slice(0,10).forEach(a=>{
-        const div=document.createElement('div'); div.style.cssText='padding:10px 0;border-bottom:1px solid var(--border);';
-        div.innerHTML=`<div style="font-size:.82rem;color:var(--text);"><b>${a.user}</b> ${a.text}</div><div style="font-size:.62rem;color:var(--text-dim);margin-top:2px;">${a.time.toLocaleDateString('en-US')} ${a.time.toLocaleTimeString('en-US')}</div>`;
+    history.forEach(t=>{if(t.user_id!==currentUser){let n='Partner';if(t.user_id===USERS.Brandon)n='Brandon';else if(t.user_id===USERS.Gina)n='Gina';acts.push({user:n,text:`synced $${t.amount.toFixed(2)} — ${t.note||t.category}`,time:new Date(t.created_at),type:'txn'});}});
+    notes.forEach(n=>acts.push({user:n.author,text:'posted a note: '+(n.message&&n.message.length>40?n.message.substring(0,40)+'…':n.message||''),time:new Date(n.created_at),type:'note'}));
+    acts.sort((a,b)=>b.time-a.time);
+    const lastV=parseInt(localStorage.getItem('montoya_notifs')||'0');
+    const unread = acts.filter(a=>a.time.getTime()>lastV).length;
+    const pingEl=document.getElementById('ping');
+    const bellBtn=document.getElementById('notifBellBtn');
+    if(pingEl){
+      if(unread>0){
+        pingEl.style.display='block';
+        pingEl.innerText = unread > 9 ? '9+' : String(unread);
+        if(bellBtn && !bellBtn.dataset.rang){ bellBtn.querySelector('i').classList.add('bell-ring'); setTimeout(function(){bellBtn.querySelector('i').classList.remove('bell-ring');},800); bellBtn.dataset.rang='1'; }
+      } else {
+        pingEl.style.display='none';
+        pingEl.innerText='';
+        if(bellBtn) delete bellBtn.dataset.rang;
+      }
+    }
+    if(!acts.length){ list.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:30px;font-size:.85rem;">No recent activity yet.</div>'; return; }
+    acts.slice(0,12).forEach(a=>{
+        const isNew = a.time.getTime()>lastV;
+        const typeIcon = a.type==='note' ? '📝' : '💸';
+        const div=document.createElement('div'); div.style.cssText='padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;'+(isNew?'background:rgba(212,168,67,.04);border-radius:8px;padding:10px 8px;':'');
+        div.innerHTML=`<span style="font-size:1rem;flex-shrink:0;margin-top:1px;">${typeIcon}</span><div style="min-width:0;"><div style="font-size:.82rem;color:var(--text);"><b style="color:${a.user==='Brandon'?'var(--brandon)':'var(--gina)'}">${a.user}</b> ${a.text}</div><div style="font-size:.62rem;color:var(--text-dim);margin-top:2px;">${a.time.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${a.time.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div></div>${isNew?'<span style="width:7px;height:7px;background:var(--rose);border-radius:50%;flex-shrink:0;margin-top:5px;"></span>':''}`;
         list.appendChild(div);
     });
-    const lastV=parseInt(localStorage.getItem('montoya_notifs')||'0');
-    const pingEl=document.getElementById('ping');
-    if(pingEl) pingEl.style.display=(acts.length>0&&acts[0].time.getTime()>lastV)?'block':'none';
     // Update notes unread badge
     const unreadNotes = notes.filter(n => n.user_id !== currentUser && new Date(n.created_at).getTime() > lastSeenNoteTime);
     const nb = document.getElementById('noteUnreadBadge');
@@ -3214,10 +3268,15 @@ function calcMilestones() {
 }
 
 // ── Transactions ──
+let _isSubmitting = false;
 async function addEntry() {
+    if(_isSubmitting) return;
+    _isSubmitting = true;
+    const syncBtn = document.getElementById('syncBtn');
+    if(syncBtn){ syncBtn.disabled=true; syncBtn.style.opacity='0.6'; syncBtn.innerText='Syncing…'; }
     const amt=parseFloat(document.getElementById('amount').value);
-    if(!amt || isNaN(amt)) { showToast('Enter a valid amount', 'error'); return; }
-    if(!currentGroup || !currentUser) { showToast('Not logged in. Refresh the page.', 'error'); return; }
+    if(!amt || isNaN(amt)) { showToast('Enter a valid amount', 'error'); _isSubmitting=false; if(syncBtn){syncBtn.disabled=false;syncBtn.style.opacity='1';syncBtn.innerText='Sync Transaction';} return; }
+    if(!currentGroup || !currentUser) { showToast('Not logged in. Refresh the page.', 'error'); _isSubmitting=false; if(syncBtn){syncBtn.disabled=false;syncBtn.style.opacity='1';syncBtn.innerText='Sync Transaction';} return; }
     const cat=document.getElementById('category').value, isRecur=document.getElementById('isRecur').checked;
     if(currentType==='Want' && config.want_cap>0) {
         let wantSpent=0; history.forEach(i=>{ if(i.intent==='Want') wantSpent+=i.amount; });
@@ -3249,6 +3308,7 @@ async function addEntry() {
         setType('Need');
         fetchData();
     } catch(e) { showToast('Network error. Check connection.', 'error'); console.error('addEntry error:', e); }
+    finally { _isSubmitting=false; if(syncBtn){syncBtn.disabled=false;syncBtn.style.opacity='1';syncBtn.innerText=editingId?'Update Transaction':'Sync Transaction';} }
 }
 
 function editEntry(id) {
@@ -4444,6 +4504,83 @@ function startMarketFeed() {
     marketTimer = setInterval(fetchMarkets, 60000);
 }
 
+// ── Background Activity Polling ──
+let _activityPollTimer = null;
+let _lastSeenTxnId = null;
+let _lastSeenNoteId = null;
+let _pollActive = false;
+
+function startActivityPolling() {
+    // Record the most recent IDs we already know about at login
+    if (history.length > 0) _lastSeenTxnId = history[0].id;
+    if (notes.length > 0)   _lastSeenNoteId = notes[0].id;
+
+    if (_activityPollTimer) clearInterval(_activityPollTimer);
+    _activityPollTimer = setInterval(pollForNewActivity, 30000); // every 30s
+}
+
+async function pollForNewActivity() {
+    if (!currentGroup || _pollActive) return;
+    _pollActive = true;
+    try {
+        const { start, end } = cycleDates(currentViewDate);
+        const [tRes, nRes] = await Promise.all([
+            _sb.from('transactions').select('id,user_id,amount,category,note,member,created_at')
+                .eq('group_id', currentGroup)
+                .gte('created_at', start.toISOString())
+                .lt('created_at', end.toISOString())
+                .order('created_at', {ascending: false})
+                .limit(1),
+            _sb.from('app_notes').select('id,author,message,created_at')
+                .eq('group_id', currentGroup)
+                .order('created_at', {ascending: false})
+                .limit(1)
+        ]);
+
+        const latestTxn  = tRes.data && tRes.data[0];
+        const latestNote = nRes.data && nRes.data[0];
+        let hasNew = false;
+
+        if (latestTxn && latestTxn.id !== _lastSeenTxnId) {
+            // Only alert if the new transaction was made by the OTHER person
+            if (latestTxn.user_id !== currentUser) {
+                const who = latestTxn.user_id === USERS.Brandon ? 'Brandon' : latestTxn.user_id === USERS.Gina ? 'Gina' : 'Partner';
+                showToast('💸 ' + who + ' just synced $' + parseFloat(latestTxn.amount).toFixed(2) + ' — ' + (latestTxn.note || latestTxn.category), 'info');
+                hasNew = true;
+            }
+            _lastSeenTxnId = latestTxn.id;
+        }
+
+        if (latestNote && latestNote.id !== _lastSeenNoteId) {
+            // New note from either person
+            const noteAuthor = latestNote.author || 'Partner';
+            if (!_lastSeenNoteId) {
+                // First poll — just record, don't alert
+            } else {
+                showToast('📝 ' + noteAuthor + ' left a note!', 'info');
+                hasNew = true;
+            }
+            _lastSeenNoteId = latestNote.id;
+        }
+
+        if (hasNew) {
+            // Silently refresh data + ring bell
+            await fetchData();
+            // Ring the bell animation
+            const bellBtn = document.getElementById('notifBellBtn');
+            if (bellBtn && !bellBtn.dataset.rang) {
+                bellBtn.querySelector('i').classList.add('bell-ring');
+                setTimeout(function(){ bellBtn.querySelector('i').classList.remove('bell-ring'); }, 800);
+                bellBtn.dataset.rang = '1';
+            }
+        }
+    } catch(e) {
+        // Silent fail — polling errors should never interrupt the user
+        console.warn('Activity poll error:', e);
+    }
+    _pollActive = false;
+}
+
 async function updatePassword() {
     const p=document.getElementById('newPass').value; if(p.length<6){showToast('Min 6 chars');return;}
     try{await _sb.auth.updateUser({password:p});showToast('Password updated!');}catch(e){alert(e.message);}
@@ -4523,7 +4660,7 @@ function showToast(msg, type='success') {
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
 }
 function filterHistory(){ const q=document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('#historyList .hist-item').forEach(i=>{ i.style.display=i.innerText.toLowerCase().includes(q)?'flex':'none'; }); }
-function toggleNotif(){ const m=document.getElementById('notifModal'),o=document.getElementById('notifOverlay'),v=m.style.display==='block'; m.style.display=v?'none':'block'; o.style.display=v?'none':'block'; if(!v) localStorage.setItem('montoya_notifs',Date.now().toString()); }
+function toggleNotif(){ const m=document.getElementById('notifModal'),o=document.getElementById('notifOverlay'),v=m.style.display==='block'; m.style.display=v?'none':'block'; o.style.display=v?'none':'block'; if(!v){ localStorage.setItem('montoya_notifs',Date.now().toString()); const pingEl=document.getElementById('ping'); if(pingEl){pingEl.style.display='none';pingEl.innerText='';} const bellBtn=document.getElementById('notifBellBtn'); if(bellBtn) delete bellBtn.dataset.rang; } }
 function toggleMenu(){ if(window.innerWidth>=1024)return; const m=document.getElementById('sideMenu'),o=document.getElementById('sideOverlay'); m.classList.toggle('open'); o.style.display=m.classList.contains('open')?'block':'none'; }
 function togglePassVis() {
     const f=document.getElementById('passwordField');
@@ -5091,6 +5228,50 @@ function buildProfilePanel(){
     return h;
 }
 function fpSetIcon(ic){localStorage.setItem('montoya_icon',ic);loadIcon();showToast('Avatar updated!');openPanel('profileManager');}
+
+// ── WELCOME SPLASH ──
+function showWelcomeSplash(name) {
+  const h = new Date().getHours();
+  const timeLabel = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+  const isBrandon = (name==='BRANDON');
+  const isGina = (name==='GINA');
+  const displayName = isBrandon ? 'Brandon' : isGina ? 'Gina' : 'Partner';
+  const messages = {
+    BRANDON: [
+      "Your ledger awaits. Let's make every dollar count. 💪",
+      "The wolf is watching your wealth grow. 🐺",
+      "Ready to spark your financial future? Let's go! ⚡",
+      "Money doesn't sleep, and neither does your hustle. 🔥"
+    ],
+    GINA: [
+      "Your financial empire awaits, queen. 👑",
+      "Smart money moves start here. Let's shine! ✨",
+      "Budgeting like a boss — that's the Gina way. 💎",
+      "Ready to make magic happen with your finances? 🌟"
+    ],
+    PARTNER: [
+      "Welcome back! Your ledger is ready. 📊",
+      "Let's track those finances together. 🤝"
+    ]
+  };
+  const key = isBrandon ? 'BRANDON' : isGina ? 'GINA' : 'PARTNER';
+  const pool = messages[key];
+  const msg = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById('splashGreeting').innerText = timeLabel;
+  document.getElementById('splashName').innerText = displayName;
+  document.getElementById('splashMsg').innerText = msg;
+  const av = document.getElementById('splashAvatar');
+  const icon = localStorage.getItem('montoya_icon') || (isBrandon ? 'fa-user-astronaut' : isGina ? 'fa-crown' : 'fa-user');
+  av.innerHTML = '<i class="fa-solid ' + icon + '" style="color:' + (isBrandon ? 'var(--brandon)' : isGina ? 'var(--gina)' : 'var(--gold)') + '"></i>';
+  av.className = 'splash-avatar ' + (isBrandon ? 'brandon' : isGina ? 'gina' : '');
+  const splash = document.getElementById('welcomeSplash');
+  splash.classList.add('show');
+}
+function dismissWelcome() {
+  const splash = document.getElementById('welcomeSplash');
+  splash.style.opacity = '0';
+  setTimeout(function(){ splash.classList.remove('show'); splash.style.opacity = ''; }, 500);
+}
 </script>
 </body>
 </html>
