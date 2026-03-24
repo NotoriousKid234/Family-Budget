@@ -216,22 +216,7 @@
         body.logged-in .dashboard-wrapper { display: block; }
         body.logged-in #loginScreen { display: none !important; }
         .app-panel { display: none; }
-        #app { min-width: 0; width: 100%; }
-        .wrap[data-view="app"] > #app { display: block; }
-        .wrap[data-view="memberBreakdown"] > #memberBreakdown { display: block; }
-        .wrap[data-view="networth"] > #networth { display: block; }
-        .wrap[data-view="vaults"] > #vaults { display: block; }
-        .wrap[data-view="bills"] > #bills { display: block; }
-        .wrap[data-view="aiInsights"] > #aiInsights { display: block; }
-        .wrap[data-view="receiptScanner"] > #receiptScanner { display: block; }
-        .wrap[data-view="challenges"] > #challenges { display: block; }
-        .wrap[data-view="familyFeed"] > #familyFeed { display: block; }
-        .wrap[data-view="subManager"] > #subManager { display: block; }
-        .wrap[data-view="notesManager"] > #notesManager { display: block; }
-        .wrap[data-view="analyticsModal"] > #analyticsModal { display: block; }
-        .wrap[data-view="configManager"] > #configManager { display: block; }
-        .wrap[data-view="shareManager"] > #shareManager { display: block; }
-        .wrap[data-view="profileManager"] > #profileManager { display: block; }
+        #app { display: block; min-width: 0; width: 100%; }
         .wrap { width: 100%; max-width: 500px; margin: 0 auto; padding: 16px; min-width: 0; overflow-x: hidden; }
 
         /* ─── Login ─── */
@@ -1638,7 +1623,7 @@
         <div class="nav-item nav-logout" onclick="logoutApp()"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
     </div>
 
-    <div class="wrap" data-view="app">
+    <div class="wrap">
 
         <!-- ══ DASHBOARD ══ -->
         <div id="app" class="app-panel">
@@ -3271,7 +3256,7 @@ function editEntry(id) {
     setType(item.intent||'Need');
     document.getElementById('syncBtn').innerText='Update Transaction';
     document.getElementById('recurRow').style.display='none';
-    if(document.querySelector('.wrap').getAttribute('data-view') !== 'app') switchView('app');
+    if(window.getComputedStyle(document.getElementById('app')).display==='none') switchView('app');
     setTimeout(()=>{ openSheet(); }, 50);
 }
 
@@ -4561,6 +4546,15 @@ function toggleAuthMode(){
     }
 }
 
+// ── Dynamic Nav Stylesheet (injected at runtime — overrides everything) ──
+var _flintNavStyle = document.createElement('style');
+_flintNavStyle.id = 'flint-nav-override';
+document.head.appendChild(_flintNavStyle);
+function _setActivePanel(id) {
+    _flintNavStyle.textContent = '.app-panel { display: none !important; } #' + id + ' { display: block !important; }';
+}
+_setActivePanel('app'); // show dashboard on load
+
 let _viewHistory = ['app'];
 function goBack() {
     if (_viewHistory.length > 1) {
@@ -4572,15 +4566,9 @@ function goBack() {
 }
 
 function switchView(id, isBack) {
-    // Switch panel: just change the data-view attribute on .wrap — CSS handles the rest
-    var wrap = document.querySelector('.wrap');
-    if(wrap) wrap.setAttribute('data-view', id);
-    // Clear any leftover inline display styles from old approach
-    document.querySelectorAll('.app-panel').forEach(function(el){ el.style.display = ''; });
-    // Update nav highlighting
+    _setActivePanel(id);
     document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
-    var nav = document.getElementById('nav-'+id); if(nav) nav.classList.add('active');
-    // Track history for back button
+    var nav=document.getElementById('nav-'+id); if(nav) nav.classList.add('active');
     if (!isBack) {
         if (_viewHistory[_viewHistory.length - 1] !== id) _viewHistory.push(id);
         if (_viewHistory.length > 20) _viewHistory.shift();
@@ -4588,17 +4576,19 @@ function switchView(id, isBack) {
     var backBtn = document.querySelector('.mob-nav-btn:last-child');
     if (backBtn) backBtn.style.opacity = (_viewHistory.length > 1 && id !== 'app') ? '1' : '0.3';
     window.scrollTo(0,0);
-    if(id==='app'||id==='analyticsModal') fetchData();
-    if(id==='notesManager') { lastSeenNoteTime=Date.now(); localStorage.setItem('montoya_notes_seen', lastSeenNoteTime); var b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none'; }
-    if(id==='networth') { renderNetWorth(); updateNwGoalProgress(); }
-    if(id==='vaults') renderVaults();
-    if(id==='bills') renderBills();
-    if(id==='challenges') { loadChallenges(); renderChallenges(); }
-    if(id==='familyFeed') renderFamilyFeed();
-    if(id==='configManager') { renderCatLimits(); }
-    if(id==='subManager') { renderSubSummary(); renderSubs(); }
-    if(id==='profileManager') { populateProfile(); }
-    if(id==='analyticsModal') { renderMonthOverMonth(); }
+    try {
+        if(id==='app'||id==='analyticsModal') fetchData();
+        if(id==='notesManager') { lastSeenNoteTime=Date.now(); localStorage.setItem('montoya_notes_seen', lastSeenNoteTime); var b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none'; }
+        if(id==='networth') { renderNetWorth(); updateNwGoalProgress(); }
+        if(id==='vaults') renderVaults();
+        if(id==='bills') renderBills();
+        if(id==='challenges') { loadChallenges(); renderChallenges(); }
+        if(id==='familyFeed') renderFamilyFeed();
+        if(id==='configManager') { renderCatLimits(); }
+        if(id==='subManager') { renderSubSummary(); renderSubs(); }
+        if(id==='profileManager') { populateProfile(); }
+        if(id==='analyticsModal') { renderMonthOverMonth(); }
+    } catch(e) { console.error('switchView render error:', e); }
     if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
 }
 </script>
