@@ -215,8 +215,9 @@
         .dashboard-wrapper { display: none; }
         body.logged-in .dashboard-wrapper { display: block; }
         body.logged-in #loginScreen { display: none !important; }
-        .app-panel { display: none; }
-        #app { display: block; min-width: 0; width: 100%; }
+        .app-panel { display: none !important; }
+        .app-panel.panel-active { display: block !important; }
+        #app { min-width: 0; width: 100%; }
         .wrap { width: 100%; max-width: 500px; margin: 0 auto; padding: 16px; min-width: 0; overflow-x: hidden; }
 
         /* ─── Login ─── */
@@ -1626,7 +1627,7 @@
     <div class="wrap">
 
         <!-- ══ DASHBOARD ══ -->
-        <div id="app" class="app-panel">
+        <div id="app" class="app-panel panel-active">
             <!-- ══ RICH DASHBOARD HEADER ══ -->
             <div class="dash-header">
                 <div class="dash-header-left">
@@ -3256,7 +3257,7 @@ function editEntry(id) {
     setType(item.intent||'Need');
     document.getElementById('syncBtn').innerText='Update Transaction';
     document.getElementById('recurRow').style.display='none';
-    if(document.getElementById('app').style.display==='none') switchView('app');
+    if(!document.getElementById('app').classList.contains('panel-active')) switchView('app');
     setTimeout(()=>{ openSheet(); }, 50);
 }
 
@@ -4558,8 +4559,8 @@ function goBack() {
 
 function switchView(id, isBack) {
     const panels=['app','memberBreakdown','networth','vaults','bills','aiInsights','receiptScanner','challenges','familyFeed','subManager','notesManager','analyticsModal','configManager','shareManager','profileManager'];
-    panels.forEach(p=>{ const el=document.getElementById(p); if(el) el.style.display='none'; });
-    const target=document.getElementById(id); if(target) target.style.display='block';
+    panels.forEach(p=>{ const el=document.getElementById(p); if(el) { el.classList.remove('panel-active'); el.style.display=''; } });
+    const target=document.getElementById(id); if(target) { target.classList.add('panel-active'); }
     document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
     const nav=document.getElementById('nav-'+id); if(nav) nav.classList.add('active');
     // Track history for back button (don't double-push if going back)
