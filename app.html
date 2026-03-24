@@ -1864,7 +1864,7 @@
                     <div class="smart-chip" onclick="sheetQuick(100,'Groceries','Publix','Need')"><span>🛒</span>Publix</div>
                     <div class="smart-chip" onclick="sheetQuick(6,'Subscription','Netflix','Want')"><span>📺</span>Netflix</div>
                     <div class="smart-chip" onclick="sheetQuick(50,'Beauty','Haircut','Want')"><span>✂️</span>Haircut</div>
-                    <div class="smart-chip" onclick="switchView('receiptScanner');closeSheet();" style="border-color:rgba(45,212,191,.35);color:var(--teal);"><span>📸</span>Scan</div>
+                    <div class="smart-chip" onclick="openPanel('receiptScanner');closeSheet();" style="border-color:rgba(45,212,191,.35);color:var(--teal);"><span>📸</span>Scan</div>
                 </div>
 
                 <!-- Category + Note -->
@@ -3215,9 +3215,10 @@ function calcMilestones() {
 
 // ── Transactions ──
 async function addEntry() {
-    const amt=parseFloat(document.getElementById('amount').value); if(!amt) return;
+    const amt=parseFloat(document.getElementById('amount').value);
+    if(!amt || isNaN(amt)) { showToast('Enter a valid amount', 'error'); return; }
+    if(!currentGroup || !currentUser) { showToast('Not logged in. Refresh the page.', 'error'); return; }
     const cat=document.getElementById('category').value, isRecur=document.getElementById('isRecur').checked;
-    // Warn if adding a Want over cap
     if(currentType==='Want' && config.want_cap>0) {
         let wantSpent=0; history.forEach(i=>{ if(i.intent==='Want') wantSpent+=i.amount; });
         if(wantSpent+amt > config.want_cap) {
@@ -3229,21 +3230,25 @@ async function addEntry() {
     if(cat==='Car'&&!editingId)      config.c_balance-=amt;
     const isRecurChecked=document.getElementById('isRecur')?document.getElementById('isRecur').checked:false;
     const payload={amount:amt,member:document.getElementById('memberSelect').value,category:cat,note:document.getElementById('noteInput').value,intent:currentType,user_id:currentUser,group_id:currentGroup,is_recurring:isRecurChecked};
-    if(editingId){await _sb.from('transactions').update(payload).eq('id',editingId);editingId=null;document.getElementById('syncBtn').innerText='Sync Transaction';document.getElementById('recurRow').style.display='flex';}
-    else{
-        await _sb.from('transactions').insert([payload]);
-        if(isRecurChecked){
-            const bd=new Date().getDate();
-            await _sb.from('recurring_expenses').insert([{name:payload.note||cat,amount:amt,category:cat,intent:currentType,member:payload.member,group_id:currentGroup,user_id:currentUser,billing_day:bd}]);
-            showToast('Saved as recurring! Auto-logs on the '+bd+'th each month','success');
+    try {
+        if(editingId){await _sb.from('transactions').update(payload).eq('id',editingId);editingId=null;document.getElementById('syncBtn').innerText='Sync Transaction';document.getElementById('recurRow').style.display='flex';showToast('Transaction updated! ✓');}
+        else{
+            const {error} = await _sb.from('transactions').insert([payload]);
+            if(error) { showToast('Error saving: '+error.message, 'error'); return; }
+            showToast('$'+fmt(amt)+' synced to '+cat+' ✓', 'success');
+            if(isRecurChecked){
+                const bd=new Date().getDate();
+                await _sb.from('recurring_expenses').insert([{name:payload.note||cat,amount:amt,category:cat,intent:currentType,member:payload.member,group_id:currentGroup,user_id:currentUser,billing_day:bd}]);
+                showToast('Saved as recurring! Auto-logs on the '+bd+'th each month','success');
+            }
         }
-    }
-    await _sb.from('app_settings').update({m_balance:config.m_balance,c_balance:config.c_balance}).eq('group_id',currentGroup);
-    document.getElementById('amount').value=''; document.getElementById('noteInput').value=''; document.getElementById('isRecur').checked=false;
-    closeSheet();
-    selectMember('Brandon');
-    setType('Need');
-    fetchData();
+        await _sb.from('app_settings').update({m_balance:config.m_balance,c_balance:config.c_balance}).eq('group_id',currentGroup);
+        document.getElementById('amount').value=''; document.getElementById('noteInput').value=''; document.getElementById('isRecur').checked=false;
+        closeSheet();
+        selectMember('Brandon');
+        setType('Need');
+        fetchData();
+    } catch(e) { showToast('Network error. Check connection.', 'error'); console.error('addEntry error:', e); }
 }
 
 function editEntry(id) {
@@ -4596,6 +4601,16 @@ function openPanel(id) {
     var nav = document.getElementById('nav-'+id);
     if(nav) nav.classList.add('active');
 
+    // For data-dependent panels, refresh from Supabase first
+    var needsRefresh = ['notesManager','familyFeed','subManager','analyticsModal','aiInsights'].indexOf(id) >= 0;
+    if(needsRefresh && currentGroup) {
+        fetchData().then(function(){ _buildAndShowPanel(id); });
+    } else {
+        _buildAndShowPanel(id);
+    }
+}
+
+function _buildAndShowPanel(id) {
     var title = '';
     var content = '';
     switch(id) {
@@ -4614,6 +4629,10 @@ function openPanel(id) {
         case 'profileManager': title='PROFILE'; content=buildProfilePanel(); break;
         default: title=id; content='<div style="text-align:center;padding:60px;color:var(--text-dim);">Coming soon</div>';
     }
+
+    // Remove old panel if a refresh rebuilt it
+    var oldP = document.getElementById('flintPanel');
+    if(oldP) oldP.remove();
 
     var panel = document.createElement('div');
     panel.id = 'flintPanel';
@@ -4756,37 +4775,112 @@ function buildAiPanel(){
     var dailyBudget=daysLeft>0?(remaining/daysLeft):0;
     var cats={};history.forEach(function(t){cats[t.category]=(cats[t.category]||0)+t.amount;});
     var topCat='None';var topAmt=0;Object.keys(cats).forEach(function(c){if(cats[c]>topAmt){topAmt=cats[c];topCat=c;}});
-    // Budget health score
     var pctUsed=config.budget>0?(totalSpent/config.budget)*100:0;
     var health=pctUsed<=50?'Excellent':pctUsed<=75?'Good':pctUsed<=90?'Watch it':'Over budget';
     var hColor=pctUsed<=50?'#34d399':pctUsed<=75?'#60a5fa':pctUsed<=90?'#fbbf24':'#fb7185';
+    // Budget health hero
     h+='<div style="background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(96,165,250,.06));border:1px solid rgba(167,139,250,.2);border-radius:20px;padding:24px;margin-bottom:16px;text-align:center;">';
     h+='<div style="font-size:2rem;margin-bottom:8px;">🤖</div>';
     h+='<div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#8899bb;margin-bottom:6px;">Budget Health</div>';
     h+='<div style="font-size:1.8rem;font-weight:800;color:'+hColor+';">'+health+'</div>';
-    h+='<div style="font-size:.75rem;color:#8899bb;margin-top:4px;">'+Math.round(pctUsed)+'% of budget used · '+daysLeft+' days left</div></div>';
-    // Quick stats grid
+    h+='<div style="font-size:.75rem;color:#8899bb;margin-top:4px;">'+Math.round(pctUsed)+'% used · $'+fmt0(Math.abs(remaining))+' '+(remaining>=0?'left':'over')+' · '+daysLeft+' days left</div></div>';
+    // Quick stats
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#34d399;margin-bottom:6px;">Remaining</div><div style="font-size:1.2rem;font-weight:700;color:'+(remaining>=0?'#34d399':'#fb7185')+';font-family:DM Mono,monospace;">'+(remaining>=0?'$':'-$')+fmt0(Math.abs(remaining))+'</div></div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#60a5fa;margin-bottom:6px;">Daily Budget</div><div style="font-size:1.2rem;font-weight:700;color:#60a5fa;font-family:DM Mono,monospace;">$'+fmt0(Math.max(0,dailyBudget))+'</div></div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a78bfa;margin-bottom:6px;">Top Category</div><div style="font-size:.92rem;font-weight:700;color:#a78bfa;">'+topCat+'</div><div style="font-size:.7rem;color:#8899bb;">$'+fmt0(topAmt)+'</div></div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#fbbf24;margin-bottom:6px;">Transactions</div><div style="font-size:1.2rem;font-weight:700;color:#fbbf24;">'+history.length+'</div></div></div>';
-    // Needs vs Wants
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:16px 0 10px;">Needs vs Wants</div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;">';
-    var needsPct=totalSpent>0?Math.round(needs/totalSpent*100):0;
-    h+='<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-size:.82rem;color:#34d399;font-weight:600;">Needs $'+fmt0(needs)+' ('+needsPct+'%)</span><span style="font-size:.82rem;color:#a78bfa;font-weight:600;">Wants $'+fmt0(wants)+' ('+(100-needsPct)+'%)</span></div>';
-    h+='<div style="height:10px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;display:flex;"><div style="height:100%;width:'+needsPct+'%;background:#34d399;"></div><div style="height:100%;width:'+(100-needsPct)+'%;background:#a78bfa;"></div></div></div>';
-    // Tips
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:20px 0 10px;">💡 Insights</div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:16px;">';
-    if(dailyBudget>0)h+='<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.82rem;color:#eef2ff;line-height:1.5;">You can spend <b style="color:#34d399;">$'+fmt0(dailyBudget)+'</b> per day for the next '+daysLeft+' days to stay on budget.</div>';
-    if(wants>needs&&totalSpent>0)h+='<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.82rem;color:#eef2ff;line-height:1.5;">⚠️ Your wants (<b style="color:#a78bfa;">$'+fmt0(wants)+'</b>) exceed your needs. Consider cutting back on discretionary spending.</div>';
-    if(topAmt>config.budget*0.3)h+='<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.82rem;color:#eef2ff;line-height:1.5;">🔍 <b>'+topCat+'</b> accounts for '+Math.round(topAmt/config.budget*100)+'% of your budget. This is your biggest expense area.</div>';
-    if(!history.length)h+='<div style="padding:10px 0;font-size:.82rem;color:#8899bb;">Start logging transactions to get personalized insights!</div>';
-    else h+='<div style="padding:10px 0;font-size:.82rem;color:#eef2ff;line-height:1.5;">📊 You\'ve logged <b>'+history.length+' transactions</b> totaling <b>$'+fmt(totalSpent)+'</b> this cycle.</div>';
+    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#34d399;margin-bottom:6px;">Daily Budget</div><div style="font-size:1.2rem;font-weight:700;color:#34d399;font-family:DM Mono,monospace;">$'+fmt0(Math.max(0,dailyBudget))+'</div></div>';
+    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a78bfa;margin-bottom:6px;">Top Spend</div><div style="font-size:.92rem;font-weight:700;color:#a78bfa;">'+topCat+'</div><div style="font-size:.7rem;color:#8899bb;">$'+fmt0(topAmt)+'</div></div></div>';
+    // Needs vs Wants bar
+    var needsPct=totalSpent>0?Math.round(needs/totalSpent*100):50;
+    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:14px 16px;margin-bottom:20px;">';
+    h+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:.75rem;color:#34d399;font-weight:600;">Needs $'+fmt0(needs)+' ('+needsPct+'%)</span><span style="font-size:.75rem;color:#a78bfa;font-weight:600;">Wants $'+fmt0(wants)+' ('+(100-needsPct)+'%)</span></div>';
+    h+='<div style="height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;display:flex;"><div style="height:100%;width:'+needsPct+'%;background:#34d399;"></div><div style="height:100%;width:'+(100-needsPct)+'%;background:#a78bfa;"></div></div></div>';
+    // ── AI CHAT SECTION ──
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a78bfa;margin:20px 0 10px;display:flex;align-items:center;gap:8px;"><div style="width:7px;height:7px;background:#a78bfa;border-radius:50%;box-shadow:0 0 8px #a78bfa;"></div> Ask AI About Your Finances</div>';
+    // Quick prompts
+    h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
+    h+='<div onclick="fpAskAI(\'Give me a spending overview for this cycle. What should I focus on?\')" style="cursor:pointer;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#a78bfa;font-weight:600;">📊 Cycle overview</div>';
+    h+='<div onclick="fpAskAI(\'Where am I overspending? Which categories should I cut back on?\')" style="cursor:pointer;background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#fb7185;font-weight:600;">🚨 Overspending?</div>';
+    h+='<div onclick="fpAskAI(\'Give me 3 actionable money-saving tips based on my spending patterns.\')" style="cursor:pointer;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#34d399;font-weight:600;">💡 Saving tips</div>';
+    h+='<div onclick="fpAskAI(\'Based on my current spending, forecast my financial health. Will I stay on budget?\')" style="cursor:pointer;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#60a5fa;font-weight:600;">🔮 Forecast</div>';
+    h+='<div onclick="fpAskAI(\'Compare Brandon and Gina spending. Who is spending more and in what categories?\')" style="cursor:pointer;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#fbbf24;font-weight:600;">👥 Compare</div>';
+    h+='<div onclick="fpAskAI(\'Based on my mortgage and car loan, when will I be debt free?\')" style="cursor:pointer;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#2dd4bf;font-weight:600;">🏠 Debt payoff</div>';
     h+='</div>';
+    // Chat input
+    h+='<div style="display:flex;gap:8px;margin-bottom:16px;">';
+    h+='<input type="text" id="fp_aiInput" placeholder="Ask anything about your finances..." onkeydown="if(event.key===\'Enter\')fpAskAI()" style="flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(167,139,250,.25);border-radius:12px;padding:12px 16px;color:#eef2ff;font-size:.85rem;outline:none;font-family:DM Sans,sans-serif;">';
+    h+='<button onclick="fpAskAI()" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;font-weight:700;border:none;border-radius:12px;padding:12px 18px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🤖 Ask</button></div>';
+    // Response area
+    h+='<div id="fp_aiResponse" style="display:none;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:16px;padding:18px;margin-bottom:16px;">';
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><div style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,.2);display:flex;align-items:center;justify-content:center;font-size:.85rem;">🤖</div><span style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a78bfa;">AI Finance Coach</span></div>';
+    h+='<div id="fp_aiText" style="font-size:.88rem;color:#eef2ff;line-height:1.7;"></div></div>';
+    // Chat history
+    h+='<div id="fp_aiHistory"></div>';
     return h;
+}
+
+var _fpAiChatHistory = [];
+function fpAskAI(preset){
+    var q = preset || (document.getElementById('fp_aiInput') ? document.getElementById('fp_aiInput').value.trim() : '');
+    if(!q) { showToast('Type a question first', 'error'); return; }
+    var inputEl = document.getElementById('fp_aiInput');
+    if(inputEl) inputEl.value = '';
+    var respDiv = document.getElementById('fp_aiResponse');
+    var textDiv = document.getElementById('fp_aiText');
+    if(respDiv) respDiv.style.display = 'block';
+    if(textDiv) textDiv.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border:2px solid #a78bfa;border-top:2px solid transparent;border-radius:50%;animation:spin .8s linear infinite;"></div><span style="color:#8899bb;">Analyzing your data...</span></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
+    // Build context
+    var spent=0;history.forEach(function(i){spent+=i.amount;});
+    var bS=0,gS=0;history.forEach(function(i){if(!['Mortgage','Car','Utilities'].includes(i.category)){if(i.member==='Brandon')bS+=i.amount;else if(i.member==='Gina')gS+=i.amount;else if(i.member==='Split'){bS+=i.amount/2;gS+=i.amount/2;}}});
+    var catList={};history.forEach(function(i){catList[i.category]=(catList[i.category]||0)+i.amount;});
+    var catStr=Object.entries(catList).map(function(e){return e[0]+': $'+e[1].toFixed(2);}).join(', ');
+    var nwHome=parseFloat(netWorth.home)||0,nwCash=parseFloat(netWorth.cash)||0,nwInvest=parseFloat(netWorth.invest)||0,nwOther=parseFloat(netWorth.other)||0;
+    var totalAssets=nwHome+nwCash+nwInvest+nwOther;
+    var totalDebts=(parseFloat(config.m_balance)||0)+(parseFloat(config.c_balance)||0);
+    var context='Family finance data:\n'+
+        '- Monthly budget: $'+config.budget+'\n'+
+        '- Total spent this cycle: $'+spent.toFixed(2)+'\n'+
+        '- Remaining: $'+(config.budget-spent).toFixed(2)+'\n'+
+        '- Days left in cycle: '+daysUntil(config.cycle_start_day||16)+'\n'+
+        '- Brandon spent: $'+bS.toFixed(2)+'\n'+
+        '- Gina spent: $'+gS.toFixed(2)+'\n'+
+        '- Categories: '+(catStr||'None yet')+'\n'+
+        '- Transactions: '+history.length+'\n'+
+        '- Mortgage balance: $'+(config.m_balance||0)+' (original: $'+(config.m_orig||0)+')\n'+
+        '- Car loan balance: $'+(config.c_balance||0)+' (original: $'+(config.c_orig||0)+')\n'+
+        '- Total assets: $'+totalAssets+' (Home: $'+nwHome+', Cash: $'+nwCash+', Investments: $'+nwInvest+')\n'+
+        '- Total debts: $'+totalDebts+'\n'+
+        '- Net worth: $'+(totalAssets-totalDebts)+'\n'+
+        '- Savings vaults: '+vaults.length+' (total saved: $'+vaults.reduce(function(s,v){return s+(parseFloat(v.saved)||0);},0)+')';
+    fetch('/.netlify/functions/ai-proxy',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            system:'You are Flint AI — a smart, friendly financial coach for a family. You have access to their real spending, assets, debts, and savings data. Give concise, specific, actionable advice using their actual numbers. Be encouraging but honest. Use plain text, no markdown. Keep responses to 3-5 sentences unless they ask for more detail.',
+            prompt:context+'\n\nUser question: '+q
+        })
+    }).then(function(r){return r.json();}).then(function(d){
+        var text=d.content&&d.content[0]?d.content[0].text:'Sorry, I couldn\'t get a response. Try again.';
+        if(textDiv) textDiv.innerText=text;
+        // Add to history
+        _fpAiChatHistory.unshift({q:q,a:text,time:new Date()});
+        fpRenderAiHistory();
+    }).catch(function(e){
+        if(textDiv) textDiv.innerText='Connection error. Make sure you\'re online and try again.';
+    });
+}
+
+function fpRenderAiHistory(){
+    var hist=document.getElementById('fp_aiHistory');
+    if(!hist||!_fpAiChatHistory.length) return;
+    var h='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:16px 0 10px;">Conversation History</div>';
+    _fpAiChatHistory.forEach(function(item,i){
+        if(i===0) return; // Skip most recent (shown in response area)
+        h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:14px 16px;margin-bottom:8px;">';
+        h+='<div style="font-size:.72rem;font-weight:700;color:#a78bfa;margin-bottom:6px;">You asked</div>';
+        h+='<div style="font-size:.82rem;color:#8899bb;margin-bottom:10px;">'+item.q+'</div>';
+        h+='<div style="font-size:.72rem;font-weight:700;color:#d4a843;margin-bottom:6px;">🤖 Flint AI</div>';
+        h+='<div style="font-size:.82rem;color:#eef2ff;line-height:1.6;">'+item.a+'</div></div>';
+    });
+    hist.innerHTML=h;
 }
 
 // ── SUBSCRIPTIONS PANEL ──
