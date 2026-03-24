@@ -4504,7 +4504,7 @@ function copyKey(){ navigator.clipboard.writeText(currentGroup); showToast('Key 
 async function joinLedger(){ const k=document.getElementById('joinKey').value.trim(); if(k.length>20){await _sb.from('app_settings').update({group_id:k}).eq('user_id',currentUser);localStorage.setItem('flint_group_'+currentUser,k);location.reload();} }
 function initCycles(){ const s=document.getElementById('cycleSelect'); s.innerHTML=''; let now=new Date(); for(let i=0;i<6;i++){let d=new Date(now.getFullYear(),now.getMonth()-i,16);let o=document.createElement('option');o.value=d.toISOString();o.text=d.toLocaleString('default',{month:'long',year:'numeric'})+' Cycle';s.appendChild(o);} }
 async function changeCycle(){ currentViewDate=new Date(document.getElementById('cycleSelect').value); await fetchData(); }
-async function logoutApp(){ await _sb.auth.signOut(); location.reload(); }
+async function logoutApp(){ await _sb.auth.signOut(); window.location.href = '/'; }
 function showToast(msg, type='success') {
     const icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠️' };
     const colors = { success:'var(--green)', error:'var(--rose)', info:'var(--blue)', warning:'var(--amber)' };
