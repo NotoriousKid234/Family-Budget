@@ -33,31 +33,60 @@
         }
 
         .guardian-container {
-            width: 200px;
-            height: 200px;
+            position: relative;
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
             border: 3px solid var(--bright-yellow);
-            overflow: hidden;
             margin-bottom: 30px;
             animation: pulseGlow 3s infinite ease-in-out;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             background-color: black;
         }
 
-        .guardian-container img {
+        /* This hides the Husky edges to keep the circle perfect */
+        .mascot-crop {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mascot-crop img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
+        /* The Curved Text Overlay */
+        .brand-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .brand-ring text {
+            fill: var(--bright-yellow);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 16px;
+            /* Makes the text glow like the border */
+            filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.8));
+        }
+
         h1 {
-            font-size: 2.8rem;
-            letter-spacing: 3px;
+            font-size: 3rem;
+            letter-spacing: 4px;
             margin: 0;
             text-transform: uppercase;
             font-weight: 900;
+            color: white;
         }
 
         .highlight {
@@ -70,7 +99,7 @@
             max-width: 450px;
             line-height: 1.6;
             font-size: 1.2rem;
-            margin: 20px 0 40px 0;
+            margin: 10px 0 40px 0;
         }
 
         .email-box {
@@ -112,9 +141,8 @@
             background-color: #fff;
         }
 
-        /* The Secret Backdoor Link */
         .admin-link {
-            color: rgba(148, 163, 184, 0.3); /* Very faded slate */
+            color: rgba(148, 163, 184, 0.3);
             text-decoration: none;
             font-size: 0.8rem;
             text-transform: uppercase;
@@ -122,20 +150,29 @@
             transition: color 0.3s;
         }
 
-        .admin-link:hover {
-            color: var(--bright-yellow);
-        }
+        .admin-link:hover { color: var(--bright-yellow); }
     </style>
 </head>
 <body>
 
     <div class="guardian-container">
-        <img src="mascot.jpg" alt="Flint Finance Guardian">
+        <div class="mascot-crop">
+            <img src="mascot.jpg" alt="Flint Finance Guardian">
+        </div>
+
+        <svg class="brand-ring" viewBox="0 0 200 200">
+            <path id="curve" d="M 30,100 A 70,70 0 1,1 170,100" fill="transparent" />
+            <text width="200">
+                <textPath xlink:href="#curve" startOffset="50%" text-anchor="middle">
+                    Flint Finance
+                </textPath>
+            </text>
+        </svg>
     </div>
 
-    <h1>Final Security <span class="highlight">Patch</span></h1>
+    <h1>System <span class="highlight">Offline</span></h1>
     <p>
-        The Guardian is calibrating. <strong>Flint Finance</strong> deployment is imminent. 
+        The Guardian is installing the <strong>Final Security Patch</strong>. 
         Reserve your position in the Empire Vault.
     </p>
 
