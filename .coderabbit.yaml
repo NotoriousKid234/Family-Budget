@@ -1,0 +1,9 @@
+language: "en-US"
+reviews:
+  profile: "assertive"
+  high_level_summary: true
+  instructions: >
+    Focus on these areas:
+    1. Financial Logic: In the ledger, ensure all math prevents 'NaN' errors or accidental negative balances.
+    2. Encryption: For the messaging app, flag any weak encryption or hardcoded keys.
+    3. Privacy: Ensure no sensitive data is leaked to console.log.
