@@ -184,7 +184,12 @@
             border-radius: 12px; position: relative;
             margin: 1px 10px;
         }
-        .nav-item i { width: 16px; text-align: center; font-size: .82rem; opacity: .7; transition: opacity .2s; }
+        .nav-item i { width: 16px; text-align: center; font-size: .82rem; opacity: .7; transition: opacity .2s; flex-shrink: 0; }
+        .nav-item-content { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+        .nav-item-label { font-size: .85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .nav-item-sub { font-size: .6rem; font-weight: 400; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .2s; }
+        .nav-item:hover .nav-item-sub { color: var(--text-soft); }
+        .nav-item.active .nav-item-sub { color: rgba(212,168,67,.6); }
         .nav-item:hover { color: var(--text); background: rgba(255,255,255,.05); }
         .nav-item:hover i { opacity: 1; }
         .nav-item.active {
@@ -1641,19 +1646,65 @@
                 <div class="logo-sub">Spark your financial future</div>
             </div>
         </div>
-        <div class="nav-item" onclick="openPanel('networth')" id="nav-networth"><i class="fa-solid fa-chart-pie"></i> Net Worth</div>
-        <div class="nav-item" onclick="openPanel('vaults')" id="nav-vaults"><i class="fa-solid fa-piggy-bank"></i> Savings Vaults</div>
-        <div class="nav-item" onclick="openPanel('bills')" id="nav-bills"><i class="fa-solid fa-calendar-check"></i> Bill Reminders</div>
-        <div class="nav-item" onclick="openPanel('aiInsights')" id="nav-aiInsights"><i class="fa-solid fa-robot"></i> AI Insights</div>
-        <div class="nav-item" onclick="openPanel('receiptScanner')" id="nav-receiptScanner"><i class="fa-solid fa-camera"></i> Receipt Scanner</div>
-        <div class="nav-item" onclick="openPanel('challenges')" id="nav-challenges"><i class="fa-solid fa-trophy"></i> Challenges</div>
-        <div class="nav-item" onclick="openPanel('familyFeed')" id="nav-familyFeed"><i class="fa-solid fa-people-group"></i> Family Feed</div>
-        <div class="nav-item" onclick="openPanel('subManager')" id="nav-subManager"><i class="fa-solid fa-clock-rotate-left"></i> Subscriptions</div>
-        <div class="nav-item" onclick="openPanel('notesManager')" id="nav-notesManager"><i class="fa-solid fa-comment-dots"></i> Family Notes</div>
-        <div class="nav-item" onclick="openPanel('analyticsModal')" id="nav-analyticsModal"><i class="fa-solid fa-chart-line"></i> Analytics</div>
-        <div class="nav-item" onclick="openPanel('configManager')" id="nav-configManager"><i class="fa-solid fa-gear"></i> Config</div>
-        <div class="nav-item" onclick="openPanel('shareManager')" id="nav-shareManager"><i class="fa-solid fa-cloud"></i> Share Ledger</div>
-        <div class="nav-item" onclick="openPanel('profileManager')" id="nav-profileManager"><i class="fa-solid fa-user-astronaut"></i> Profile</div>
+        <div class="nav-section-label">Finances</div>
+        <div class="nav-item" onclick="openPanel('networth')" id="nav-networth">
+            <i class="fa-solid fa-chart-pie"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Net Worth</span><span class="nav-item-sub" id="navSub-networth">—</span></div>
+        </div>
+        <div class="nav-item" onclick="openPanel('analyticsModal')" id="nav-analyticsModal">
+            <i class="fa-solid fa-chart-line"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Analytics</span><span class="nav-item-sub" id="navSub-analyticsModal">—</span></div>
+        </div>
+        <div class="nav-item" onclick="openPanel('aiInsights')" id="nav-aiInsights">
+            <i class="fa-solid fa-robot"></i>
+            <div class="nav-item-content"><span class="nav-item-label">AI Insights</span><span class="nav-item-sub" id="navSub-aiInsights">Ask your coach</span></div>
+        </div>
+
+        <div class="nav-section-label">Tracking</div>
+        <div class="nav-item" onclick="openPanel('vaults')" id="nav-vaults">
+            <i class="fa-solid fa-piggy-bank"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Savings Vaults</span><span class="nav-item-sub" id="navSub-vaults">—</span></div>
+        </div>
+        <div class="nav-item" onclick="openPanel('bills')" id="nav-bills">
+            <i class="fa-solid fa-calendar-check"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Bill Reminders</span><span class="nav-item-sub" id="navSub-bills">—</span></div>
+        </div>
+        <div class="nav-item" onclick="openPanel('subManager')" id="nav-subManager">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Subscriptions</span><span class="nav-item-sub" id="navSub-subManager">—</span></div>
+        </div>
+        <div class="nav-item" onclick="openPanel('challenges')" id="nav-challenges">
+            <i class="fa-solid fa-trophy"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Challenges</span><span class="nav-item-sub" id="navSub-challenges">—</span></div>
+        </div>
+        <div class="nav-item" onclick="openPanel('receiptScanner')" id="nav-receiptScanner">
+            <i class="fa-solid fa-camera"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Receipt Scanner</span><span class="nav-item-sub" id="navSub-receiptScanner">Snap &amp; log</span></div>
+        </div>
+
+        <div class="nav-section-label">Family</div>
+        <div class="nav-item" onclick="openPanel('notesManager')" id="nav-notesManager">
+            <i class="fa-solid fa-comment-dots"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Family Notes</span><span class="nav-item-sub" id="navSub-notesManager">—</span></div>
+        </div>
+        <div class="nav-item" onclick="openPanel('familyFeed')" id="nav-familyFeed">
+            <i class="fa-solid fa-people-group"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Family Feed</span><span class="nav-item-sub" id="navSub-familyFeed">—</span></div>
+        </div>
+
+        <div class="nav-section-label">App</div>
+        <div class="nav-item" onclick="openPanel('configManager')" id="nav-configManager">
+            <i class="fa-solid fa-gear"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Settings</span><span class="nav-item-sub" id="navSub-configManager">Budget &amp; loans</span></div>
+        </div>
+        <div class="nav-item" onclick="openPanel('shareManager')" id="nav-shareManager">
+            <i class="fa-solid fa-cloud"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Share Ledger</span><span class="nav-item-sub" id="navSub-shareManager">—</span></div>
+        </div>
+        <div class="nav-item" onclick="openPanel('profileManager')" id="nav-profileManager">
+            <i class="fa-solid fa-user-astronaut"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Profile</span><span class="nav-item-sub" id="navSub-profileManager">—</span></div>
+        </div>
         <div class="nav-spacer"></div>
         <div class="nav-item nav-logout" onclick="logoutApp()"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
     </div>
@@ -2651,6 +2702,7 @@ async function loadApp() {
     config.m_orig = config.m_orig||500000;
     config.c_orig = config.c_orig||45000;
     loadStoredData();
+    renderNavBadges();
     loadIcon();
     initCycles();
     fetchData();
@@ -2802,6 +2854,7 @@ function renderDashboard() {
     const countEl = document.getElementById('historyCount');
     if(countEl) countEl.innerText = history.length === 1 ? '1 transaction' : history.length + ' transactions';
     renderVaultMini();
+    renderNavBadges();
 
     const remaining=config.budget-total;
     document.getElementById('balanceNum').innerText='$'+fmt(remaining);
@@ -4719,6 +4772,97 @@ async function markNotesAsRead() {
     // Update local state so UI reflects immediately without waiting for fetchData
     notes = notes.map(n => ids.includes(n.id) ? { ...n, read_at: now, read_by: myName } : n);
     renderNotes();
+}
+
+// ── NAV BADGES — update live subtitles on every nav item ──
+function renderNavBadges() {
+    // Helper to safely set a nav subtitle
+    function setSub(id, text) {
+        const el = document.getElementById('navSub-' + id);
+        if (el) el.innerText = text;
+    }
+
+    // Net Worth
+    try {
+        const nw = (netWorth.home||0) + (netWorth.cash||0) + (netWorth.invest||0) + (netWorth.other||0)
+                 - (config.m_balance||0) - (config.c_balance||0);
+        setSub('networth', (nw >= 0 ? '$' : '-$') + Math.abs(nw).toLocaleString(undefined, {maximumFractionDigits:0}));
+    } catch(e) {}
+
+    // Analytics — % of budget used
+    try {
+        const spent = history.reduce((s,t) => s + t.amount, 0);
+        const pct = config.budget > 0 ? Math.round((spent / config.budget) * 100) : 0;
+        const rem = config.budget - spent;
+        setSub('analyticsModal', pct + '% used · $' + Math.abs(rem).toLocaleString(undefined,{maximumFractionDigits:0}) + (rem >= 0 ? ' left' : ' over'));
+    } catch(e) {}
+
+    // Savings Vaults — total saved
+    try {
+        if (vaults.length) {
+            const total = vaults.reduce((s,v) => s + (parseFloat(v.saved)||0), 0);
+            setSub('vaults', vaults.length + ' vault' + (vaults.length !== 1 ? 's' : '') + ' · $' + total.toLocaleString(undefined,{maximumFractionDigits:0}) + ' saved');
+        } else {
+            setSub('vaults', 'No vaults yet');
+        }
+    } catch(e) {}
+
+    // Bill Reminders — next due
+    try {
+        if (billReminders.length) {
+            const sorted = [...billReminders].sort((a,b) => daysUntil(a.day) - daysUntil(b.day));
+            const next = sorted[0];
+            const d = daysUntil(next.day);
+            const label = d === 0 ? 'today' : d === 1 ? 'tomorrow' : 'in ' + d + 'd';
+            setSub('bills', (next.icon||'📅') + ' ' + next.name + ' ' + label);
+        } else {
+            setSub('bills', 'No bills added');
+        }
+    } catch(e) {}
+
+    // Subscriptions — total monthly cost
+    try {
+        if (recurring.length) {
+            const total = recurring.reduce((s,r) => s + (parseFloat(r.amount)||0), 0);
+            setSub('subManager', recurring.length + ' active · $' + total.toFixed(0) + '/mo');
+        } else {
+            setSub('subManager', 'No subscriptions');
+        }
+    } catch(e) {}
+
+    // Challenges — active count
+    try {
+        const ch = JSON.parse(localStorage.getItem('montoya_challenges') || '[]');
+        const active = ch.filter(c => c.status === 'active' || !c.status).length;
+        setSub('challenges', active > 0 ? active + ' active challenge' + (active !== 1 ? 's' : '') : 'No active challenges');
+    } catch(e) {}
+
+    // Family Notes — unread count
+    try {
+        const unread = notes.filter(n => n.user_id !== currentUser && new Date(n.created_at).getTime() > lastSeenNoteTime).length;
+        setSub('notesManager', unread > 0 ? unread + ' unread message' + (unread !== 1 ? 's' : '') : notes.length + ' message' + (notes.length !== 1 ? 's' : ''));
+    } catch(e) {}
+
+    // Family Feed — unread activity
+    try {
+        const lastV = parseInt(localStorage.getItem('montoya_notifs') || '0');
+        const newAct = [...history.filter(t => t.user_id !== currentUser), ...notes]
+            .filter(x => new Date(x.created_at).getTime() > lastV).length;
+        setSub('familyFeed', newAct > 0 ? newAct + ' new update' + (newAct !== 1 ? 's' : '') : 'Up to date');
+    } catch(e) {}
+
+    // Share Ledger — show truncated group key
+    try {
+        if (currentGroup) {
+            setSub('shareManager', currentGroup.substring(0, 18) + '…');
+        }
+    } catch(e) {}
+
+    // Profile — show display name
+    try {
+        const dName = currentDisplayName === 'BRANDON' ? 'Brandon' : currentDisplayName === 'GINA' ? 'Gina' : 'Partner';
+        setSub('profileManager', dName + ' · ' + (currentEmail ? currentEmail.split('@')[0] : ''));
+    } catch(e) {}
 }
 
 async function updatePassword() {
