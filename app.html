@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        style-src  'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+        font-src   'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        connect-src 'self' https://hieqohmhrpjvhotutwls.supabase.co https://*.netlify.app;
+        img-src 'self' data:;
+    ">
     <title>Flint — Spark your financial future</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -2541,7 +2549,7 @@ function showConfirm(msg, onConfirm) {
     overlay.innerHTML = '<div style="background:#0d1628;border:1px solid rgba(100,150,230,.2);border-radius:20px;padding:28px 24px;max-width:320px;width:100%;text-align:center;">' +
         '<div style="font-size:1.8rem;margin-bottom:12px;">&#128465;</div>' +
         '<div style="font-size:.95rem;font-weight:600;color:white;margin-bottom:6px;">Are you sure?</div>' +
-        '<div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:20px;">' + msg + '</div>' +
+        '<div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:20px;">' + escapeHtml(msg) + '</div>' +
         '<div style="display:flex;gap:10px;">' +
         '<button id="confirmCancelBtn" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:white;cursor:pointer;font-size:.88rem;font-weight:600;">Cancel</button>' +
         '<button id="confirmOkBtn" style="flex:1;padding:12px;border-radius:12px;border:none;background:#f87171;color:white;cursor:pointer;font-size:.88rem;font-weight:700;">Delete</button>' +
@@ -2555,20 +2563,36 @@ function showConfirm(msg, onConfirm) {
 let txnReactions = JSON.parse(localStorage.getItem('montoya_txn_reactions') || '{}');
 let myTxnReactions = JSON.parse(localStorage.getItem('montoya_my_txn_reactions') || '{}');
 
-const SUPABASE_URL  = 'https://hieqohmhrpjvhotutwls.supabase.co';
-const SUPABASE_KEY  = 'sb_publishable_wfuqhxePYwqoxVixN0uSkg_9IUVRQHX';
-// AI calls go through Netlify proxy — no key needed here
+// ── SECURITY: Never hardcode credentials in client-side code.
+// Load these values from your build environment (e.g. Netlify env vars injected
+// at build time, or a /api/config endpoint that requires authentication).
+const SUPABASE_URL  = window.__APP_SUPABASE_URL  || '';
+const SUPABASE_KEY  = window.__APP_SUPABASE_KEY  || '';
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error('[Flint] Supabase credentials not configured. Set window.__APP_SUPABASE_URL and window.__APP_SUPABASE_KEY via your build/deploy environment.');
+}
 const CYCLE_START   = 16;
-const USERS = {
-    Brandon: 'e8a86782-b34e-4e94-878d-19e5d487214c',
-    Gina:    '4f7e2d7d-2b4a-4d7a-8f7e-2e2d7d7d7d7d'
-};
+// ── SECURITY: Do NOT hardcode user UUIDs. Identity is resolved from the
+// authenticated Supabase session below — these constants are removed.
+// User display names are looked up from the session profile, not from UUIDs.
+
+// ── XSS defence: escape all user-supplied or database-sourced strings
+// before inserting into innerHTML.
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g,  '&amp;')
+        .replace(/</g,  '&lt;')
+        .replace(/>/g,  '&gt;')
+        .replace(/"/g,  '&quot;')
+        .replace(/'/g,  '&#039;');
+}
 
 const CAT_COLORS = { Groceries:'#34d399', Dining:'#fbbf24', Utilities:'#06b6d4', Mortgage:'#a78bfa', Car:'#60a5fa', CreditCard:'#fb7185', Subscription:'#c084fc', Beauty:'#f472b6', Goal:'#e8c252', Misc:'#64748b' };
 
 let _sb, catChartInst, memberChartInst;
 let history=[], recurring=[], notes=[], vaults=[], billReminders=[];
-let currentType='Need', currentGroup=null, currentUser=null, currentEmail='', editingId=null;
+let currentType='Need', currentGroup=null, currentUser=null, currentEmail='', currentDisplayName='', editingId=null;
 let config={ budget:7400, m_balance:0, c_balance:0, m_orig:500000, c_orig:45000 };
 let netWorth={ home:0, cash:0, invest:0, other:0 };
 let currentViewDate=new Date(), isSignUpMode=false;
@@ -2582,9 +2606,12 @@ try {
         currentUser  = session.user.id;
         currentEmail = session.user.email || '';
         document.body.classList.add('logged-in');
-        let name = 'PARTNER';
-        if (currentUser===USERS.Brandon||currentEmail.toLowerCase().includes('brandon')) name='BRANDON';
-        else if (currentUser===USERS.Gina||currentEmail.toLowerCase().includes('gina'))  name='GINA';
+        // ── SECURITY: Resolve display name from authenticated session metadata,
+        // NOT by sniffing the email string (trivially spoofable).
+        // Set user_metadata.display_name when creating accounts via Supabase Auth.
+        const displayName = (session.user.user_metadata?.display_name || '').toUpperCase();
+        currentDisplayName = displayName || 'PARTNER';
+        let name = currentDisplayName;
         const wEl = document.getElementById('welcomeTitle');
                 if (wEl) wEl.innerText = name === 'PARTNER' ? 'Welcome Back' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
                 const greetEl = document.getElementById('timeOfDay');
@@ -2699,16 +2726,20 @@ function renderDashboard() {
             else if(item.member==='Split'){bS+=item.amount/2;gS+=item.amount/2;}
         }
         const isMe=item.user_id===currentUser;
+        // ── SECURITY: submitter label comes from a fixed lookup on the DB field,
+        // never from raw user input. item.member is constrained to known values.
         let submitter='Partner';
-        if(item.user_id===USERS.Brandon) submitter='Brandon';
-        else if(item.user_id===USERS.Gina) submitter='Gina';
+        if(item.member==='Brandon') submitter='Brandon';
+        else if(item.member==='Gina') submitter='Gina';
         const d=new Date(item.created_at);
         const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
         const timeStr=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-        const color = CAT_COLORS[item.category]||'#64748b';
-        // Category emoji map
+        // Only allow known category keys to reach the DOM — unknown values fall back to Misc color/emoji
+        const KNOWN_CATS = ['Groceries','Dining','Utilities','Mortgage','Car','CreditCard','Subscription','Beauty','Goal','Misc'];
+        const safeCat  = KNOWN_CATS.includes(item.category) ? item.category : 'Misc';
+        const color = CAT_COLORS[safeCat]||'#64748b';
         const CAT_EMOJI = {Groceries:'🛒',Dining:'🍔',Utilities:'💡',Mortgage:'🏠',Car:'🚗',CreditCard:'💳',Subscription:'📺',Beauty:'✂️',Goal:'🎯',Misc:'📦'};
-        const emoji = CAT_EMOJI[item.category]||'📦';
+        const emoji = CAT_EMOJI[safeCat]||'📦';
         // Who posted colors
         const whoColor = submitter==='Brandon'?'#60a5fa':submitter==='Gina'?'#f472b6':'#a78bfa';
         const whoBg   = submitter==='Brandon'?'rgba(96,165,250,.15)':submitter==='Gina'?'rgba(244,114,182,.15)':'rgba(167,139,250,.15)';
@@ -2716,33 +2747,39 @@ function renderDashboard() {
         const rxData = txnReactions[item.id]||{};
         const myRx   = myTxnReactions[item.id];
         const rxEmojis = ['✅','😬','🔥','😂','💸'];
+        const safeId = escapeHtml(item.id);
         const rxHTML = rxEmojis.map(e=>{
             const cnt=rxData[e]||0;
             const active=myRx===e;
-            return `<button class="txn-reaction-btn${active?' reacted':''}" onclick="reactToTxn('${item.id}','${e}')">${e}${cnt>0?`<span class='txn-reaction-count'>${cnt}</span>`:''}</button>`;
+            return `<button class="txn-reaction-btn${active?' reacted':''}" onclick="reactToTxn('${safeId}','${e}')">${e}${cnt>0?`<span class='txn-reaction-count'>${cnt}</span>`:''}</button>`;
         }).join('');
         const div=document.createElement('div');
         div.className='hist-item';
+        // ── SECURITY: item.note and item.category are user-supplied DB strings —
+        // all must be escaped before insertion into innerHTML.
+        const safeNote     = escapeHtml(item.note || safeCat);
+        const safeIntent   = item.intent==='Want'?'Want':'Need';
+        const safeAmt      = parseFloat(item.amount)||0;
         div.innerHTML=`
             <div class="hist-accent" style="background:${color};"></div>
             <div class="hist-icon" style="background:${color}18;">${emoji}</div>
             <div class="hist-body">
-                <span class="hist-note">${item.note||item.category}</span>
+                <span class="hist-note">${safeNote}</span>
                 <div class="hist-tags">
-                    <span class="htag htag-cat">${item.category}</span>
-                    <span class="htag ${item.intent==='Want'?'htag-want':'htag-need'}">${item.intent||'Need'}</span>
+                    <span class="htag htag-cat">${escapeHtml(safeCat)}</span>
+                    <span class="htag ${safeIntent==='Want'?'htag-want':'htag-need'}">${safeIntent}</span>
                     ${item.is_recurring?'<span class="htag htag-recur">↻ Recurring</span>':''}
                 </div>
                 <div class="hist-sub">
-                    <span class="hist-who" style="background:${whoBg};color:${whoColor};">${submitter}</span>
-                    <span class="hist-date">${dateStr} · ${timeStr}</span>
+                    <span class="hist-who" style="background:${whoBg};color:${whoColor};">${escapeHtml(submitter)}</span>
+                    <span class="hist-date">${escapeHtml(dateStr)} · ${escapeHtml(timeStr)}</span>
                 </div>
             </div>
             <div class="hist-right">
-                <div class="hist-amt">-$${item.amount.toFixed(2)}</div>
+                <div class="hist-amt">-$${safeAmt.toFixed(2)}</div>
                 <div class="hist-actions">
-                    <button class="act-btn act-edit" onclick="editEntry('${item.id}')"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="act-btn act-del" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash-can"></i></button>
+                    <button class="act-btn act-edit" onclick="editEntry('${safeId}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="act-btn act-del" onclick="deleteEntry('${safeId}')"><i class="fa-solid fa-trash-can"></i></button>
                 </div>
             </div>`;
         list.appendChild(div);
@@ -3190,7 +3227,7 @@ function renderSubs() {
 function renderNotifs() {
     const list=document.getElementById('notifList'); list.innerHTML='';
     let acts=[];
-    history.forEach(t=>{if(t.user_id!==currentUser){let n='Partner';if(t.user_id===USERS.Brandon)n='Brandon';else if(t.user_id===USERS.Gina)n='Gina';acts.push({user:n,text:`synced $${t.amount.toFixed(2)} — ${t.note||t.category}`,time:new Date(t.created_at),type:'txn'});}});
+    history.forEach(t=>{if(t.user_id!==currentUser){let n= t.member==='Brandon'?'Brandon':t.member==='Gina'?'Gina':'Partner';acts.push({user:n,text:`synced $${t.amount.toFixed(2)} — ${t.note||t.category}`,time:new Date(t.created_at),type:'txn'});}});
     notes.forEach(n=>acts.push({user:n.author,text:'posted a note: '+(n.message&&n.message.length>40?n.message.substring(0,40)+'…':n.message||''),time:new Date(n.created_at),type:'note'}));
     acts.sort((a,b)=>b.time-a.time);
     const lastV=parseInt(localStorage.getItem('montoya_notifs')||'0');
@@ -3332,8 +3369,8 @@ async function deleteNote(id){ if(confirm('Delete?')){ await _sb.from('app_notes
 async function addNote() {
     const msg=document.getElementById('noteMessage').value; if(!msg) return;
     let author='Partner';
-    if(currentUser===USERS.Brandon||currentEmail.toLowerCase().includes('brandon')) author='Brandon';
-    else if(currentUser===USERS.Gina||currentEmail.toLowerCase().includes('gina')) author='Gina';
+    if(currentDisplayName==='BRANDON') author='Brandon';
+    else if(currentDisplayName==='GINA') author='Gina';
     await _sb.from('app_notes').insert([{author,message:msg,group_id:currentGroup,user_id:currentUser}]);
     document.getElementById('noteMessage').value=''; fetchData();
 }
@@ -3549,8 +3586,8 @@ function renderFamilyFeed() {
     const combined = [...history].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     combined.forEach(item => {
-        const isBrandon = item.user_id === USERS.Brandon || item.member === 'Brandon';
-        const isGina = item.user_id === USERS.Gina || item.member === 'Gina';
+        const isBrandon = item.member === 'Brandon';
+        const isGina = item.member === 'Gina';
         if (!['Mortgage','Car','Utilities'].includes(item.category)) {
             if (item.member === 'Brandon') { bS += item.amount; bCount++; }
             else if (item.member === 'Gina') { gS += item.amount; gCount++; }
@@ -3978,11 +4015,11 @@ function populateProfile() {
 
     if (nameEl) {
         let name = 'User';
-        if (currentUser === USERS.Brandon || currentEmail.toLowerCase().includes('brandon')) name = 'Brandon';
-        else if (currentUser === USERS.Gina || currentEmail.toLowerCase().includes('gina')) name = 'Gina';
+        if (currentDisplayName === 'BRANDON') name = 'Brandon';
+        else if (currentDisplayName === 'GINA') name = 'Gina';
         nameEl.innerText = name;
     }
-    if (emailEl) emailEl.innerText = currentEmail || '';
+    if (emailEl) emailEl.innerText = escapeHtml(currentEmail) || '';
     if (sinceEl) {
         const joined = new Date();
         joined.setMonth(joined.getMonth() - 2); // estimate
@@ -4544,7 +4581,7 @@ async function pollForNewActivity() {
         if (latestTxn && latestTxn.id !== _lastSeenTxnId) {
             // Only alert if the new transaction was made by the OTHER person
             if (latestTxn.user_id !== currentUser) {
-                const who = latestTxn.user_id === USERS.Brandon ? 'Brandon' : latestTxn.user_id === USERS.Gina ? 'Gina' : 'Partner';
+                const who = latestTxn.member === 'Brandon' ? 'Brandon' : latestTxn.member === 'Gina' ? 'Gina' : 'Partner';
                 showToast('💸 ' + who + ' just synced $' + parseFloat(latestTxn.amount).toFixed(2) + ' — ' + (latestTxn.note || latestTxn.category), 'info');
                 hasNew = true;
             }
@@ -5061,7 +5098,7 @@ function buildNotesPanel(){
     });}
     return h;
 }
-function fpSendNote(){var msg=document.getElementById('fp_noteMsg').value;if(!msg){showToast('Write a message first','error');return;}var author='Partner';if(currentUser===USERS.Brandon||currentEmail.toLowerCase().includes('brandon'))author='Brandon';else if(currentUser===USERS.Gina||currentEmail.toLowerCase().includes('gina'))author='Gina';var cat=document.getElementById('fp_noteCat').value||'General';_sb.from('app_notes').insert([{author:author,message:msg,category:cat,user_id:currentUser,group_id:currentGroup}]).then(function(){showToast('Note sent!');fetchData().then(function(){openPanel('notesManager');});});}
+function fpSendNote(){var msg=document.getElementById('fp_noteMsg').value;if(!msg){showToast('Write a message first','error');return;}var author='Partner';if(currentDisplayName==='BRANDON')author='Brandon';else if(currentDisplayName==='GINA')author='Gina';var cat=document.getElementById('fp_noteCat').value||'General';_sb.from('app_notes').insert([{author:author,message:msg,category:cat,user_id:currentUser,group_id:currentGroup}]).then(function(){showToast('Note sent!');fetchData().then(function(){openPanel('notesManager');});});}
 function fpDelNote(id){if(!confirm('Delete note?'))return;_sb.from('app_notes').delete().eq('id',id).then(function(){notes=notes.filter(function(n){return n.id!==id;});showToast('Note deleted');openPanel('notesManager');});}
 
 // ── FAMILY FEED PANEL ──
@@ -5197,18 +5234,30 @@ function buildSharePanel(){
     h+='<button onclick="fpJoinLedger()" style="width:100%;background:rgba(45,212,191,.12);color:#2dd4bf;font-weight:700;border:1px solid rgba(45,212,191,.25);border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Join Ledger</button></div>';
     return h;
 }
-function fpJoinLedger(){var k=document.getElementById('fp_joinKey').value.trim();if(k.length>20){_sb.from('app_settings').update({group_id:k}).eq('user_id',currentUser).then(function(){localStorage.setItem('flint_group_'+currentUser,k);showToast('Joined ledger!');location.reload();});}else{showToast('Invalid key','error');}}
+function fpJoinLedger(){
+    var k=document.getElementById('fp_joinKey').value.trim();
+    // ── SECURITY: enforce the exact group_id format (grp_ prefix + alphanumeric).
+    // This rejects arbitrary strings and prevents joining with a malformed key.
+    var validKey = /^grp_[a-f0-9\-]{8,}_\d+$/.test(k);
+    if(!validKey){ showToast('Invalid ledger key format','error'); return; }
+    if(!confirm('Join this ledger? Your current data will be replaced with the shared ledger.')) return;
+    _sb.from('app_settings').update({group_id:k}).eq('user_id',currentUser).then(function(){
+        localStorage.setItem('flint_group_'+currentUser,k);
+        showToast('Joined ledger!');
+        location.reload();
+    });
+}
 
 // ── PROFILE PANEL ──
 function buildProfilePanel(){
     var h='';var name='User';
-    if(currentUser===USERS.Brandon||currentEmail.toLowerCase().includes('brandon'))name='Brandon';
-    else if(currentUser===USERS.Gina||currentEmail.toLowerCase().includes('gina'))name='Gina';
+    if(currentDisplayName==='BRANDON')name='Brandon';
+    else if(currentDisplayName==='GINA')name='Gina';
     var icon=localStorage.getItem('montoya_icon')||'fa-user';
     h+='<div style="text-align:center;margin-bottom:24px;">';
     h+='<div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,rgba(212,168,67,.2),rgba(96,165,250,.15));border:2px solid rgba(212,168,67,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:1.8rem;color:#d4a843;"><i class="fa-solid '+icon+'"></i></div>';
     h+='<div style="font-size:1.3rem;font-weight:700;color:#eef2ff;">'+name+'</div>';
-    h+='<div style="font-size:.78rem;color:#8899bb;">'+(currentEmail||'')+'</div></div>';
+    h+='<div style="font-size:.78rem;color:#8899bb;">'+(escapeHtml(currentEmail)||'')+'</div></div>';
     // Stats
     h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">';
     h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:12px;padding:12px;text-align:center;"><div style="font-size:1.1rem;font-weight:700;color:#d4a843;">'+history.length+'</div><div style="font-size:.6rem;color:#8899bb;text-transform:uppercase;">Txns</div></div>';
