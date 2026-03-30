@@ -3141,7 +3141,7 @@ function renderNotes() {
     pinned.forEach(n => {
         const div = document.createElement('div'); div.className = 'pinned-card';
         const d = new Date(n.created_at).toLocaleDateString('en-US', {month:'short', day:'numeric'});
-        div.innerHTML = `<div class="pinned-card-body"><div class="pinned-card-author">📌 ${n.author}</div>${n.message}</div><button class="bubble-action pin-active" onclick="togglePin('${n.id}')" title="Unpin">📌</button>`;
+        div.innerHTML = `<div class="pinned-card-body"><div class="pinned-card-author">📌 ${escapeHtml(n.author||'')}</div>${escapeHtml(n.message||'')}</div><button class="bubble-action pin-active" onclick="togglePin('${escapeHtml(n.id)}')" title="Unpin">📌</button>`;
         if (pinnedList) pinnedList.appendChild(div);
     });
 
@@ -3164,17 +3164,22 @@ function renderNotes() {
             return `<button class="bubble-reaction-btn${reacted?' reacted':''}" onclick="reactNote('${n.id}','${emoji}')">${emoji}${count>0?`<span class="r-count">${count}</span>`:''}</button>`;
         }).join('');
 
+        // SECURITY: escape all DB-sourced strings before innerHTML insertion
+        const safeAuthor  = escapeHtml(n.author || 'Unknown');
+        const safeMessage = escapeHtml(n.message || '');
+        const safeNoteId  = escapeHtml(n.id);
+        const safeCat     = ['General','Money','Reminder','Urgent'].includes(cat) ? cat : 'General';
         wrap.innerHTML = `
-            <div class="bubble-author">${n.author}</div>
+            <div class="bubble-author">${safeAuthor}</div>
             <div class="bubble">
-                <div class="bubble-cat-tag cat-${cat}">${catEmojis[cat]||'💬'} ${cat}</div>
-                ${n.message}
+                <div class="bubble-cat-tag cat-${safeCat}">${catEmojis[safeCat]||'💬'} ${safeCat}</div>
+                ${safeMessage}
             </div>
             <div class="bubble-reactions">${reactionsHTML}</div>
             <div class="bubble-meta">
-                <span>${timeStr}</span>
-                <button class="bubble-action ${isPinned?'pin-active':''}" onclick="togglePin('${n.id}')">${isPinned?'📌 Pinned':'📌 Pin'}</button>
-                ${isMe ? `<button class="bubble-action" onclick="deleteNote('${n.id}')" style="color:var(--rose);">Delete</button>` : ''}
+                <span>${escapeHtml(timeStr)}</span>
+                <button class="bubble-action ${isPinned?'pin-active':''}" onclick="togglePin('${safeNoteId}')">${isPinned?'📌 Pinned':'📌 Pin'}</button>
+                ${isMe ? `<button class="bubble-action" onclick="deleteNote('${safeNoteId}')" style="color:var(--rose);">Delete</button>` : ''}
             </div>`;
         chatArea.appendChild(wrap);
     });
@@ -3367,12 +3372,38 @@ async function deleteSub(id){ if(confirm('Delete?')){ await _sb.from('recurring_
 async function deleteNote(id){ if(confirm('Delete?')){ await _sb.from('app_notes').delete().eq('id',id); fetchData(); } }
 
 async function addNote() {
-    const msg=document.getElementById('noteMessage').value; if(!msg) return;
-    let author='Partner';
-    if(currentDisplayName==='BRANDON') author='Brandon';
-    else if(currentDisplayName==='GINA') author='Gina';
-    await _sb.from('app_notes').insert([{author,message:msg,group_id:currentGroup,user_id:currentUser}]);
-    document.getElementById('noteMessage').value=''; fetchData();
+    const msgEl = document.getElementById('noteMessage');
+    const msg = msgEl.value.trim();
+    if (!msg) return;
+    if (!currentGroup || !currentUser) { showToast('Not logged in. Refresh the page.', 'error'); return; }
+
+    let author = 'Partner';
+    if (currentDisplayName === 'BRANDON') author = 'Brandon';
+    else if (currentDisplayName === 'GINA') author = 'Gina';
+
+    const category = selectedNoteCat || 'General';
+
+    const sendBtn = document.querySelector('.chat-send-btn');
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.style.opacity = '0.5'; }
+
+    try {
+        const { error } = await _sb.from('app_notes').insert([{
+            author,
+            message: msg,
+            category,
+            group_id: currentGroup,
+            user_id: currentUser
+        }]);
+        if (error) { showToast('Failed to send: ' + error.message, 'error'); return; }
+        msgEl.value = '';
+        msgEl.style.height = 'auto';
+        fetchData();
+    } catch(e) {
+        showToast('Network error. Check your connection.', 'error');
+        console.error('addNote error:', e);
+    } finally {
+        if (sendBtn) { sendBtn.disabled = false; sendBtn.style.opacity = '1'; }
+    }
 }
 
 async function addSub() {
