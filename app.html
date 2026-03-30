@@ -2190,7 +2190,13 @@
             <div class="top-bar">
                 <div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div>
                 <div class="page-title">FAMILY NOTES <span id="noteUnreadBadge" style="display:none;background:var(--rose);color:white;font-size:.55rem;padding:2px 7px;border-radius:100px;margin-left:6px;vertical-align:middle;">NEW</span></div>
-                <div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div>
+                <div class="top-right" style="display:flex;align-items:center;gap:10px;">
+                    <span id="chatLiveIndicator" style="display:inline-flex;align-items:center;gap:5px;font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--green);opacity:0.7;">
+                        <span id="chatLiveDot" style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;display:inline-block;"></span>
+                        Live
+                    </span>
+                    <i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i>
+                </div>
             </div>
 
             <!-- Full chat container -->
@@ -3386,6 +3392,30 @@ async function addNote() {
     const sendBtn = document.querySelector('.chat-send-btn');
     if (sendBtn) { sendBtn.disabled = true; sendBtn.style.opacity = '0.5'; }
 
+    // Optimistic UI — show message in chat immediately, before Supabase responds
+    const chatArea = document.getElementById('chatArea');
+    const optimisticId = 'optimistic_' + Date.now();
+    if (chatArea) {
+        const tempWrap = document.createElement('div');
+        tempWrap.className = 'bubble-wrap mine';
+        tempWrap.id = optimisticId;
+        tempWrap.style.opacity = '0.55';
+        const catEmojis = { General:'💬', Money:'💰', Reminder:'⏰', Urgent:'🚨' };
+        tempWrap.innerHTML = `
+            <div class="bubble-author">${escapeHtml(author)}</div>
+            <div class="bubble">
+                <div class="bubble-cat-tag cat-${escapeHtml(category)}">${catEmojis[category]||'💬'} ${escapeHtml(category)}</div>
+                ${escapeHtml(msg)}
+            </div>
+            <div class="bubble-meta" style="font-size:.6rem;color:var(--text-dim);">Sending…</div>`;
+        chatArea.appendChild(tempWrap);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    // Clear input straight away so user can type the next message
+    msgEl.value = '';
+    msgEl.style.height = 'auto';
+
     try {
         const { error } = await _sb.from('app_notes').insert([{
             author,
@@ -3394,12 +3424,21 @@ async function addNote() {
             group_id: currentGroup,
             user_id: currentUser
         }]);
-        if (error) { showToast('Failed to send: ' + error.message, 'error'); return; }
-        msgEl.value = '';
-        msgEl.style.height = 'auto';
+        if (error) {
+            // Remove the optimistic bubble and show error
+            const ob = document.getElementById(optimisticId);
+            if (ob) ob.remove();
+            showToast('Failed to send: ' + error.message, 'error');
+            msgEl.value = msg; // restore message so user doesn't lose it
+            return;
+        }
+        // Replace optimistic bubble with real data
         fetchData();
     } catch(e) {
+        const ob = document.getElementById(optimisticId);
+        if (ob) ob.remove();
         showToast('Network error. Check your connection.', 'error');
+        msgEl.value = msg;
         console.error('addNote error:', e);
     } finally {
         if (sendBtn) { sendBtn.disabled = false; sendBtn.style.opacity = '1'; }
@@ -4584,7 +4623,14 @@ function startActivityPolling() {
     if (notes.length > 0)   _lastSeenNoteId = notes[0].id;
 
     if (_activityPollTimer) clearInterval(_activityPollTimer);
-    _activityPollTimer = setInterval(pollForNewActivity, 30000); // every 30s
+    _activityPollTimer = setInterval(pollForNewActivity, 30000); // every 30s base rate
+}
+
+// Called by switchView — speeds up polling when messages panel is open
+function setMessagesPollingRate(fast) {
+    if (_activityPollTimer) clearInterval(_activityPollTimer);
+    const rate = fast ? 5000 : 30000;
+    _activityPollTimer = setInterval(pollForNewActivity, rate);
 }
 
 async function pollForNewActivity() {
@@ -4782,7 +4828,7 @@ function switchView(id, isBack) {
     if (backBtn) backBtn.style.opacity = (_viewHistory.length > 1 && id !== 'app') ? '1' : '0.3';
     window.scrollTo(0,0);
     if(id==='app'||id==='analyticsModal') fetchData();
-    if(id==='notesManager') { lastSeenNoteTime=Date.now(); localStorage.setItem('montoya_notes_seen', lastSeenNoteTime); const b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none'; }
+    if(id==='notesManager') { lastSeenNoteTime=Date.now(); localStorage.setItem('montoya_notes_seen', lastSeenNoteTime); const b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none'; setMessagesPollingRate(true); } else { setMessagesPollingRate(false); }
     if(id==='networth') { renderNetWorth(); updateNwGoalProgress(); }
     if(id==='vaults') renderVaults();
     if(id==='bills') renderBills();
