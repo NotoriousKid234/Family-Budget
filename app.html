@@ -3184,6 +3184,13 @@ function renderNotes() {
             <div class="bubble-reactions">${reactionsHTML}</div>
             <div class="bubble-meta">
                 <span>${escapeHtml(timeStr)}</span>
+                ${isMe ? (() => {
+                    if (n.read_at) {
+                        const readTime = new Date(n.read_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+                        return `<span style="color:var(--teal);font-size:.6rem;">✓✓ Read ${readTime}</span>`;
+                    }
+                    return `<span style="color:var(--text-dim);font-size:.6rem;">✓ Delivered</span>`;
+                })() : ''}
                 <button class="bubble-action ${isPinned?'pin-active':''}" onclick="togglePin('${safeNoteId}')">${isPinned?'📌 Pinned':'📌 Pin'}</button>
                 ${isMe ? `<button class="bubble-action" onclick="deleteNote('${safeNoteId}')" style="color:var(--rose);">Delete</button>` : ''}
             </div>`;
@@ -4645,7 +4652,7 @@ async function pollForNewActivity() {
                 .lt('created_at', end.toISOString())
                 .order('created_at', {ascending: false})
                 .limit(1),
-            _sb.from('app_notes').select('id,author,message,created_at')
+            _sb.from('app_notes').select('id,author,message,created_at,read_at,read_by,user_id')
                 .eq('group_id', currentGroup)
                 .order('created_at', {ascending: false})
                 .limit(1)
@@ -4693,6 +4700,25 @@ async function pollForNewActivity() {
         console.warn('Activity poll error:', e);
     }
     _pollActive = false;
+}
+
+// Mark all unread messages from the other person as read
+async function markNotesAsRead() {
+    if (!currentGroup || !currentUser || !currentDisplayName) return;
+    const myName = currentDisplayName === 'BRANDON' ? 'Brandon' : currentDisplayName === 'GINA' ? 'Gina' : null;
+    if (!myName) return;
+    // Find notes NOT sent by me that have no read_at yet
+    const unread = notes.filter(n => n.user_id !== currentUser && !n.read_at);
+    if (!unread.length) return;
+    // Update them all in Supabase
+    const ids = unread.map(n => n.id);
+    const now = new Date().toISOString();
+    await _sb.from('app_notes')
+        .update({ read_at: now, read_by: myName })
+        .in('id', ids);
+    // Update local state so UI reflects immediately without waiting for fetchData
+    notes = notes.map(n => ids.includes(n.id) ? { ...n, read_at: now, read_by: myName } : n);
+    renderNotes();
 }
 
 async function updatePassword() {
@@ -4828,7 +4854,13 @@ function switchView(id, isBack) {
     if (backBtn) backBtn.style.opacity = (_viewHistory.length > 1 && id !== 'app') ? '1' : '0.3';
     window.scrollTo(0,0);
     if(id==='app'||id==='analyticsModal') fetchData();
-    if(id==='notesManager') { lastSeenNoteTime=Date.now(); localStorage.setItem('montoya_notes_seen', lastSeenNoteTime); const b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none'; setMessagesPollingRate(true); } else { setMessagesPollingRate(false); }
+    if(id==='notesManager') {
+        lastSeenNoteTime=Date.now();
+        localStorage.setItem('montoya_notes_seen', lastSeenNoteTime);
+        const b=document.getElementById('noteUnreadBadge'); if(b) b.style.display='none';
+        setMessagesPollingRate(true);
+        markNotesAsRead();
+    } else { setMessagesPollingRate(false); }
     if(id==='networth') { renderNetWorth(); updateNwGoalProgress(); }
     if(id==='vaults') renderVaults();
     if(id==='bills') renderBills();
