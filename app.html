@@ -1621,6 +1621,7 @@
         </div>
 
         <div id="signupExtras" style="display:none;width:100%;">
+            <input type="text" id="displayNameField" placeholder="Your first name (e.g. Brandon)" style="width:100%;margin-bottom:10px;" autocomplete="given-name">
             <input type="password" id="confirmPasswordField" placeholder="Confirm password" style="width:100%;margin-bottom:10px;">
             <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:12px;line-height:1.5;text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.08);">&#128274; Your data is encrypted and stored securely.</div>
         </div>
@@ -2655,6 +2656,20 @@ let netWorth={ home:0, cash:0, invest:0, other:0 };
 let currentViewDate=new Date(), isSignUpMode=false;
 let celebratedMilestones={ car:false, mortgage:false };
 
+// ── Capture invite link ?join= param on page load ──
+(function captureInviteParam(){
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const joinKey = params.get('join');
+        if (joinKey && /^grp_[a-f0-9\-]{8,}_\d+$/.test(joinKey)) {
+            localStorage.setItem('flint_pending_join', joinKey);
+            // Clean the URL without reloading so it looks tidy
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+        }
+    } catch(e) { console.warn('[Flint] Could not parse invite param', e); }
+})();
+
 // ── Init ──
 try {
     _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -2709,6 +2724,63 @@ async function loadApp() {
     startMarketFeed();
     fetchAiTip();
     startActivityPolling();
+    // ── Check for pending invite join (set by ?join= URL param or manual paste) ──
+    checkPendingJoin();
+}
+
+// ── Pending join: runs after loadApp, checks localStorage for a pending invite ──
+async function checkPendingJoin() {
+    const pendingKey = localStorage.getItem('flint_pending_join');
+    if (!pendingKey) return;
+    if (pendingKey === currentGroup) {
+        localStorage.removeItem('flint_pending_join');
+        return;
+    }
+    let ownerLabel = 'a shared';
+    try {
+        const { data } = await _sb.from('app_settings').select('user_id').eq('group_id', pendingKey).limit(1);
+        if (data && data.length > 0) ownerLabel = 'a shared';
+    } catch(e) {}
+    showJoinConfirmModal(pendingKey, ownerLabel);
+}
+
+function showJoinConfirmModal(pendingKey, ownerLabel) {
+    const old = document.getElementById('joinConfirmModal');
+    if (old) old.remove();
+    const modal = document.createElement('div');
+    modal.id = 'joinConfirmModal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7);padding:20px;';
+    modal.innerHTML = '<div style="background:#0d1b33;border:1px solid rgba(45,212,191,.3);border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6);">'
+        + '<div style="font-size:2rem;text-align:center;margin-bottom:12px;">🔗</div>'
+        + '<div style="font-size:1.1rem;font-weight:700;color:#eef2ff;text-align:center;margin-bottom:10px;">Join Shared Ledger?</div>'
+        + '<div style="font-size:.82rem;color:#8899bb;line-height:1.6;text-align:center;margin-bottom:20px;">You were invited to join ' + ownerLabel + ' ledger.<br>Your account will be linked and you\'ll share transactions, vaults, and budgets.</div>'
+        + '<div style="background:rgba(0,0,0,.4);border:1px solid rgba(45,212,191,.2);border-radius:10px;padding:10px 14px;font-family:\'DM Mono\',monospace;font-size:.72rem;color:#2dd4bf;word-break:break-all;text-align:center;margin-bottom:20px;">' + pendingKey + '</div>'
+        + '<div style="display:flex;gap:10px;">'
+        + '<button onclick="declineJoin()" style="flex:1;background:rgba(255,255,255,.06);color:#8899bb;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;font-weight:600;">Decline</button>'
+        + '<button onclick="acceptJoin(\'' + pendingKey + '\')" style="flex:1;background:linear-gradient(135deg,rgba(45,212,191,.2),rgba(45,212,191,.1));color:#2dd4bf;border:1px solid rgba(45,212,191,.35);border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;font-weight:700;">Join Ledger ✓</button>'
+        + '</div></div>';
+    document.body.appendChild(modal);
+}
+
+function declineJoin() {
+    localStorage.removeItem('flint_pending_join');
+    const m = document.getElementById('joinConfirmModal');
+    if (m) m.remove();
+    showToast('Invite declined.', 'info');
+}
+
+async function acceptJoin(key) {
+    const m = document.getElementById('joinConfirmModal');
+    if (m) m.remove();
+    try {
+        await _sb.from('app_settings').update({ group_id: key }).eq('user_id', currentUser);
+        localStorage.setItem('flint_group_' + currentUser, key);
+        localStorage.removeItem('flint_pending_join');
+        showToast('Joined ledger! Loading…', 'success');
+        setTimeout(() => location.reload(), 1200);
+    } catch(e) {
+        showToast('Failed to join ledger. Try again.', 'error');
+    }
 }
 
 function loadStoredData() {
@@ -3526,9 +3598,17 @@ async function authenticateUser() {
     btn.innerText=isSignUpMode?'Creating account...':'Signing in...';
     btn.disabled=true;
     try{
-        const {data,error}=isSignUpMode
-            ?await _sb.auth.signUp({email,password:pass})
-            :await _sb.auth.signInWithPassword({email,password:pass});
+        let authResult;
+        if(isSignUpMode){
+            const displayName = (document.getElementById('displayNameField')?.value || '').trim().toUpperCase() || 'PARTNER';
+            authResult = await _sb.auth.signUp({
+                email, password: pass,
+                options: { data: { display_name: displayName } }
+            });
+        } else {
+            authResult = await _sb.auth.signInWithPassword({email, password:pass});
+        }
+        const {data, error} = authResult;
         if(error) throw error;
         if(isSignUpMode&&data.user&&!data.session){
             showToast('Check your email to confirm your account!','success');
@@ -4854,7 +4934,7 @@ function renderNavBadges() {
     // Share Ledger — show truncated group key
     try {
         if (currentGroup) {
-            setSub('shareManager', currentGroup.substring(0, 18) + '…');
+            setSub('shareManager', 'Invite link ready');
         }
     } catch(e) {}
 
@@ -4926,7 +5006,12 @@ function sheetQuick(amt, cat, note, type) {
 }
 function quickFill(a,c,n,t){ document.getElementById('amount').value=a; document.getElementById('category').value=c; document.getElementById('noteInput').value=n; setType(t); window.scrollTo(0,document.querySelector('.type-toggle').offsetTop-20); }
 function autoSuggest(c){ if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
-function copyKey(){ navigator.clipboard.writeText(currentGroup); showToast('Key copied!'); }
+function copyKey(){
+    var baseUrl = window.location.origin + window.location.pathname;
+    var inviteLink = baseUrl + '?join=' + encodeURIComponent(currentGroup);
+    navigator.clipboard.writeText(inviteLink);
+    showToast('Invite link copied!');
+}
 async function joinLedger(){ const k=document.getElementById('joinKey').value.trim(); if(k.length>20){await _sb.from('app_settings').update({group_id:k}).eq('user_id',currentUser);localStorage.setItem('flint_group_'+currentUser,k);location.reload();} }
 function initCycles(){ const s=document.getElementById('cycleSelect'); s.innerHTML=''; let now=new Date(); for(let i=0;i<6;i++){let d=new Date(now.getFullYear(),now.getMonth()-i,16);let o=document.createElement('option');o.value=d.toISOString();o.text=d.toLocaleString('default',{month:'long',year:'numeric'})+' Cycle';s.appendChild(o);} }
 async function changeCycle(){ currentViewDate=new Date(document.getElementById('cycleSelect').value); await fetchData(); }
@@ -5473,31 +5558,97 @@ function fpClearCycle(){if(!confirm('Delete ALL transactions from the current cy
 
 // ── SHARE LEDGER PANEL ──
 function buildSharePanel(){
-    var h='';
-    h+='<div style="text-align:center;padding:20px 0;">';
-    h+='<div style="font-size:2.5rem;margin-bottom:12px;">🔗</div>';
-    h+='<div style="font-size:.85rem;color:#8899bb;margin-bottom:20px;line-height:1.6;">Share your family ledger key with your partner so you can track finances together.</div></div>';
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:0 0 10px;">Your Ledger Key</div>';
-    h+='<div onclick="navigator.clipboard.writeText(\''+currentGroup+'\');showToast(\'Key copied!\');" style="cursor:pointer;background:rgba(0,0,0,.4);border:1px solid rgba(45,212,191,.3);border-radius:12px;padding:16px;font-family:DM Mono,monospace;font-size:.78rem;color:#2dd4bf;text-align:center;letter-spacing:.5px;margin-bottom:8px;word-break:break-all;">'+currentGroup+'</div>';
-    h+='<div style="text-align:center;font-size:.7rem;color:#4a5a7a;margin-bottom:24px;">Tap to copy · Share with your partner</div>';
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:16px 0 10px;">Join Another Ledger</div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;">';
-    h+='<div style="font-size:.78rem;color:#8899bb;margin-bottom:10px;">Enter a partner\'s ledger key to sync your accounts:</div>';
-    h+='<input type="text" id="fp_joinKey" placeholder="Paste ledger key here" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;margin-bottom:10px;font-family:DM Mono,monospace;">';
-    h+='<button onclick="fpJoinLedger()" style="width:100%;background:rgba(45,212,191,.12);color:#2dd4bf;font-weight:700;border:1px solid rgba(45,212,191,.25);border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Join Ledger</button></div>';
+    var baseUrl = window.location.origin + window.location.pathname;
+    var inviteLink = baseUrl + '?join=' + encodeURIComponent(currentGroup);
+    var h = '';
+    // Hero
+    h += '<div style="text-align:center;padding:20px 0 16px;">';
+    h += '<div style="font-size:2.2rem;margin-bottom:10px;">🔗</div>';
+    h += '<div style="font-size:1rem;font-weight:700;color:#eef2ff;margin-bottom:6px;">Invite Your Partner</div>';
+    h += '<div style="font-size:.8rem;color:#8899bb;line-height:1.55;">Share the link below — anyone who opens it will be prompted to join your ledger after signing in or creating an account.</div>';
+    h += '</div>';
+    // Invite link box
+    h += '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:0 0 8px;">Invite Link</div>';
+    h += '<div style="background:rgba(0,0,0,.4);border:1px solid rgba(45,212,191,.25);border-radius:12px;padding:13px 16px;font-family:\'DM Mono\',monospace;font-size:.7rem;color:#2dd4bf;word-break:break-all;margin-bottom:8px;line-height:1.4;">' + baseUrl + '<span style="color:#a78bfa;">?join=' + currentGroup + '</span></div>';
+    h += '<button onclick="fpCopyInviteLink()" style="width:100%;background:linear-gradient(135deg,rgba(45,212,191,.18),rgba(45,212,191,.08));color:#2dd4bf;font-weight:700;border:1px solid rgba(45,212,191,.3);border-radius:12px;padding:13px;cursor:pointer;font-size:.88rem;margin-bottom:24px;letter-spacing:.3px;">📋 Copy Invite Link</button>';
+    // Who's on this ledger
+    h += '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:0 0 8px;">Who\'s on This Ledger</div>';
+    h += '<div id="ledgerMembersArea" style="background:#0a1525;border:1px solid rgba(100,150,230,.1);border-radius:14px;padding:14px;margin-bottom:20px;min-height:54px;display:flex;align-items:center;justify-content:center;"><span style="font-size:.78rem;color:#4a5a7a;">Loading members…</span></div>';
+    // Manual key entry (collapsed by default)
+    h += '<details style="margin-bottom:16px;">';
+    h += '<summary style="font-size:.78rem;color:#4a5a7a;cursor:pointer;list-style:none;text-align:center;padding:6px 0;">▸ Enter a key manually</summary>';
+    h += '<div style="margin-top:10px;background:#0a1525;border:1px solid rgba(100,150,230,.1);border-radius:14px;padding:16px;">';
+    h += '<div style="font-size:.75rem;color:#8899bb;margin-bottom:8px;line-height:1.5;">Paste a partner\'s ledger key directly:</div>';
+    h += '<input type="text" id="fp_joinKey" placeholder="grp_…" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;margin-bottom:10px;font-family:\'DM Mono\',monospace;">';
+    h += '<button onclick="fpJoinLedger()" style="width:100%;background:rgba(45,212,191,.1);color:#2dd4bf;font-weight:700;border:1px solid rgba(45,212,191,.2);border-radius:10px;padding:11px;cursor:pointer;font-size:.83rem;">Link Ledger</button>';
+    h += '</div></details>';
+    // Leave ledger
+    h += '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:16px;">';
+    h += '<button onclick="fpLeaveLedger()" style="width:100%;background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;border:1px solid rgba(251,113,133,.2);border-radius:12px;padding:11px;cursor:pointer;font-size:.82rem;">↩ Leave This Ledger</button>';
+    h += '</div>';
+    // Async-load members after render
+    setTimeout(loadLedgerMembers, 80);
     return h;
 }
-function fpJoinLedger(){
-    var k=document.getElementById('fp_joinKey').value.trim();
-    // ── SECURITY: enforce the exact group_id format (grp_ prefix + alphanumeric).
-    // This rejects arbitrary strings and prevents joining with a malformed key.
+
+async function loadLedgerMembers() {
+    const el = document.getElementById('ledgerMembersArea');
+    if (!el) return;
+    try {
+        const { data } = await _sb.from('app_settings').select('user_id').eq('group_id', currentGroup);
+        if (!data || !data.length) { el.innerHTML = '<span style="font-size:.78rem;color:#4a5a7a;">No members found.</span>'; return; }
+        var html = '<div style="width:100%;">';
+        data.forEach(function(row) {
+            var isMe = row.user_id === currentUser;
+            var label = isMe ? 'You (' + (currentEmail || currentUser.substring(0,8)+'…') + ')' : row.user_id.substring(0,8) + '…';
+            var badge = isMe ? '<span style="font-size:.65rem;background:rgba(212,168,67,.15);color:#d4a843;border:1px solid rgba(212,168,67,.25);border-radius:6px;padding:2px 7px;margin-left:6px;">YOU</span>' : '<span style="font-size:.65rem;background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.2);border-radius:6px;padding:2px 7px;margin-left:6px;">PARTNER</span>';
+            html += '<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">';
+            html += '<div style="width:34px;height:34px;border-radius:50%;background:' + (isMe ? 'rgba(212,168,67,.15)' : 'rgba(96,165,250,.12)') + ';display:flex;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0;">';
+            html += '<i class="fa-solid ' + (isMe ? 'fa-user' : 'fa-user-friends') + '" style="font-size:.8rem;color:' + (isMe ? '#d4a843' : '#60a5fa') + ';"></i></div>';
+            html += '<div style="flex:1;font-size:.8rem;color:#c8d8f0;">' + label + badge + '</div></div>';
+        });
+        html += '</div>';
+        el.innerHTML = html;
+        el.style.alignItems = 'flex-start';
+    } catch(e) {
+        el.innerHTML = '<span style="font-size:.78rem;color:#4a5a7a;">Could not load members.</span>';
+    }
+}
+
+function fpCopyInviteLink() {
+    var baseUrl = window.location.origin + window.location.pathname;
+    var inviteLink = baseUrl + '?join=' + encodeURIComponent(currentGroup);
+    navigator.clipboard.writeText(inviteLink).then(function(){
+        showToast('Invite link copied! Send it to your partner 🎉', 'success');
+    }).catch(function(){
+        showToast('Could not copy — please copy the link manually.', 'warning');
+    });
+}
+
+async function fpLeaveLedger() {
+    if (!confirm('Leave this ledger? A new private ledger will be created for you. Your partner will keep the shared ledger.')) return;
+    var newGroup = 'grp_' + currentUser.substring(0,8) + '_' + Date.now();
+    try {
+        await _sb.from('app_settings').update({ group_id: newGroup }).eq('user_id', currentUser);
+        localStorage.setItem('flint_group_' + currentUser, newGroup);
+        showToast('Left ledger. Creating your private ledger…', 'info');
+        setTimeout(() => location.reload(), 1200);
+    } catch(e) {
+        showToast('Could not leave ledger. Try again.', 'error');
+    }
+}
+
+function fpJoinLedger() {
+    var k = document.getElementById('fp_joinKey')?.value.trim() || '';
     var validKey = /^grp_[a-f0-9\-]{8,}_\d+$/.test(k);
-    if(!validKey){ showToast('Invalid ledger key format','error'); return; }
-    if(!confirm('Join this ledger? Your current data will be replaced with the shared ledger.')) return;
-    _sb.from('app_settings').update({group_id:k}).eq('user_id',currentUser).then(function(){
-        localStorage.setItem('flint_group_'+currentUser,k);
-        showToast('Joined ledger!');
+    if (!validKey) { showToast('Invalid ledger key format', 'error'); return; }
+    if (!confirm('Join this ledger? Your account will be linked with the shared ledger.')) return;
+    _sb.from('app_settings').update({ group_id: k }).eq('user_id', currentUser).then(function() {
+        localStorage.setItem('flint_group_' + currentUser, k);
+        showToast('Joined ledger!', 'success');
         location.reload();
+    }).catch(function() {
+        showToast('Failed to join ledger. Try again.', 'error');
     });
 }
 
