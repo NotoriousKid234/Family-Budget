@@ -438,63 +438,81 @@
         }
 
         /* ── Premium Transaction Card ── */
+        /* ── Filter pills bar ── */
+        .txn-filter-bar { display: flex; gap: 6px; padding: 0 0 14px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .txn-filter-bar::-webkit-scrollbar { display: none; }
+        .txn-fp { flex-shrink: 0; padding: 6px 14px; border-radius: 100px; font-size: .7rem; font-weight: 700; cursor: pointer; transition: all .2s; white-space: nowrap; letter-spacing: .3px; border: 1px solid transparent; }
+        .txn-fp.active { background: var(--gold); color: #0d1425; border-color: var(--gold); }
+        .txn-fp:not(.active) { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.08); color: var(--text-soft); }
+        .txn-fp:not(.active):hover { background: rgba(255,255,255,.09); color: var(--text); }
+
+        /* ── Date group header ── */
+        .txn-date-group { margin-bottom: 4px; }
+        .txn-group-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 4px 6px; }
+        .txn-group-label { font-size: .6rem; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text-dim); }
+        .txn-group-total { font-family: 'DM Mono', monospace; font-size: .68rem; font-weight: 500; color: var(--text-dim); }
+        .txn-group-total span { color: var(--text-soft); }
+
+        /* ── Transaction row ── */
         .hist-item {
-            background: rgba(10,18,36,.6);
-            border: 1px solid rgba(255,255,255,.06);
-            border-radius: 18px;
-            display: flex; align-items: center;
-            justify-content: space-between;
-            padding: 0;
-            margin-bottom: 8px;
-            transition: border-color .2s, box-shadow .2s, transform .15s;
-            gap: 0;
-            overflow: hidden;
-            position: relative;
+            display: flex; align-items: center; gap: 13px;
+            padding: 10px 14px 10px 0;
+            position: relative; cursor: pointer;
+            transition: background .15s;
+            border-radius: 0;
+            background: transparent;
+            border: none; margin-bottom: 0;
+            overflow: visible;
         }
-        .hist-item:hover {
-            border-color: rgba(255,255,255,.13);
-            box-shadow: 0 4px 20px rgba(0,0,0,.3);
-            transform: translateY(-1px);
+        .hist-item:hover { background: rgba(255,255,255,.025); border-radius: 14px; }
+        .hist-item::after {
+            content: ''; position: absolute;
+            bottom: 0; left: 62px; right: 0;
+            height: 1px; background: rgba(255,255,255,.05);
         }
-        /* Left accent stripe = category color */
-        .hist-accent {
-            width: 4px; min-height: 64px; align-self: stretch;
-            flex-shrink: 0; border-radius: 18px 0 0 18px;
-        }
-        /* Category icon circle */
+        .hist-item.last-in-group::after { display: none; }
+
+        /* Category icon tile */
         .hist-icon {
-            width: 38px; height: 38px; border-radius: 12px;
+            width: 46px; height: 46px; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1rem; flex-shrink: 0; margin: 14px 0 14px 14px;
+            font-size: 1.25rem; flex-shrink: 0;
+            position: relative; margin-left: 4px;
         }
-        .hist-body { flex: 1; min-width: 0; padding: 13px 12px 13px 10px; }
-        .hist-note { font-size: .88rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .hist-icon::after {
+            content: ''; position: absolute; inset: 0;
+            border-radius: 14px; border: 1px solid rgba(255,255,255,.1);
+        }
+
+        /* Body */
+        .hist-body { flex: 1; min-width: 0; padding: 0; }
+        .hist-note { font-size: .87rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .hist-tags { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-        .htag {
-            font-size: .58rem; font-weight: 700; padding: 2px 8px;
-            border-radius: 100px; text-transform: uppercase; letter-spacing: .6px;
-            white-space: nowrap;
-        }
-        .htag-cat  { background: rgba(255,255,255,.07); color: var(--text-soft); }
+        .htag { font-size: .58rem; font-weight: 700; padding: 2px 7px; border-radius: 100px; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+        .htag-cat  { background: rgba(255,255,255,.06); color: var(--text-soft); }
         .htag-need { background: rgba(52,211,153,.1);  color: #34d399; border: 1px solid rgba(52,211,153,.2); }
         .htag-want { background: rgba(251,191,36,.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,.2); }
         .htag-recur{ background: rgba(167,139,250,.1); color: #a78bfa; border: 1px solid rgba(167,139,250,.2); }
-        .hist-sub { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
-        .hist-who {
-            font-size: .6rem; font-weight: 800; padding: 2px 8px;
-            border-radius: 100px; text-transform: uppercase; letter-spacing: .5px;
-        }
+        .hist-sub { display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+        .hist-who { font-size: .6rem; font-weight: 800; padding: 2px 7px; border-radius: 100px; text-transform: uppercase; letter-spacing: .4px; }
         .hist-date { font-size: .6rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+
         /* Right side */
-        .hist-right { text-align: right; flex-shrink: 0; padding: 13px 14px 13px 8px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; }
-        .hist-amt { font-family: 'DM Mono', monospace; font-size: .95rem; font-weight: 600; color: var(--text); letter-spacing: -.3px; }
-        .hist-actions { display: flex; gap: 4px; }
+        .hist-right { text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 5px; }
+        .hist-amt { font-family: 'DM Mono', monospace; font-size: .9rem; font-weight: 600; letter-spacing: -.3px; }
+        .hist-amt-need { color: var(--text); }
+        .hist-amt-want { color: #fbbf24; }
+        .hist-intent { font-size: .58rem; font-weight: 700; border-radius: 100px; padding: 2px 8px; }
+        .hist-intent-need { background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.2); color: #34d399; }
+        .hist-intent-want { background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.2); color: #fbbf24; }
+        .hist-actions { display: flex; gap: 3px; }
         .act-btn { background: none; border: none; cursor: pointer; padding: 5px 7px; border-radius: 8px; font-size: .72rem; transition: all .18s; }
         .act-edit { color: var(--blue); opacity: .6; }
         .act-del  { color: var(--rose); opacity: .6; }
         .act-btn:hover { opacity: 1; background: rgba(255,255,255,.07); }
+
         /* Reactions row */
-        .txn-reaction-row { display: flex; gap: 4px; padding: 0 14px 10px 66px; flex-wrap: wrap; }
+        .txn-reaction-row { display: flex; gap: 4px; padding: 4px 4px 10px 63px; flex-wrap: wrap; }
         .txn-reaction-btn { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 100px; padding: 2px 8px; font-size: .72rem; cursor: pointer; transition: all .18s; display: flex; align-items: center; gap: 3px; }
         .txn-reaction-btn:hover { background: rgba(255,255,255,.1); transform: scale(1.1); }
         .txn-reaction-btn.reacted { background: rgba(232,194,82,.15); border-color: rgba(232,194,82,.3); }
@@ -728,8 +746,9 @@
         .ms-card:nth-child(2) { animation-delay: .08s; }
         .prog-card { animation: fadeUp .38s ease both; }
         .hist-item { animation: fadeUp .3s ease both; }
-        .hist-item:nth-child(n+2) { animation-delay: .04s; }
-        .hist-item:nth-child(n+3) { animation-delay: .08s; }
+        .hist-item:nth-child(n+2) { animation-delay: .03s; }
+        .hist-item:nth-child(n+3) { animation-delay: .06s; }
+        .txn-date-group { animation: fadeUp .32s ease both; }
         .vault-item { animation: fadeUp .38s ease both; }
         .bill-item { animation: fadeUp .35s ease both; }
         .member-card { animation: fadeUp .38s ease both; }
@@ -1304,19 +1323,7 @@
             margin-bottom: 12px; animation: fadeUp .3s ease both;
         }
 
-        /* ═══ TRANSACTION REACTIONS ═══ */
-        .txn-reaction-row {
-            display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap;
-        }
-        .txn-reaction-btn {
-            background: rgba(255,255,255,.05); border: 1px solid var(--border);
-            border-radius: 100px; padding: 2px 8px;
-            font-size: .72rem; cursor: pointer; transition: all .18s;
-            display: flex; align-items: center; gap: 3px;
-        }
-        .txn-reaction-btn:hover { background: rgba(255,255,255,.1); transform: scale(1.1); }
-        .txn-reaction-btn.reacted { background: rgba(232,194,82,.15); border-color: rgba(232,194,82,.3); }
-        .txn-reaction-count { font-size: .62rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+        /* ═══ TRANSACTION REACTIONS ═══ — defined in main card CSS block above */
 
         /* ═══ CATEGORY LIMIT BADGE ═══ */
         .cat-limit-badge {
@@ -2052,13 +2059,22 @@
                 <span>Add Transaction</span>
             </button>
 
-            <!-- Premium Transaction List -->
-            <div style="background:var(--ink-2);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:12px;">
+            <!-- Transaction List -->
+            <div style="background:var(--ink-2);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:12px;padding:14px 16px 6px;">
                 <!-- Search bar -->
-                <div style="display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.05);">
+                <div style="display:flex;align-items:center;gap:10px;padding:0 2px 12px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:12px;">
                     <i class="fa-solid fa-magnifying-glass" style="color:var(--text-dim);font-size:.8rem;flex-shrink:0;"></i>
                     <input type="text" id="searchBar" placeholder="Search transactions…" onkeyup="filterHistory()" style="background:none;border:none;outline:none;color:var(--text);font-size:.85rem;flex:1;font-family:'DM Sans',sans-serif;padding:0;margin:0;">
                     <div id="historyCount" style="font-size:.65rem;font-weight:700;color:var(--text-dim);font-family:'DM Mono',monospace;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);padding:2px 10px;border-radius:100px;white-space:nowrap;flex-shrink:0;">0 transactions</div>
+                </div>
+                <!-- Filter pills -->
+                <div class="txn-filter-bar" id="txnFilterBar">
+                    <div class="txn-fp active" onclick="setTxnFilter('all',this)">All</div>
+                    <div class="txn-fp" onclick="setTxnFilter('need',this)">Needs</div>
+                    <div class="txn-fp" onclick="setTxnFilter('want',this)">Wants</div>
+                    <div class="txn-fp" onclick="setTxnFilter('recurring',this)">Recurring</div>
+                    <div class="txn-fp" id="fpBrandon" onclick="setTxnFilter('brandon',this)">Brandon</div>
+                    <div class="txn-fp" id="fpGina" onclick="setTxnFilter('gina',this)">Gina</div>
                 </div>
                 <!-- Grouped transaction list -->
                 <div id="historyList"></div>
@@ -2855,74 +2871,104 @@ function renderDashboard() {
             else if(item.member==='Gina') gS+=item.amount;
             else if(item.member==='Split'){bS+=item.amount/2;gS+=item.amount/2;}
         }
-        const isMe=item.user_id===currentUser;
-        // ── SECURITY: submitter label comes from a fixed lookup on the DB field,
-        // never from raw user input. item.member is constrained to known values.
-        let submitter='Partner';
-        if(item.member==='Brandon') submitter='Brandon';
-        else if(item.member==='Gina') submitter='Gina';
-        const d=new Date(item.created_at);
-        const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-        const timeStr=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-        // Only allow known category keys to reach the DOM — unknown values fall back to Misc color/emoji
-        const KNOWN_CATS = ['Groceries','Dining','Utilities','Mortgage','Car','CreditCard','Subscription','Beauty','Goal','Misc'];
-        const safeCat  = KNOWN_CATS.includes(item.category) ? item.category : 'Misc';
-        const color = CAT_COLORS[safeCat]||'#64748b';
-        const CAT_EMOJI = {Groceries:'🛒',Dining:'🍔',Utilities:'💡',Mortgage:'🏠',Car:'🚗',CreditCard:'💳',Subscription:'📺',Beauty:'✂️',Goal:'🎯',Misc:'📦'};
-        const emoji = CAT_EMOJI[safeCat]||'📦';
-        // Who posted colors
-        const whoColor = submitter==='Brandon'?'#60a5fa':submitter==='Gina'?'#f472b6':'#a78bfa';
-        const whoBg   = submitter==='Brandon'?'rgba(96,165,250,.15)':submitter==='Gina'?'rgba(244,114,182,.15)':'rgba(167,139,250,.15)';
-        // Build reaction HTML inline inside the card
-        const rxData = txnReactions[item.id]||{};
-        const myRx   = myTxnReactions[item.id];
-        const rxEmojis = ['✅','😬','🔥','😂','💸'];
-        const safeId = escapeHtml(item.id);
-        const rxHTML = rxEmojis.map(e=>{
-            const cnt=rxData[e]||0;
-            const active=myRx===e;
-            return `<button class="txn-reaction-btn${active?' reacted':''}" onclick="reactToTxn('${safeId}','${e}')">${e}${cnt>0?`<span class='txn-reaction-count'>${cnt}</span>`:''}</button>`;
-        }).join('');
-        const div=document.createElement('div');
-        div.className='hist-item';
-        // ── SECURITY: item.note and item.category are user-supplied DB strings —
-        // all must be escaped before insertion into innerHTML.
-        const safeNote     = escapeHtml(item.note || safeCat);
-        const safeIntent   = item.intent==='Want'?'Want':'Need';
-        const safeAmt      = parseFloat(item.amount)||0;
-        div.innerHTML=`
-            <div class="hist-accent" style="background:${color};"></div>
-            <div class="hist-icon" style="background:${color}18;">${emoji}</div>
-            <div class="hist-body">
-                <span class="hist-note">${safeNote}</span>
-                <div class="hist-tags">
-                    <span class="htag htag-cat">${escapeHtml(safeCat)}</span>
-                    <span class="htag ${safeIntent==='Want'?'htag-want':'htag-need'}">${safeIntent}</span>
-                    ${item.is_recurring?'<span class="htag htag-recur">↻ Recurring</span>':''}
-                </div>
-                <div class="hist-sub">
-                    <span class="hist-who" style="background:${whoBg};color:${whoColor};">${escapeHtml(submitter)}</span>
-                    <span class="hist-date">${escapeHtml(dateStr)} · ${escapeHtml(timeStr)}</span>
-                </div>
-            </div>
-            <div class="hist-right">
-                <div class="hist-amt">-$${safeAmt.toFixed(2)}</div>
-                <div class="hist-actions">
-                    <button class="act-btn act-edit" onclick="editEntry('${safeId}')"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="act-btn act-del" onclick="deleteEntry('${safeId}')"><i class="fa-solid fa-trash-can"></i></button>
-                </div>
-            </div>`;
-        list.appendChild(div);
-        // Reactions row below the card
-        if(Object.keys(rxData).some(k=>rxData[k]>0)||true){
-            const rxRow=document.createElement('div');
-            rxRow.className='txn-reaction-row';
-            rxRow.innerHTML=rxHTML;
-            list.appendChild(rxRow);
-        }
     });
 
-    // Update history count
+    // ── Build date-grouped transaction list ──
+    const currentFilter = window._txnFilter || 'all';
+    let filtered = history.filter(item => {
+        if(currentFilter==='need') return item.intent==='Need';
+        if(currentFilter==='want') return item.intent==='Want';
+        if(currentFilter==='recurring') return item.is_recurring;
+        if(currentFilter==='brandon') return item.member==='Brandon';
+        if(currentFilter==='gina') return item.member==='Gina';
+        return true;
+    });
+
+    // Group by calendar date
+    const groups = {};
+    filtered.forEach(item => {
+        const d = new Date(item.created_at);
+        const key = d.toDateString();
+        if(!groups[key]) groups[key] = { date: d, items: [] };
+        groups[key].items.push(item);
+    });
+
+    Object.values(groups).forEach((group, gi) => {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'txn-date-group';
+        groupEl.style.animationDelay = (gi * 0.06) + 's';
+
+        const now = new Date();
+        const yesterday = new Date(now); yesterday.setDate(now.getDate()-1);
+        const isToday = group.date.toDateString() === now.toDateString();
+        const isYesterday = group.date.toDateString() === yesterday.toDateString();
+        const dayLabel = isToday ? 'Today' : isYesterday ? 'Yesterday' :
+            group.date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+        const groupTotal = group.items.reduce((s,i)=>s+i.amount,0);
+
+        groupEl.innerHTML = `<div class="txn-group-header"><span class="txn-group-label">${dayLabel}</span><span class="txn-group-total"><span>-</span>$${fmt(groupTotal)}</span></div>`;
+        list.appendChild(groupEl);
+
+        group.items.forEach((item, idx) => {
+            let submitter = 'Partner';
+            if(item.member==='Brandon') submitter='Brandon';
+            else if(item.member==='Gina') submitter='Gina';
+            const d = new Date(item.created_at);
+            const timeStr = d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+            const KNOWN_CATS = ['Groceries','Dining','Utilities','Mortgage','Car','CreditCard','Subscription','Beauty','Goal','Misc'];
+            const safeCat = KNOWN_CATS.includes(item.category) ? item.category : 'Misc';
+            const color = CAT_COLORS[safeCat]||'#64748b';
+            const CAT_EMOJI = {Groceries:'🛒',Dining:'🍔',Utilities:'💡',Mortgage:'🏠',Car:'🚗',CreditCard:'💳',Subscription:'📺',Beauty:'✂️',Goal:'🎯',Misc:'📦'};
+            const emoji = CAT_EMOJI[safeCat]||'📦';
+            const whoColor = submitter==='Brandon'?'#60a5fa':submitter==='Gina'?'#f472b6':'#a78bfa';
+            const whoBg = submitter==='Brandon'?'rgba(96,165,250,.15)':submitter==='Gina'?'rgba(244,114,182,.15)':'rgba(167,139,250,.15)';
+            const rxData = txnReactions[item.id]||{};
+            const myRx = myTxnReactions[item.id];
+            const rxEmojis = ['✅','😬','🔥','😂','💸'];
+            const safeId = escapeHtml(item.id);
+            const rxHTML = rxEmojis.map(e=>{
+                const cnt=rxData[e]||0;
+                const active=myRx===e;
+                return `<button class="txn-reaction-btn${active?' reacted':''}" onclick="reactToTxn('${safeId}','${e}')">${e}${cnt>0?`<span class='txn-reaction-count'>${cnt}</span>`:''}</button>`;
+            }).join('');
+            const safeNote = escapeHtml(item.note || safeCat);
+            const safeIntent = item.intent==='Want'?'Want':'Need';
+            const safeAmt = parseFloat(item.amount)||0;
+            const isLast = idx === group.items.length - 1;
+
+            const div = document.createElement('div');
+            div.className = 'hist-item' + (isLast ? ' last-in-group' : '');
+            div.innerHTML=`
+                <div class="hist-icon" style="background:${color}18;">${emoji}</div>
+                <div class="hist-body">
+                    <span class="hist-note">${safeNote}</span>
+                    <div class="hist-sub">
+                        <span class="hist-who" style="background:${whoBg};color:${whoColor};">${escapeHtml(submitter)}</span>
+                        <span class="hist-date">${escapeHtml(safeCat)} · ${escapeHtml(timeStr)}</span>
+                        ${item.is_recurring?'<span class="htag htag-recur">↻</span>':''}
+                    </div>
+                </div>
+                <div class="hist-right">
+                    <div class="hist-amt ${safeIntent==='Want'?'hist-amt-want':'hist-amt-need'}">-$${safeAmt.toFixed(2)}</div>
+                    <div class="hist-actions">
+                        <button class="act-btn act-edit" onclick="editEntry('${safeId}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="act-btn act-del" onclick="deleteEntry('${safeId}')"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </div>`;
+            list.appendChild(div);
+
+            const rxRow = document.createElement('div');
+            rxRow.className = 'txn-reaction-row';
+            rxRow.innerHTML = rxHTML;
+            list.appendChild(rxRow);
+        });
+    });
+
+    if(!filtered.length) {
+        list.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:30px;font-size:.85rem;">No transactions yet this cycle.</div>';
+    }
+
+        // Update history count
     const countEl = document.getElementById('historyCount');
     if(countEl) countEl.innerText = history.length === 1 ? '1 transaction' : history.length + ' transactions';
     renderVaultMini();
@@ -5028,7 +5074,16 @@ function showToast(msg, type='success') {
     requestAnimationFrame(() => t.classList.add('show'));
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
 }
-function filterHistory(){ const q=document.getElementById('searchBar').value.toLowerCase(); document.querySelectorAll('#historyList .hist-item').forEach(i=>{ i.style.display=i.innerText.toLowerCase().includes(q)?'flex':'none'; }); }
+function filterHistory(){
+    const q=document.getElementById('searchBar').value.toLowerCase();
+    document.querySelectorAll('#historyList .hist-item').forEach(i=>{ i.style.display=i.innerText.toLowerCase().includes(q)?'flex':'none'; });
+}
+function setTxnFilter(filter, el){
+    window._txnFilter = filter;
+    document.querySelectorAll('.txn-fp').forEach(p=>p.classList.remove('active'));
+    if(el) el.classList.add('active');
+    renderDashboard();
+}
 function toggleNotif(){ const m=document.getElementById('notifModal'),o=document.getElementById('notifOverlay'),v=m.style.display==='block'; m.style.display=v?'none':'block'; o.style.display=v?'none':'block'; if(!v){ localStorage.setItem('montoya_notifs',Date.now().toString()); const pingEl=document.getElementById('ping'); if(pingEl){pingEl.style.display='none';pingEl.innerText='';} const bellBtn=document.getElementById('notifBellBtn'); if(bellBtn) delete bellBtn.dataset.rang; } }
 function toggleMenu(){ if(window.innerWidth>=1024)return; const m=document.getElementById('sideMenu'),o=document.getElementById('sideOverlay'); m.classList.toggle('open'); o.style.display=m.classList.contains('open')?'block':'none'; }
 function togglePassVis() {
