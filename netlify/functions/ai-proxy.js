@@ -5,21 +5,26 @@ exports.handler = async (event) => {
     'Access-Control-Allow-Methods': 'POST, OPTIONS'
   };
 
+
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
 
+
   try {
     const body = JSON.parse(event.body);
+
 
     // ── STOCK DATA ACTION ──────────────────────────────────────────────────────
     if (body.action === 'stocks') {
       const symbols = (body.symbols || ['AAPL','NVDA','TSLA','MSFT','SPY','QQQ']).join(',');
 
+
       const urls = [
         `https://query1.finance.yahoo.com/v8/finance/quote?symbols=${symbols}`,
         `https://query2.finance.yahoo.com/v8/finance/quote?symbols=${symbols}`,
       ];
+
 
       let quotes = null;
       for (const url of urls) {
@@ -39,6 +44,7 @@ exports.handler = async (event) => {
         } catch (e) { continue; }
       }
 
+
       if (!quotes) {
         return {
           statusCode: 200,
@@ -46,6 +52,7 @@ exports.handler = async (event) => {
           body: JSON.stringify({ quotes: [], error: 'market_closed' })
         };
       }
+
 
       const stripped = quotes.map(q => ({
         symbol: q.symbol,
@@ -55,6 +62,7 @@ exports.handler = async (event) => {
         type:   ['SPY','QQQ','^DJI','^GSPC','^IXIC'].includes(q.symbol) ? 'index' : 'stock',
       }));
 
+
       return {
         statusCode: 200,
         headers: corsHeaders,
@@ -62,9 +70,11 @@ exports.handler = async (event) => {
       };
     }
 
+
     // ── ANTHROPIC AI ACTION ────────────────────────────────────────────────────
     const { prompt, system, image, mediaType, message } = body;
     const userText = prompt || message || '';
+
 
     let messageContent;
     if (image) {
@@ -76,11 +86,12 @@ exports.handler = async (event) => {
       messageContent = userText;
     }
 
+
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_KEY,
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
@@ -88,21 +99,3 @@ exports.handler = async (event) => {
         max_tokens: 400,
         system: system || '',
         messages: [{ role: 'user', content: messageContent }]
-      })
-    });
-
-    const data = await res.json();
-    return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify(data)
-    };
-
-  } catch (e) {
-    return {
-      statusCode: 500,
-      headers: { 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ error: e.message })
-    };
-  }
-};
