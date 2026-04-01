@@ -2673,22 +2673,22 @@ let currentViewDate=new Date(), isSignUpMode=false;
 let celebratedMilestones={ car:false, mortgage:false };
 
 // ── Capture invite link ?join= param on page load ──
-(function captureInviteParam(){
-    try {
-        const params = new URLSearchParams(window.location.search);
-        const joinKey = params.get('join');
-        if (joinKey && /^grp_[a-f0-9\-]{8,}_\d+$/.test(joinKey)) {
-            localStorage.setItem('flint_pending_join', joinKey);
-            // Clean the URL without reloading so it looks tidy
-            const cleanUrl = window.location.pathname;
-            window.history.replaceState({}, document.title, cleanUrl);
-        }
-    } catch(e) { console.warn('[Flint] Could not parse invite param', e); }
+(function captureInviteParam() {
+    const params = new URLSearchParams(window.location.search);
+    const joinKey = params.get('join');
+    // Accept both UUID format (e2d6a54b-...) and grp_ legacy format
+    if (joinKey && /^[a-f0-9-]{8,}$/i.test(joinKey)) {
+        localStorage.setItem('flint_pending_join', joinKey);
+        // Clean the URL so it doesn't re-trigger on reload
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, '', cleanUrl);
+    }
 })();
 
 // ── Init ──
 try {
     _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    captureInviteParam(); // capture ?join= URL param before auth
     _sb.auth.getSession().then(({ data:{ session } }) => {
         if (!session) return;
         currentUser  = session.user.id;
