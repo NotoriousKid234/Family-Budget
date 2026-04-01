@@ -2787,16 +2787,22 @@ function declineJoin() {
 
 async function acceptJoin(key) {
     const m = document.getElementById('joinConfirmModal');
-    if (m) m.remove();
-    try {
-        await _sb.from('app_settings').update({ group_id: key }).eq('user_id', currentUser);
-        localStorage.setItem('flint_group_' + currentUser, key);
-        localStorage.removeItem('flint_pending_join');
-        showToast('Joined ledger! Loading…', 'success');
-        setTimeout(() => location.reload(), 1200);
-    } catch(e) {
-        showToast('Failed to join ledger. Try again.', 'error');
-    }
+    if (m) m.style.display = 'none';
+    const { error } = await _sb.from('app_settings').upsert({
+        user_id: currentUser,
+        group_id: key,
+        budget: 7400,
+        want_cap: 0,
+        m_balance: 0,
+        c_balance: 0,
+        m_orig: 0,
+        c_orig: 0,
+        cycle_start_day: 1
+    }, { onConflict: 'user_id' });
+    if (error) { showToast('Error joining: ' + error.message, 'error'); return; }
+    localStorage.setItem('flint_group_' + currentUser, key);
+    showToast('Ledger joined! Loading...', 'success');
+    location.reload();
 }
 
 function loadStoredData() {
@@ -5027,7 +5033,36 @@ function copyKey(){
     navigator.clipboard.writeText(inviteLink);
     showToast('Invite link copied!');
 }
-async function joinLedger(){ const k=document.getElementById('joinKey').value.trim(); if(k.length>20){await _sb.from('app_settings').update({group_id:k}).eq('user_id',currentUser);localStorage.setItem('flint_group_'+currentUser,k);location.reload();} }
+async function joinLedger() {
+    const k = document.getElementById('joinKey').value.trim();
+    if (!k) { showToast('Paste a join key first!'); return; }
+    // First verify the key exists as a valid group
+    _sb.from('app_settings').select('user_id').eq('group_id', k).limit(1)
+        .then(({ data, error }) => {
+            if (error || !data || data.length === 0) {
+                showToast('Invalid join key — check and try again.', 'error');
+                return;
+            }
+            // Key is valid — upsert so the row is created if it doesn't exist yet
+            _sb.from('app_settings').upsert({
+                user_id: currentUser,
+                group_id: k,
+                budget: 7400,
+                want_cap: 0,
+                m_balance: 0,
+                c_balance: 0,
+                m_orig: 0,
+                c_orig: 0,
+                cycle_start_day: 1
+            }, { onConflict: 'user_id' })
+            .then(({ error: upsertErr }) => {
+                if (upsertErr) { showToast('Error joining ledger: ' + upsertErr.message, 'error'); return; }
+                localStorage.setItem('flint_group_' + currentUser, k);
+                showToast('Ledger joined! Loading...', 'success');
+                location.reload();
+            });
+        });
+}
 function initCycles(){ const s=document.getElementById('cycleSelect'); s.innerHTML=''; let now=new Date(); for(let i=0;i<6;i++){let d=new Date(now.getFullYear(),now.getMonth()-i,16);let o=document.createElement('option');o.value=d.toISOString();o.text=d.toLocaleString('default',{month:'long',year:'numeric'})+' Cycle';s.appendChild(o);} }
 async function changeCycle(){ currentViewDate=new Date(document.getElementById('cycleSelect').value); await fetchData(); }
 async function logoutApp(){ await _sb.auth.signOut(); window.location.href = '/'; }
