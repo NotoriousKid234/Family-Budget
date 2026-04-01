@@ -2690,7 +2690,7 @@ let celebratedMilestones={ car:false, mortgage:false };
 // ── Init ──
 try {
     _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    captureInviteParam(); // capture ?join= URL param before auth
+    try { if (typeof captureInviteParam === 'function') captureInviteParam(); } catch(e) { /* never block auth */ }
     captureInviteParam();
     _sb.auth.getSession().then(({ data:{ session } }) => {
         if (!session) return;
