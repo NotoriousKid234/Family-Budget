@@ -2674,21 +2674,24 @@ let celebratedMilestones={ car:false, mortgage:false };
 
 // ── Capture invite link ?join= param on page load ──
 (function captureInviteParam() {
-    const params = new URLSearchParams(window.location.search);
-    const joinKey = params.get('join');
-    // Accept both UUID format (e2d6a54b-...) and grp_ legacy format
-    if (joinKey && /^[a-f0-9-]{8,}$/i.test(joinKey)) {
-        localStorage.setItem('flint_pending_join', joinKey);
-        // Clean the URL so it doesn't re-trigger on reload
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, '', cleanUrl);
-    }
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const joinKey = params.get('join');
+        // Accept standard UUIDs (e.g. e2d6a54b-5dae-45e9-acfa-e767b32ede2e)
+        // Reject anything that isn't a valid UUID-like string to prevent injection
+        if (joinKey && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(joinKey.trim())) {
+            localStorage.setItem('flint_pending_join', joinKey.trim());
+            // Clean URL immediately so key isn't visible in browser history
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    } catch(e) { /* silent — never block app load */ }
 })();
 
 // ── Init ──
 try {
     _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     captureInviteParam(); // capture ?join= URL param before auth
+    captureInviteParam();
     _sb.auth.getSession().then(({ data:{ session } }) => {
         if (!session) return;
         currentUser  = session.user.id;
@@ -5027,41 +5030,50 @@ function sheetQuick(amt, cat, note, type) {
 }
 function quickFill(a,c,n,t){ document.getElementById('amount').value=a; document.getElementById('category').value=c; document.getElementById('noteInput').value=n; setType(t); window.scrollTo(0,document.querySelector('.type-toggle').offsetTop-20); }
 function autoSuggest(c){ if(['Mortgage','Car','Utilities','CreditCard'].includes(c)) setType('Need'); else setType('Want'); }
-function copyKey(){
-    var baseUrl = window.location.origin + window.location.pathname;
-    var inviteLink = baseUrl + '?join=' + encodeURIComponent(currentGroup);
-    navigator.clipboard.writeText(inviteLink);
-    showToast('Invite link copied!');
+function copyKey() {
+    if (!currentGroup) {
+        showToast('Ledger key not loaded yet — try again in a moment.', 'warning');
+        return;
+    }
+    const baseUrl = window.location.origin + window.location.pathname;
+    const inviteLink = baseUrl + '?join=' + encodeURIComponent(currentGroup);
+    navigator.clipboard.writeText(inviteLink)
+        .then(() => showToast('Invite link copied!', 'success'))
+        .catch(() => showToast('Could not copy — paste manually: ' + inviteLink, 'warning'));
 }
 async function joinLedger() {
-    const k = document.getElementById('joinKey').value.trim();
-    if (!k) { showToast('Paste a join key first!'); return; }
-    // First verify the key exists as a valid group
+    const raw = document.getElementById('joinKey').value.trim();
+    // Sanitize — only allow valid UUIDs
+    if (!raw || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)) {
+        showToast('Invalid join key — please paste a valid invite key.', 'error');
+        return;
+    }
+    const k = raw.toLowerCase();
+    // Verify the key exists in the DB before joining
     _sb.from('app_settings').select('user_id').eq('group_id', k).limit(1)
         .then(({ data, error }) => {
             if (error || !data || data.length === 0) {
-                showToast('Invalid join key — check and try again.', 'error');
+                showToast('Join key not found — check with your partner.', 'error');
                 return;
             }
-            // Key is valid — upsert so the row is created if it doesn't exist yet
-            _sb.from('app_settings').upsert({
+            // Upsert so new users without a row get one created
+            return _sb.from('app_settings').upsert({
                 user_id: currentUser,
                 group_id: k,
-                budget: 7400,
-                want_cap: 0,
-                m_balance: 0,
-                c_balance: 0,
-                m_orig: 0,
-                c_orig: 0,
+                budget: 7400, want_cap: 0,
+                m_balance: 0, c_balance: 0,
+                m_orig: 0, c_orig: 0,
                 cycle_start_day: 1
-            }, { onConflict: 'user_id' })
-            .then(({ error: upsertErr }) => {
-                if (upsertErr) { showToast('Error joining ledger: ' + upsertErr.message, 'error'); return; }
-                localStorage.setItem('flint_group_' + currentUser, k);
-                showToast('Ledger joined! Loading...', 'success');
-                location.reload();
-            });
-        });
+            }, { onConflict: 'user_id' });
+        })
+        .then(res => {
+            if (!res) return;
+            if (res.error) { showToast('Error joining: ' + res.error.message, 'error'); return; }
+            localStorage.setItem('flint_group_' + currentUser, k);
+            showToast('Ledger joined! Loading...', 'success');
+            location.reload();
+        })
+        .catch(() => showToast('Something went wrong. Please try again.', 'error'));
 }
 function initCycles(){ const s=document.getElementById('cycleSelect'); s.innerHTML=''; let now=new Date(); for(let i=0;i<6;i++){let d=new Date(now.getFullYear(),now.getMonth()-i,16);let o=document.createElement('option');o.value=d.toISOString();o.text=d.toLocaleString('default',{month:'long',year:'numeric'})+' Cycle';s.appendChild(o);} }
 async function changeCycle(){ currentViewDate=new Date(document.getElementById('cycleSelect').value); await fetchData(); }
@@ -5651,37 +5663,71 @@ function buildSharePanel(){
 }
 
 async function loadLedgerMembers() {
-    const el = document.getElementById('ledgerMembersArea');
-    if (!el) return;
+    const area = document.getElementById('ledgerMembersArea');
+    if (!area) return;
+    // Rate-limit: prevent scraping member list rapidly
+    const lastLoad = parseInt(sessionStorage.getItem('flint_last_members') || '0');
+    if (Date.now() - lastLoad < 3000) return;
+    sessionStorage.setItem('flint_last_members', Date.now().toString());
+
+    if (!currentGroup) {
+        area.innerHTML = '<div style="font-size:.8rem;color:var(--text-dim);text-align:center;padding:12px;">Loading ledger info...</div>';
+        return;
+    }
     try {
-        const { data } = await _sb.from('app_settings').select('user_id').eq('group_id', currentGroup);
-        if (!data || !data.length) { el.innerHTML = '<span style="font-size:.78rem;color:#4a5a7a;">No members found.</span>'; return; }
-        var html = '<div style="width:100%;">';
-        data.forEach(function(row) {
-            var isMe = row.user_id === currentUser;
-            var label = isMe ? 'You (' + (currentEmail || currentUser.substring(0,8)+'…') + ')' : row.user_id.substring(0,8) + '…';
-            var badge = isMe ? '<span style="font-size:.65rem;background:rgba(212,168,67,.15);color:#d4a843;border:1px solid rgba(212,168,67,.25);border-radius:6px;padding:2px 7px;margin-left:6px;">YOU</span>' : '<span style="font-size:.65rem;background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.2);border-radius:6px;padding:2px 7px;margin-left:6px;">PARTNER</span>';
-            html += '<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);">';
-            html += '<div style="width:34px;height:34px;border-radius:50%;background:' + (isMe ? 'rgba(212,168,67,.15)' : 'rgba(96,165,250,.12)') + ';display:flex;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0;">';
-            html += '<i class="fa-solid ' + (isMe ? 'fa-user' : 'fa-user-friends') + '" style="font-size:.8rem;color:' + (isMe ? '#d4a843' : '#60a5fa') + ';"></i></div>';
-            html += '<div style="flex:1;font-size:.8rem;color:#c8d8f0;">' + label + badge + '</div></div>';
+        const { data, error } = await _sb
+            .from('app_settings')
+            .select('user_id, group_id')
+            .eq('group_id', currentGroup);
+        if (error || !data || data.length === 0) {
+            area.innerHTML = '<div style="font-size:.8rem;color:var(--text-dim);text-align:center;padding:12px;">No members found.</div>';
+            return;
+        }
+        let html = '';
+        data.forEach(row => {
+            const isMe = row.user_id === currentUser;
+            // Only show partial email for privacy — never expose full user IDs in UI
+            const displayName = isMe ? (currentEmail || 'You') : 'Partner';
+            const badge = isMe
+                ? '<span style="font-size:.55rem;font-weight:800;background:rgba(212,168,67,.2);color:#d4a843;border:1px solid rgba(212,168,67,.3);border-radius:100px;padding:2px 7px;margin-left:6px;">YOU</span>'
+                : '<span style="font-size:.55rem;font-weight:800;background:rgba(200,216,240,.1);color:#c8d8f0;border:1px solid rgba(200,216,240,.2);border-radius:100px;padding:2px 7px;margin-left:6px;">PARTNER</span>';
+            html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.07);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <i class="fa fa-user-circle" style="color:var(--text-dim);font-size:1.1rem;"></i>
+                    <span style="font-size:.85rem;font-weight:600;">${displayName}</span>${badge}
+                </div>
+            </div>`;
         });
-        html += '</div>';
-        el.innerHTML = html;
-        el.style.alignItems = 'flex-start';
+        area.innerHTML = html;
     } catch(e) {
-        el.innerHTML = '<span style="font-size:.78rem;color:#4a5a7a;">Could not load members.</span>';
+        area.innerHTML = '<div style="font-size:.8rem;color:var(--rose);text-align:center;padding:12px;">Could not load members.</div>';
     }
 }
 
 function fpCopyInviteLink() {
-    var baseUrl = window.location.origin + window.location.pathname;
-    var inviteLink = baseUrl + '?join=' + encodeURIComponent(currentGroup);
-    navigator.clipboard.writeText(inviteLink).then(function(){
-        showToast('Invite link copied! Send it to your partner 🎉', 'success');
-    }).catch(function(){
-        showToast('Could not copy — please copy the link manually.', 'warning');
-    });
+    const doShare = (gid) => {
+        if (!gid) { showToast('Could not load your ledger key. Try refreshing.', 'error'); return; }
+        const baseUrl = window.location.origin + window.location.pathname;
+        const inviteLink = baseUrl + '?join=' + encodeURIComponent(gid);
+        // Update the displayed URL
+        const displayEl = document.getElementById('fpInviteUrl');
+        if (displayEl) displayEl.textContent = inviteLink;
+        navigator.clipboard.writeText(inviteLink)
+            .then(() => showToast('Invite link copied! Send it to your partner.', 'success'))
+            .catch(() => showToast('Copy failed — share this link manually: ' + inviteLink, 'warning'));
+    };
+    if (currentGroup) {
+        doShare(currentGroup);
+    } else {
+        // Fetch live from DB if not in memory yet
+        _sb.from('app_settings').select('group_id').eq('user_id', currentUser).limit(1)
+            .then(({ data }) => {
+                const gid = data?.[0]?.group_id || null;
+                if (gid) currentGroup = gid; // cache it
+                doShare(gid);
+            })
+            .catch(() => showToast('Could not load ledger key.', 'error'));
+    }
 }
 
 async function fpLeaveLedger() {
@@ -5698,17 +5744,49 @@ async function fpLeaveLedger() {
 }
 
 function fpJoinLedger() {
-    var k = document.getElementById('fp_joinKey')?.value.trim() || '';
-    var validKey = /^grp_[a-f0-9\-]{8,}_\d+$/.test(k);
-    if (!validKey) { showToast('Invalid ledger key format', 'error'); return; }
-    if (!confirm('Join this ledger? Your account will be linked with the shared ledger.')) return;
-    _sb.from('app_settings').update({ group_id: k }).eq('user_id', currentUser).then(function() {
-        localStorage.setItem('flint_group_' + currentUser, k);
-        showToast('Joined ledger!', 'success');
-        location.reload();
-    }).catch(function() {
-        showToast('Failed to join ledger. Try again.', 'error');
-    });
+    const raw = (document.getElementById('fp_joinKey')?.value || '').trim();
+    // Sanitize — only accept valid UUIDs
+    if (!raw || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)) {
+        showToast('Invalid key format — paste the full invite key.', 'error');
+        return;
+    }
+    const k = raw.toLowerCase();
+    // Rate-limit: block rapid repeated join attempts
+    const lastAttempt = parseInt(sessionStorage.getItem('flint_last_join') || '0');
+    if (Date.now() - lastAttempt < 5000) {
+        showToast('Please wait a moment before trying again.', 'warning');
+        return;
+    }
+    sessionStorage.setItem('flint_last_join', Date.now().toString());
+    // Can't join your own ledger
+    if (k === currentGroup) {
+        showToast('You are already on this ledger!', 'warning');
+        return;
+    }
+    // Verify key exists before joining
+    _sb.from('app_settings').select('user_id').eq('group_id', k).limit(1)
+        .then(({ data, error }) => {
+            if (error || !data || data.length === 0) {
+                showToast('Join key not found — check with your partner.', 'error');
+                return null;
+            }
+            return _sb.from('app_settings').upsert({
+                user_id: currentUser,
+                group_id: k,
+                budget: 7400, want_cap: 0,
+                m_balance: 0, c_balance: 0,
+                m_orig: 0, c_orig: 0,
+                cycle_start_day: 1
+            }, { onConflict: 'user_id' });
+        })
+        .then(res => {
+            if (!res) return;
+            if (res.error) { showToast('Error joining: ' + res.error.message, 'error'); return; }
+            localStorage.setItem('flint_group_' + currentUser, k);
+            showToast('Ledger joined! Loading...', 'success');
+            location.reload();
+        })
+        .catch(() => showToast('Something went wrong. Please try again.', 'error'));
 }
 
 // ── PROFILE PANEL ──
