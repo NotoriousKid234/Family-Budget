@@ -9332,5 +9332,242 @@ function dismissWelcome() {
 })();
 </script>
 
+
+<style id="final-home-layout-pass-css">
+  @media (min-width: 1024px){
+    body.logged-in .wrap{padding-top:24px !important;}
+    .flint-summary-grid{margin-top:8px !important; grid-template-columns:minmax(0,1.34fr) minmax(320px,.66fr) !important; align-items:start !important;}
+    .hero-stats-bar{padding-top:28px !important;}
+  }
+  .flint-attention-card{min-height:unset !important;}
+  .flint-attention-copy{max-width:34ch !important;}
+  .flint-attention-foot{margin-top:10px !important;}
+  #simplifyAiMount,#simplifyTopSecondary,#simplifyLowerGrid{display:none !important;}
+
+  .final-home-secondary{
+    display:grid;
+    grid-template-columns:minmax(0,1.1fr) minmax(260px,.95fr) minmax(260px,.95fr);
+    gap:16px;
+    margin-top:16px;
+    margin-bottom:6px;
+  }
+  .final-home-card{
+    background:linear-gradient(180deg, rgba(13,24,44,.92), rgba(9,18,34,.96));
+    border:1px solid rgba(100,150,230,.14);
+    border-radius:22px;
+    padding:16px 16px 14px;
+    box-shadow:0 16px 38px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.03);
+    min-width:0;
+  }
+  .final-home-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px;}
+  .final-home-kicker{font-size:.6rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(212,168,67,.9);margin-bottom:6px;}
+  .final-home-title{font-size:.96rem;font-weight:800;color:var(--text);line-height:1.22;}
+  .final-home-copy{font-size:.74rem;color:var(--text-soft);line-height:1.5;margin-top:4px;max-width:34ch;}
+
+  .final-mini-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  .final-mini-btn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:999px;color:var(--text-soft);font:700 .66rem 'DM Sans',sans-serif;padding:7px 11px;cursor:pointer;transition:all .2s;}
+  .final-mini-btn:hover{color:var(--text);border-color:rgba(212,168,67,.24);background:rgba(212,168,67,.07);}
+
+  .final-market-status{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px;font-size:.7rem;color:var(--text-soft);}
+  .final-market-status .left{display:flex;gap:8px;align-items:center;min-width:0;}
+  .final-market-status .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(52,211,153,.12);flex-shrink:0;}
+  .final-market-status.offline .dot{background:#fbbf24;box-shadow:0 0 0 4px rgba(251,191,36,.12);}
+  .final-markets-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+  .final-market-chip{padding:10px 11px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);min-width:0;}
+  .final-market-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;}
+  .final-market-symbol{font-size:.8rem;font-weight:800;color:var(--text);line-height:1;}
+  .final-market-name{font-size:.62rem;color:var(--text-dim);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .final-market-price{font-family:'DM Mono',monospace;font-size:.82rem;color:var(--text);margin-top:10px;}
+  .final-market-change{font-family:'DM Mono',monospace;font-size:.68rem;font-weight:700;margin-top:6px;}
+  .final-market-change.up{color:var(--green);} .final-market-change.down{color:var(--rose);} .final-market-change.flat{color:var(--text-soft);}
+  .final-market-empty{padding:16px;border-radius:16px;border:1px dashed rgba(255,255,255,.08);background:rgba(255,255,255,.025);font-size:.74rem;color:var(--text-soft);line-height:1.55;text-align:center;}
+  .final-card-foot{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05);font-size:.67rem;color:var(--text-dim);}
+
+  .final-metric-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .final-metric{
+    padding:12px 13px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  }
+  .final-metric-label{font-size:.58rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
+  .final-metric-value{font-family:'DM Mono',monospace;font-size:1rem;color:var(--text);}
+  .final-split-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;display:flex;margin-top:10px;}
+  .final-split-bar > div{height:100%;}
+  .final-split-need{background:linear-gradient(90deg,var(--green),rgba(52,211,153,.72));}
+  .final-split-want{background:linear-gradient(90deg,var(--amber),var(--rose));}
+  .final-home-note{font-size:.72rem;color:var(--text-soft);line-height:1.55;}
+
+  @media (max-width: 1380px){
+    .final-home-secondary{grid-template-columns:1fr 1fr;}
+    .final-home-card.markets{grid-column:1 / -1;}
+  }
+  @media (max-width: 1023px){
+    .final-home-secondary{grid-template-columns:1fr;}
+    .final-markets-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+  @media (max-width: 640px){
+    .final-markets-grid,.final-metric-row{grid-template-columns:1fr;}
+    .final-home-head,.final-card-foot,.final-market-status{flex-direction:column;align-items:flex-start;}
+    .final-mini-actions{justify-content:flex-start;}
+  }
+</style>
+<script id="final-home-layout-pass-script">
+(function(){
+  function byId(id){ return document.getElementById(id); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || c; }); }
+  function numFromText(v){ return Number(String(v == null ? '' : v).replace(/[^0-9.-]/g,'')) || 0; }
+  function fmtMoney(n){ return '$' + Number(n || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function fmtShort(n){ return '$' + Number(n || 0).toLocaleString(undefined,{maximumFractionDigits:0}); }
+  function text(id, fallback){ var el = byId(id); return el ? el.textContent.trim() : (fallback || ''); }
+
+  function parseMarkets(){
+    var panel = byId('marketTickers');
+    var updateEl = byId('marketLastUpdate');
+    var updateText = updateEl ? updateEl.textContent.trim() : '';
+    if(!panel) return { state:'offline', items:[], update:updateText, note:'Market feed unavailable right now.' };
+    var items = Array.prototype.slice.call(panel.querySelectorAll('.ticker-item')).map(function(node){
+      var symbol = (node.querySelector('.ticker-symbol')||{}).textContent || '';
+      var name = (node.querySelector('.ticker-name')||{}).textContent || '';
+      var price = (node.querySelector('.ticker-price')||{}).textContent || '';
+      var changeEl = node.querySelector('.ticker-change');
+      var change = changeEl ? changeEl.textContent.replace(/\s+/g,' ').trim() : '';
+      var cls = changeEl && changeEl.classList.contains('ticker-down') ? 'down' : changeEl && changeEl.classList.contains('ticker-up') ? 'up' : 'flat';
+      return {symbol:symbol.trim(), name:name.trim(), price:price.trim(), change:change.trim(), cls:cls};
+    }).filter(function(item){ return item.symbol; });
+    var txt = panel.textContent.replace(/\s+/g,' ').trim();
+    var state = items.length ? 'live' : (/loading/i.test(txt) ? 'loading' : 'offline');
+    var note = state === 'offline' ? 'Prices are temporarily unavailable. Budgeting still works normally.' : state === 'loading' ? 'Refreshing watchlist…' : 'Watchlist is live.';
+    return { state:state, items:items, update:updateText, note:note };
+  }
+
+  function ensureSecondaryRow(){
+    var historyList = byId('historyList');
+    var historyShell = historyList && historyList.parentElement;
+    if(!historyShell) return null;
+    var row = byId('finalHomeSecondary');
+    if(!row){
+      row = document.createElement('section');
+      row.id = 'finalHomeSecondary';
+      row.className = 'final-home-secondary';
+      row.innerHTML = ''
+        + '<section class="final-home-card markets" id="finalMarketsCard">'
+        + '  <div class="final-home-head">'
+        + '    <div><div class="final-home-kicker">Markets watchlist</div><div class="final-home-title">Keep markets compact and secondary</div><div class="final-home-copy">Useful context if you care about a few symbols, without letting price moves crowd out spending decisions.</div></div>'
+        + '    <div class="final-mini-actions"><button class="final-mini-btn" type="button" onclick="customizeMarketsWatchlist()">Customize</button><button class="final-mini-btn" type="button" onclick="fetchMarkets()">Refresh</button></div>'
+        + '  </div>'
+        + '  <div id="finalMarketsStatus" class="final-market-status"><div class="left"><span class="dot"></span><span>Loading watchlist…</span></div><div id="finalMarketsUpdate">Updating…</div></div>'
+        + '  <div id="finalMarketsGrid" class="final-markets-grid"></div>'
+        + '  <div class="final-card-foot"><span>Keep this to a handful of symbols you actually care about.</span><span>Secondary to cash flow and transactions.</span></div>'
+        + '</section>'
+        + '<section class="final-home-card" id="finalHouseholdCard">'
+        + '  <div class="final-home-head"><div><div class="final-home-kicker">Household breakdown</div><div class="final-home-title">One read on people and behavior</div><div class="final-home-copy">See who spent what and whether needs or wants are taking the lead this cycle.</div></div></div>'
+        + '  <div id="finalHouseholdBody"></div>'
+        + '</section>'
+        + '<section class="final-home-card" id="finalDebtCard">'
+        + '  <div class="final-home-head"><div><div class="final-home-kicker">Debt snapshot</div><div class="final-home-title">Long-term balances, quieter on home</div><div class="final-home-copy">Mortgage and car stay visible without pushing daily work lower on the page.</div></div></div>'
+        + '  <div id="finalDebtBody"></div>'
+        + '</section>';
+      historyShell.insertAdjacentElement('afterend', row);
+    } else if(row.previousElementSibling !== historyShell){
+      historyShell.insertAdjacentElement('afterend', row);
+    }
+    return row;
+  }
+
+  function renderMarketsCompact(){
+    var parsed = parseMarkets();
+    var status = byId('finalMarketsStatus');
+    var update = byId('finalMarketsUpdate');
+    var grid = byId('finalMarketsGrid');
+    if(!status || !grid) return;
+    status.className = 'final-market-status' + (parsed.state === 'offline' ? ' offline' : '');
+    status.querySelector('.left').innerHTML = '<span class="dot"></span><span>' + esc(parsed.note) + '</span>';
+    if(update) update.textContent = parsed.update && parsed.update !== 'Offline' ? ('Updated ' + parsed.update) : (parsed.state === 'offline' ? 'Feed offline' : 'Updating…');
+    var items = parsed.items.slice(0, 6);
+    if(!items.length){
+      grid.innerHTML = '<div class="final-market-empty" style="grid-column:1/-1;">Nothing to show yet. Refresh the feed or customize the watchlist once prices load.</div>';
+      return;
+    }
+    grid.innerHTML = items.map(function(item){
+      return ''
+        + '<article class="final-market-chip">'
+        + '  <div class="final-market-top"><div><div class="final-market-symbol">' + esc(item.symbol) + '</div><div class="final-market-name">' + esc(item.name) + '</div></div></div>'
+        + '  <div class="final-market-price">' + esc(item.price) + '</div>'
+        + '  <div class="final-market-change ' + esc(item.cls) + '">' + esc(item.change || '→ 0.00%') + '</div>'
+        + '</article>';
+    }).join('');
+  }
+
+  function renderHouseholdCompact(){
+    var b = numFromText(text('bSpend','0'));
+    var g = numFromText(text('gSpend','0'));
+    var needs = numFromText(text('needAmt','0'));
+    var wants = numFromText(text('wantAmt','0'));
+    var capText = text('wantCapDisplay','No cap');
+    var total = Math.max(1, needs + wants);
+    var needPct = Math.round((needs / total) * 100);
+    var wantPct = 100 - needPct;
+    var body = byId('finalHouseholdBody');
+    if(!body) return;
+    body.innerHTML = ''
+      + '<div class="final-metric-row">'
+      + '  <div class="final-metric"><div class="final-metric-label">Brandon</div><div class="final-metric-value">' + esc(fmtMoney(b)) + '</div></div>'
+      + '  <div class="final-metric"><div class="final-metric-label">Gina</div><div class="final-metric-value">' + esc(fmtMoney(g)) + '</div></div>'
+      + '</div>'
+      + '<div class="final-metric-row">'
+      + '  <div class="final-metric"><div class="final-metric-label">Needs</div><div class="final-metric-value">' + esc(fmtMoney(needs)) + '</div></div>'
+      + '  <div class="final-metric"><div class="final-metric-label">Wants / cap</div><div class="final-metric-value">' + esc(fmtMoney(wants)) + '<span style="display:block;font-size:.68rem;color:var(--text-dim);margin-top:4px;">Cap: ' + esc(capText) + '</span></div></div>'
+      + '</div>'
+      + '<div class="final-home-note">Needs are carrying ' + needPct + '% of tracked spend this cycle and wants are at ' + wantPct + '%. Keep this section as a quick read, not another dashboard within the dashboard.</div>'
+      + '<div class="final-split-bar"><div class="final-split-need" style="width:' + needPct + '%"></div><div class="final-split-want" style="width:' + wantPct + '%"></div></div>';
+  }
+
+  function renderDebtCompact(){
+    var mortgage = numFromText(text('mortgageBalText','0'));
+    var car = numFromText(text('carBalText','0'));
+    var total = mortgage + car;
+    var body = byId('finalDebtBody');
+    if(!body) return;
+    body.innerHTML = ''
+      + '<div class="final-metric-row">'
+      + '  <div class="final-metric"><div class="final-metric-label">Mortgage</div><div class="final-metric-value">' + esc(fmtMoney(mortgage)) + '</div></div>'
+      + '  <div class="final-metric"><div class="final-metric-label">Car loan</div><div class="final-metric-value">' + esc(fmtMoney(car)) + '</div></div>'
+      + '</div>'
+      + '<div class="final-metric" style="margin-bottom:10px;"><div class="final-metric-label">Total tracked debt</div><div class="final-metric-value">' + esc(fmtMoney(total)) + '</div></div>'
+      + '<div class="final-home-note">Long-term balances stay on the page, but in a quieter format so transactions and immediate actions remain easier to reach.</div>';
+  }
+
+  function run(){
+    var row = ensureSecondaryRow();
+    if(!row) return;
+    var aiMount = byId('simplifyAiMount');
+    if(aiMount) aiMount.style.display = 'none';
+    var topSecondary = byId('simplifyTopSecondary');
+    if(topSecondary) topSecondary.style.display = 'none';
+    var lowerGrid = byId('simplifyLowerGrid');
+    if(lowerGrid) lowerGrid.style.display = 'none';
+    renderMarketsCompact();
+    renderHouseholdCompact();
+    renderDebtCompact();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(run, 260); });
+  if(typeof window.renderDashboard === 'function'){
+    var prevRenderDashboard2 = window.renderDashboard;
+    window.renderDashboard = function(){
+      var res = prevRenderDashboard2.apply(this, arguments);
+      setTimeout(run, 90);
+      return res;
+    };
+  }
+  if(typeof window.fetchMarkets === 'function'){
+    var prevFetchMarkets2 = window.fetchMarkets;
+    window.fetchMarkets = async function(){
+      var res = await prevFetchMarkets2.apply(this, arguments);
+      setTimeout(renderMarketsCompact, 60);
+      return res;
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
