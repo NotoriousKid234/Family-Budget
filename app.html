@@ -6288,6 +6288,8 @@ function dismissWelcome() {
       + 'body.flint-v2 .sheet-similar-chip:hover{border-color:rgba(212,168,67,.25);color:var(--text);}\n'
       + 'body.flint-v2 .sheet-helper-copy{font-size:.65rem;color:var(--text-dim);margin:8px 0 6px;}\n'
       + 'body.flint-v2 .insights-market-wrap .ticker-item{padding:8px 10px;border-radius:10px;}\n'
+      + 'body.flint-v2 .side-menu{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;-ms-overflow-style:none;}\n'
+      + 'body.flint-v2 .side-menu::-webkit-scrollbar{width:0;height:0;display:none;}\n'
       + '@media (min-width:1024px){body.logged-in.flint-v2 .wrap{max-width:720px !important;padding:24px 24px 90px !important;}body.flint-v2 .float-modal{left:calc(240px + (100vw - 240px)/2) !important;}}\n';
     document.head.appendChild(style);
     document.body.classList.add('flint-v2');
@@ -6665,6 +6667,54 @@ function dismissWelcome() {
     };
   }
 
+  function patchOpenPanel(){
+    if(!window._buildAndShowPanel || !window.openPanel || window.__flintV2OpenPanelPatched) return;
+    window.__flintV2OpenPanelPatched = true;
+    window.openPanel = function(id){
+      var old = document.getElementById('flintPanel');
+      if(old) old.remove();
+      markNav('nav-' + id);
+      try {
+        _buildAndShowPanel(id);
+      } catch(err) {
+        console.error('Panel render failed:', id, err);
+        try {
+          var panel = document.createElement('div');
+          panel.id = 'flintPanel';
+          panel.style.cssText = 'position:fixed;top:0;right:0;bottom:0;left:240px;z-index:900;background:#060d1c;overflow-y:auto;padding:0;';
+          panel.innerHTML = '<div style="max-width:600px;margin:0 auto;padding:28px 24px 80px;">'
+            + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">'
+            + '<div onclick="closePanel()" style="cursor:pointer;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#8899bb;font-size:.85rem;"><i class="fa-solid fa-arrow-left"></i></div>'
+            + '<div style="font-size:.82rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#eef2ff;">' + id + '</div>'
+            + '</div>'
+            + '<div class="dashboard-callout"><div class="attention-title">This panel hit an error.</div><div class="attention-copy">Try reopening it. Your data is still intact.</div></div>'
+            + '</div>';
+          document.body.appendChild(panel);
+          if(window.innerWidth < 1024) panel.style.left = '0';
+        } catch(e) {}
+      }
+
+      var menu = document.getElementById('sideMenu');
+      if(menu && menu.classList.contains('open') && typeof toggleMenu === 'function') toggleMenu();
+
+      var needsRefresh = ['notesManager','familyFeed','subManager','analyticsModal','aiInsights'].indexOf(id) >= 0;
+      if(needsRefresh && window.currentGroup && typeof fetchData === 'function') {
+        Promise.resolve(fetchData()).then(function(){
+          var stillOpen = document.getElementById('flintPanel');
+          if(!stillOpen) return;
+          try {
+            stillOpen.remove();
+            _buildAndShowPanel(id);
+          } catch(err) {
+            console.error('Panel refresh render failed:', id, err);
+          }
+        }).catch(function(err){
+          console.warn('Background refresh failed for panel:', id, err);
+        });
+      }
+    };
+  }
+
   function patchPanelTitles(){
     if(!window._buildAndShowPanel || window.__flintV2PanelTitles) return;
     window.__flintV2PanelTitles = true;
@@ -6740,6 +6790,7 @@ function dismissWelcome() {
     setupFilterBar();
     ensureMerchantUI();
     patchInsightsPanel();
+    patchOpenPanel();
     patchPanelTitles();
     patchSwitchView();
     patchRenderDashboard();
