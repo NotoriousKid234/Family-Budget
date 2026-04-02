@@ -6017,6 +6017,7 @@ function dismissWelcome() {
     var ease=function(t){return t===1?1:1-Math.pow(2,-10*t);};
     (function tick(now){var p=Math.min((now-t0)/dur,1);el.textContent=fmt(target*ease(p));if(p<1)requestAnimationFrame(tick);})(t0);
   }
+
   function injectBudgetBar(){
     if(document.getElementById('flint-budget-bar'))return;
     var pills=document.querySelector('.hero-balance-pills');
@@ -6031,6 +6032,7 @@ function dismissWelcome() {
     pills.insertAdjacentElement('afterend',bar);
     setTimeout(function(){var f=document.getElementById('flint-bar-fill');if(f)f.style.transform='scaleX('+(pct/100)+')';},400);
   }
+
   function runCounters(){
     ['balanceNum','heroTotalSpent','bSpend','gSpend'].forEach(function(id,i){
       var el=document.getElementById(id);
@@ -6039,6 +6041,7 @@ function dismissWelcome() {
       if(!isNaN(v)&&v>0)setTimeout(function(){animateCounter(el,v,1300);},i*150);
     });
   }
+
   function upgradeEmptyStates(){
     [{id:'vaults',icon:'🏦',text:'Create your first savings goal and watch your money grow.'},{id:'challenges',icon:'🏆',text:'Start a spending challenge and build better habits.'},{id:'subManager',icon:'📱',text:'Track your subscriptions so nothing catches you off guard.'}].forEach(function(item){
       var panel=document.getElementById(item.id);
@@ -6048,6 +6051,7 @@ function dismissWelcome() {
       });
     });
   }
+
   function injectDonut(){
     if(document.getElementById('flint-donut-wrap'))return;
     var am=document.getElementById('analyticsModal');
@@ -6076,6 +6080,7 @@ function dismissWelcome() {
       });
     });
   }
+
   function enhanceProfile(){
     var panel=document.getElementById('profileManager');
     if(!panel||document.getElementById('flint-prof-edit'))return;
@@ -6137,27 +6142,43 @@ function dismissWelcome() {
     var lv=document.getElementById('flint-leave-btn');
     if(lv)lv.addEventListener('click',function(){if(typeof window.leaveSharedLedger==='function')window.leaveSharedLedger();else window.openPanel('shareManager');});
   }
+
+  /* Patch analytics - call immediately so it's ready before user clicks */
   function patchAnalytics(){
     if(!window.buildAnalyticsPanel||window._flintAP)return;
     window._flintAP=true;
     var o=window.buildAnalyticsPanel;
     window.buildAnalyticsPanel=function(){var r=o.apply(this,arguments);setTimeout(injectDonut,100);return r;};
   }
+
+  /* Patch profile - call immediately so it's ready before user clicks */
   function patchProfile(){
     if(!window.buildProfilePanel||window._flintPP)return;
     window._flintPP=true;
     var o=window.buildProfilePanel;
     window.buildProfilePanel=function(){var r=o.apply(this,arguments);setTimeout(enhanceProfile,200);return r;};
   }
+
+  /* Run patches immediately on script load - no delay */
+  patchAnalytics();
+  patchProfile();
+
+  /* Run UI enhancements after data loads */
   function init(){
     injectBudgetBar();
     runCounters();
     upgradeEmptyStates();
-    patchAnalytics();
-    patchProfile();
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-  else setTimeout(init,2500);
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){
+      patchAnalytics();
+      patchProfile();
+      setTimeout(init,2500);
+    });
+  } else {
+    setTimeout(init,2500);
+  }
 })();
 </script>
 </body>
