@@ -3809,13 +3809,34 @@ function reactNote(noteId, emoji) {
     renderNotes();
 }
 
+
+const SUBSCRIPTION_CATEGORIES = ['Subscription','Streaming','Music','Software','Fitness','News','Gaming','Other'];
+function getSubscriptionItems() {
+    return (recurring || []).filter(function(r){
+        return SUBSCRIPTION_CATEGORIES.indexOf((r && r.category) || '') >= 0;
+    });
+}
+function getSubscriptionCategoryLabel(cat) {
+    return SUBSCRIPTION_CATEGORIES.indexOf(cat) >= 0 ? cat : 'Subscription';
+}
+
 // ── Subs ──
 function renderSubs() {
-    const list=document.getElementById('subList'); list.innerHTML='';
-    recurring.forEach(s=>{
-        const div=document.createElement('div'); div.className='hist-item';
+    const list = document.getElementById('subList');
+    if(!list) return;
+    list.innerHTML = '';
+    const subs = getSubscriptionItems();
+    if(!subs.length){
+        list.innerHTML = '<div class="card" style="text-align:center;color:var(--text-soft);padding:22px;">No subscriptions yet. Add your first one below.</div>';
+        return;
+    }
+    subs.sort(function(a,b){ return (a.billing_day||1) - (b.billing_day||1); }).forEach(function(s){
+        const div = document.createElement('div');
+        div.className = 'hist-item';
         const safeSubId = safeIdValue(s.id);
-        div.innerHTML=`<div><span class="hist-note">${escapeHtml(sanitizePlainString(s.name, 120))}</span><span class="hist-date">Billed day ${Math.max(1, Math.min(31, parseInt(s.billing_day, 10) || 1))}</span></div><div class="hist-right"><div class="hist-amt" style="color:var(--gold);">$${safeNumber(s.amount).toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-del" onclick="deleteSub('${safeSubId}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        const safeName = escapeHtml(sanitizePlainString(s.name, 120));
+        const safeCategory = escapeHtml(getSubscriptionCategoryLabel(s.category));
+        div.innerHTML = '<div><span class="hist-note">' + safeName + '</span><span class="hist-date">' + safeCategory + ' · billed day ' + Math.max(1, Math.min(31, parseInt(s.billing_day, 10) || 1)) + '</span></div><div class="hist-right"><div class="hist-amt" style="color:var(--gold);">$' + safeNumber(s.amount).toFixed(2) + '</div><div class="hist-actions"><button class="act-btn act-del" onclick="deleteSub('' + safeSubId + '')"><i class="fa-solid fa-trash-can"></i></button></div></div>';
         list.appendChild(div);
     });
 }
@@ -4034,10 +4055,56 @@ async function addNote() {
 }
 
 async function addSub() {
-    const n=document.getElementById('subName').value,a=parseFloat(document.getElementById('subAmt').value),d=parseInt(document.getElementById('subDay').value);
-    if(!n||!a||!d) return;
-    await _sb.from('recurring_expenses').insert([{name:n,amount:a,billing_day:d,group_id:currentGroup,user_id:currentUser}]);
-    document.getElementById('subName').value=''; document.getElementById('subAmt').value=''; document.getElementById('subDay').value=''; fetchData();
+    const nameEl = document.getElementById('subName');
+    const amtEl = document.getElementById('subAmt');
+    const dayEl = document.getElementById('subDay');
+    const catEl = document.getElementById('subCat');
+    const n = sanitizePlainString(nameEl && nameEl.value, 120);
+    const a = parseFloat(amtEl && amtEl.value);
+    const d = parseInt(dayEl && dayEl.value, 10);
+    const selectedCat = getSubscriptionCategoryLabel(catEl && catEl.value);
+    if(!n) return showToast('Enter a subscription name', 'error');
+    if(!(a > 0)) return showToast('Enter a valid monthly cost', 'error');
+    if(!(d >= 1 && d <= 31)) return showToast('Enter a billing day from 1 to 31', 'error');
+    if(!currentGroup || !currentUser) return showToast('Not logged in. Refresh the page.', 'error');
+    const { error } = await _sb.from('recurring_expenses').insert([{
+        name: n,
+        amount: a,
+        billing_day: d,
+        category: selectedCat,
+        intent: 'Need',
+        member: 'Split',
+        group_id: currentGroup,
+        user_id: currentUser
+    }]);
+    if(error) return showToast('Could not add subscription: ' + error.message, 'error');
+    if(nameEl) nameEl.value='';
+    if(amtEl) amtEl.value='';
+    if(dayEl) dayEl.value='';
+    if(catEl) catEl.value='Streaming';
+    showToast('Subscription added', 'success');
+    await fetchData();
+    renderSubSummary();
+    renderSubs();
+}
+
+function fpAddSub(){
+    var nameEl=document.getElementById('fp_subName');
+    var amtEl=document.getElementById('fp_subAmt');
+    var dayEl=document.getElementById('fp_subDay');
+    var catEl=document.getElementById('fp_subCat');
+    var n=sanitizePlainString(nameEl && nameEl.value,120);
+    var a=parseFloat(amtEl && amtEl.value);
+    var d=parseInt(dayEl && dayEl.value,10);
+    var c=getSubscriptionCategoryLabel(catEl && catEl.value);
+    if(!n){showToast('Enter a subscription name','error');return;}
+    if(!(a>0)){showToast('Enter a valid monthly cost','error');return;}
+    if(!(d>=1&&d<=31)){showToast('Enter a billing day from 1 to 31','error');return;}
+    _sb.from('recurring_expenses').insert([{name:n,amount:a,billing_day:d,category:c,intent:'Need',member:'Split',group_id:currentGroup,user_id:currentUser}]).then(function(res){
+        if(res && res.error){ showToast('Could not add subscription: '+res.error.message,'error'); return; }
+        showToast('Subscription added');
+        fetchData().then(function(){ openPanel('subManager'); });
+    });
 }
 
 // ── Auth ──
@@ -4873,15 +4940,15 @@ function renderSpendByDay() {
 
 // ── Subscriptions enhanced render ──
 function renderSubSummary() {
-    const subs = safeJsonParse(localStorage.getItem('montoya_subs'), []);
+    const subs = getSubscriptionItems();
     const totalEl = document.getElementById('subTotalDisplay');
     const countEl = document.getElementById('subCountDisplay');
     const yearlyEl = document.getElementById('subYearlyDisplay');
     const dailyEl = document.getElementById('subDailyDisplay');
     if (!totalEl) return;
-    const total = subs.reduce((s,sub) => s + (parseFloat(sub.amount)||0), 0);
+    const total = subs.reduce(function(s,sub){ return s + (parseFloat(sub.amount)||0); }, 0);
     if (totalEl) totalEl.innerText = '$' + total.toFixed(2) + '/mo';
-    if (countEl) countEl.innerText = subs.length;
+    if (countEl) countEl.innerText = String(subs.length);
     if (yearlyEl) yearlyEl.innerText = '$' + (total*12).toFixed(0);
     if (dailyEl) dailyEl.innerText = '$' + (total/30).toFixed(2);
 }
@@ -5330,9 +5397,10 @@ function renderNavBadges() {
 
     // Subscriptions — total monthly cost
     try {
-        if (recurring.length) {
-            const total = recurring.reduce((s,r) => s + (parseFloat(r.amount)||0), 0);
-            setSub('subManager', recurring.length + ' active · $' + total.toFixed(0) + '/mo');
+        const subs = getSubscriptionItems();
+        if (subs.length) {
+            const total = subs.reduce((s,r) => s + (parseFloat(r.amount)||0), 0);
+            setSub('subManager', subs.length + ' active · $' + total.toFixed(0) + '/mo');
         } else {
             setSub('subManager', 'No subscriptions');
         }
@@ -5876,20 +5944,44 @@ function fpRenderAiHistory(){
 
 // ── SUBSCRIPTIONS PANEL ──
 function buildSubsPanel(){
-    var h='';var totalMonthly=recurring.reduce(function(s,r){return s+(parseFloat(r.amount)||0);},0);
-    h+='<div style="background:linear-gradient(135deg,rgba(96,165,250,.08),rgba(45,212,191,.06));border:1px solid rgba(96,165,250,.2);border-radius:20px;padding:24px;margin-bottom:16px;text-align:center;">';
-    h+='<div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#8899bb;margin-bottom:6px;">Monthly Subscriptions</div>';
-    h+='<div style="font-size:2rem;font-weight:800;color:#60a5fa;font-family:DM Mono,monospace;">$'+fmt(totalMonthly)+'/mo</div>';
-    h+='<div style="display:flex;justify-content:center;gap:20px;margin-top:10px;font-size:.75rem;color:#8899bb;"><span>'+recurring.length+' active</span><span>$'+fmt0(totalMonthly*12)+'/year</span><span>$'+(totalMonthly/30).toFixed(2)+'/day</span></div></div>';
-    if(!recurring.length){h+='<div style="text-align:center;color:#8899bb;padding:30px;font-size:.85rem;">No recurring expenses found. Add them from the main dashboard.</div>';}
-    else{recurring.forEach(function(s){
-        h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">';
-        h+='<div><div style="font-size:.88rem;font-weight:600;color:#eef2ff;">'+s.name+'</div><div style="font-size:.7rem;color:#8899bb;">Billed day '+(s.billing_day||'—')+' · '+(s.category||'Misc')+' · '+(s.intent||'Need')+'</div></div>';
-        h+='<div style="text-align:right;"><div style="font-size:.92rem;font-weight:700;color:#d4a843;font-family:DM Mono,monospace;">$'+parseFloat(s.amount).toFixed(2)+'</div><button onclick="fpDelSub(\''+s.id+'\')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.2);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:.68rem;margin-top:4px;"><i class="fa-solid fa-trash-can"></i></button></div></div>';
-    });}
+    var subs = getSubscriptionItems();
+    var totalMonthly = subs.reduce(function(s,r){ return s + (parseFloat(r.amount)||0); }, 0);
+    var h='';
+    h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;align-items:start;">';
+    h+='<div>';
+    h+='<div style="background:linear-gradient(135deg,rgba(96,165,250,.08),rgba(45,212,191,.06));border:1px solid rgba(96,165,250,.2);border-radius:20px;padding:24px;margin-bottom:16px;">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">';
+    h+='<div><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#8899bb;margin-bottom:6px;">Monthly Subscriptions</div><div style="font-size:2rem;font-weight:800;color:#60a5fa;font-family:DM Mono,monospace;">$'+fmt(totalMonthly)+'/mo</div></div>';
+    h+='<div style="display:flex;gap:10px;flex-wrap:wrap;">';
+    h+='<div style="background:rgba(0,0,0,.2);border:1px solid rgba(100,150,230,.12);border-radius:12px;padding:10px 12px;min-width:96px;text-align:center;"><div style="font-size:1rem;font-weight:700;color:#eef2ff;">'+subs.length+'</div><div style="font-size:.58rem;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Active</div></div>';
+    h+='<div style="background:rgba(0,0,0,.2);border:1px solid rgba(100,150,230,.12);border-radius:12px;padding:10px 12px;min-width:96px;text-align:center;"><div style="font-size:1rem;font-weight:700;color:#eef2ff;">$'+fmt0(totalMonthly*12)+'</div><div style="font-size:.58rem;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Per Year</div></div>';
+    h+='<div style="background:rgba(0,0,0,.2);border:1px solid rgba(100,150,230,.12);border-radius:12px;padding:10px 12px;min-width:96px;text-align:center;"><div style="font-size:1rem;font-weight:700;color:#eef2ff;">$'+(totalMonthly/30).toFixed(2)+'</div><div style="font-size:.58rem;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Per Day</div></div>';
+    h+='</div></div></div>';
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:0 0 10px;">Your Subscriptions</div>';
+    if(!subs.length){
+        h+='<div style="background:#0a1525;border:1px dashed rgba(100,150,230,.18);border-radius:16px;padding:34px 20px;text-align:center;color:#8899bb;font-size:.86rem;">No subscriptions yet. Add your first monthly service from the builder on the right.</div>';
+    } else {
+        subs.sort(function(a,b){ return (a.billing_day||1) - (b.billing_day||1); }).forEach(function(s){
+            var safeName = escapeHtml(sanitizePlainString(s.name,120));
+            var safeCat = escapeHtml(getSubscriptionCategoryLabel(s.category));
+            h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:16px;">';
+            h+='<div style="min-width:0;"><div style="font-size:.9rem;font-weight:600;color:#eef2ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+safeName+'</div><div style="font-size:.72rem;color:#8899bb;">'+safeCat+' · billed day '+(s.billing_day||'—')+'</div></div>';
+            h+='<div style="text-align:right;flex-shrink:0;"><div style="font-size:.94rem;font-weight:700;color:#d4a843;font-family:DM Mono,monospace;">$'+parseFloat(s.amount||0).toFixed(2)+'</div><button onclick="fpDelSub(\''+s.id+'\')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.2);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:.68rem;margin-top:6px;">Delete</button></div></div>';
+        });
+    }
+    h+='</div>';
+    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:18px;padding:20px;">';
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.6px;color:#d4a843;margin-bottom:8px;">Add Subscription</div>';
+    h+='<div style="font-size:.8rem;color:#8899bb;line-height:1.6;margin-bottom:14px;">Track recurring services separately so the dashboard can show your true monthly commitments.</div>';
+    h+='<input id="fp_subName" type="text" placeholder="Service name" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:12px 14px;color:#eef2ff;font-size:.85rem;outline:none;margin-bottom:10px;">';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;"><input id="fp_subAmt" type="number" placeholder="Monthly cost" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:12px 14px;color:#eef2ff;font-size:.85rem;outline:none;"><input id="fp_subDay" type="number" placeholder="Billing day" min="1" max="31" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:12px 14px;color:#eef2ff;font-size:.85rem;outline:none;"></div>';
+    h+='<select id="fp_subCat" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:12px 14px;color:#eef2ff;font-size:.85rem;outline:none;margin-bottom:14px;"><option value="Streaming">📺 Streaming</option><option value="Music">🎵 Music</option><option value="Software">💻 Software</option><option value="Fitness">💪 Fitness</option><option value="News">📰 News</option><option value="Gaming">🎮 Gaming</option><option value="Other">📦 Other</option></select>';
+    h+='<button onclick="fpAddSub()" style="width:100%;background:linear-gradient(135deg,#d4a843,#b8941c);color:#0a0e1a;font-weight:700;border:none;border-radius:12px;padding:12px 18px;cursor:pointer;font-size:.9rem;">Add Subscription</button>';
+    h+='</div>';
+    h+='</div>';
     return h;
 }
-function fpDelSub(id){if(!confirm('Delete this subscription?'))return;_sb.from('recurring_expenses').delete().eq('id',id).then(function(){recurring=recurring.filter(function(r){return r.id!==id;});showToast('Subscription deleted');openPanel('subManager');});}
+function fpDelSub(id){if(!confirm('Delete this subscription?'))return;var safeId=safeIdValue(id);if(!safeId){showToast('Invalid subscription id','error');return;} _sb.from('recurring_expenses').delete().eq('id',safeId).then(function(res){ if(res && res.error){ showToast('Could not delete subscription: '+res.error.message,'error'); return; } recurring=recurring.filter(function(r){return r.id!==safeId;});showToast('Subscription deleted');openPanel('subManager');});}
 
 // ── FAMILY NOTES PANEL ──
 function buildNotesPanel(){
@@ -7490,10 +7582,16 @@ function dismissWelcome() {
       default: return memberPrefix + 'Custom challenge';
     }
   }
+  function getChallengeTxSource(){
+    try {
+      if (Array.isArray(history)) return history;
+    } catch (e) {}
+    return [];
+  }
   function getWindowTx(ch){
     var start = Number(ch.startedAt || Date.now());
     var end = Math.min(Date.now(), start + (Number(ch.durationDays || 7) * DAY_MS));
-    return (window.history || []).filter(function(tx){
+    return getChallengeTxSource().filter(function(tx){
       var ts = new Date(tx.created_at || Date.now()).getTime();
       if (!ts || ts < start || ts > end) return false;
       if (ch.member && ch.member !== 'Any' && tx.member !== ch.member) return false;
@@ -7662,7 +7760,7 @@ function dismissWelcome() {
       + '</div>';
   }
   function deriveSuggestions(){
-    var tx = Array.isArray(window.history) ? window.history : [];
+    var tx = getChallengeTxSource();
     var cycleStart = getCycleStartTs();
     var cycleTx = tx.filter(function(item){ return new Date(item.created_at || Date.now()).getTime() >= cycleStart; });
     var dining = 0, wants = 0, total = 0, topCategory = '', topCategorySpend = 0;
@@ -7944,6 +8042,7 @@ function dismissWelcome() {
     var daysEl = document.getElementById('fp_chDays'); if (daysEl) daysEl.value = '7';
     if (typeof showToast === 'function') showToast('Challenge started! 🏆', 'success');
     renderDesktopChallengesPanel();
+    window.renderChallenges();
   };
 
   window.fpRemoveChallenge = function(id){
@@ -8998,7 +9097,7 @@ function dismissWelcome() {
 
 
 <style id="flint-markets-watchlist-css">
-  .simplify-top-secondary{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:16px;align-items:start;margin:0 0 16px;}
+  .simplify-top-secondary{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;align-items:start;margin:0 0 16px;}
   .simplify-markets-card{background:linear-gradient(180deg, rgba(13,24,44,.92), rgba(9,18,34,.96));border:1px solid rgba(100,150,230,.14);border-radius:22px;padding:18px;box-shadow:0 16px 38px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.03);}
   .simplify-markets-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;}
   .simplify-markets-kicker{font-size:.62rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(212,168,67,.9);margin-bottom:6px;}
