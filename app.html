@@ -2940,7 +2940,7 @@ function escapeHtml(str) {
 
 function sanitizePlainString(value, maxLen) {
     let s = value == null ? '' : String(value);
-    s = s.replace(/[ --]/g, '');
+    s = s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
     s = s.replace(/[<>]/g, '');
     if (typeof maxLen === 'number' && maxLen > 0) s = s.slice(0, maxLen);
     return s.trim();
