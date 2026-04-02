@@ -2654,6 +2654,36 @@
             </div>
 
             <!-- Danger zone -->
+            <div class="sec-head" style="margin-top:16px">Edit Profile</div>
+            <div class="card" style="padding:16px">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--slate)">Display Name</div>
+                  <input id="flint-edit-name" type="text" placeholder="Your name" autocomplete="off" style="background:var(--ink-3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:.85rem;font-family:inherit;width:100%;box-sizing:border-box;outline:none"/>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--slate)">Email Address</div>
+                  <input id="flint-edit-email" type="email" placeholder="your@email.com" autocomplete="off" style="background:var(--ink-3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:.85rem;font-family:inherit;width:100%;box-sizing:border-box;outline:none"/>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--slate)">New Password <span style="font-size:.65rem;color:var(--text-dim);font-weight:400;text-transform:none">(leave blank to keep)</span></div>
+                  <input id="flint-edit-pass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="new-password" style="background:var(--ink-3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:.85rem;font-family:inherit;width:100%;box-sizing:border-box;outline:none"/>
+                </div>
+                <button onclick="flintSaveProfile()" style="background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:var(--ink);font-weight:700;font-size:.85rem;border:none;border-radius:12px;padding:12px;cursor:pointer;width:100%;font-family:inherit" id="flint-save-btn">Save Changes</button>
+                <div id="flint-save-msg" style="display:none;text-align:center;font-size:.8rem;color:var(--green);padding:6px;font-weight:600">&#10003; Profile updated successfully</div>
+              </div>
+            </div>
+            <div class="sec-head" style="margin-top:16px">Account Details</div>
+            <div class="card" style="padding:4px 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:.83rem"><span style="color:var(--slate)">Member Since</span><span style="color:var(--text);font-weight:600" id="flint-member-since">&#8212;</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:.83rem"><span style="color:var(--slate)">Account Type</span><span style="color:var(--gold);font-weight:600">&#9889; Flint Beta</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:.83rem"><span style="color:var(--slate)">Ledger</span><span style="color:var(--green);font-weight:600">&#9679; Shared</span></div>
+            </div>
+            <div class="sec-head" style="margin-top:16px;color:var(--rose)">Danger Zone</div>
+            <div class="card" style="padding:12px;display:flex;flex-direction:column;gap:8px">
+              <button onclick="typeof fpClearCycle==='function'?fpClearCycle():openPanel('configManager')" style="background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.25);color:var(--rose);font-weight:600;font-size:.83rem;border-radius:12px;padding:11px;cursor:pointer;width:100%;font-family:inherit">&#128465;&#65039; Clear All My Transactions</button>
+              <button onclick="typeof leaveSharedLedger==='function'?leaveSharedLedger():openPanel('shareManager')" style="background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.25);color:var(--rose);font-weight:600;font-size:.83rem;border-radius:12px;padding:11px;cursor:pointer;width:100%;font-family:inherit">&#128279; Leave Shared Ledger</button>
+            </div>
             <div class="sec-head" style="color:var(--rose);">Account</div>
             <div class="card" style="padding:18px;margin-bottom:14px;border-color:rgba(251,113,133,.15);">
                 <button class="btn" style="background:rgba(251,113,133,.1);color:var(--rose);border:1px solid rgba(251,113,133,.3);margin-bottom:0;" onclick="logoutApp()">
@@ -6181,5 +6211,35 @@ function dismissWelcome() {
   }
 })();
 </script>
+    <script id="flint-profile-script">
+    function flintSaveProfile(){
+      var btn=document.getElementById('flint-save-btn'),msg=document.getElementById('flint-save-msg');
+      var n=(document.getElementById('flint-edit-name')||{}).value||'';
+      var e=(document.getElementById('flint-edit-email')||{}).value||'';
+      var p=(document.getElementById('flint-edit-pass')||{}).value||'';
+      if(btn){btn.textContent='Saving…';btn.disabled=true;}
+      var u={};
+      if(n)u.data={display_name:n};
+      if(e)u.email=e;
+      if(p&&p.length>=6)u.password=p;
+      var c=window.supabaseClient||window.supabase;
+      var done=function(ok){
+        if(ok){if(btn){btn.textContent='✓ Saved!';btn.style.background='linear-gradient(135deg,var(--green),#22c55e)';}if(msg)msg.style.display='block';setTimeout(function(){if(btn){btn.textContent='Save Changes';btn.style.background='';btn.disabled=false;}if(msg)msg.style.display='none';},2500);}
+        else{if(btn){btn.textContent='Error — try again';btn.style.background='rgba(251,113,133,.3)';btn.disabled=false;}}
+      };
+      if(Object.keys(u).length&&c&&c.auth)c.auth.updateUser(u).then(function(r){done(!r.error);}).catch(function(){done(false);});
+      else done(true);
+    }
+    window.addEventListener('load',function(){
+      setInterval(function(){
+        var raw=localStorage.getItem('sb-hieqohmhrpjvhotutwls-auth-token'),u=raw?JSON.parse(raw).user:null;
+        if(!u)return;
+        var n=document.getElementById('flint-edit-name'),e=document.getElementById('flint-edit-email'),s=document.getElementById('flint-member-since');
+        if(n&&!n._f){n._f=1;if(u.user_metadata&&u.user_metadata.display_name)n.value=u.user_metadata.display_name;}
+        if(e&&!e._f){e._f=1;if(u.email)e.value=u.email;}
+        if(s&&s.textContent==='—'&&u.created_at)s.textContent=new Date(u.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+      },400);
+    });
+    </script>
 </body>
 </html>
