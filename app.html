@@ -7898,6 +7898,42 @@ function dismissWelcome() {
     window.renderChallenges();
   };
 
+
+
+  var MARKET_ALLOWED = ['BTC','ETH','SOL','SPY','QQQ','AAPL','NVDA','TSLA','MSFT'];
+  function readCompactWatchlist(){
+    try {
+      var raw = localStorage.getItem('flintMarketsWatchlist');
+      var parsed = JSON.parse(raw || 'null');
+      if (Array.isArray(parsed) && parsed.length) return parsed.map(function(v){ return String(v || '').toUpperCase().trim(); }).filter(function(v){ return MARKET_ALLOWED.indexOf(v) >= 0; }).slice(0,6);
+    } catch(e){}
+    return ['BTC','ETH','SPY','QQQ','AAPL','NVDA'];
+  }
+  function applyCompactWatchlist(){
+    var list = readCompactWatchlist();
+    var cards = document.querySelectorAll('#finalMarketsGrid .final-market-chip');
+    if(!cards.length) return;
+    cards.forEach(function(card){
+      var symbol = ((card.querySelector('.final-market-symbol')||{}).textContent || '').trim().toUpperCase();
+      card.style.display = list.indexOf(symbol) >= 0 ? '' : 'none';
+    });
+  }
+  window.customizeMarketsWatchlist = function(){
+    var current = readCompactWatchlist();
+    var input = window.prompt('Choose up to 6 symbols, separated by commas. Available: ' + MARKET_ALLOWED.join(', '), current.join(', '));
+    if(input == null) return;
+    var list = input.split(',').map(function(v){ return String(v || '').toUpperCase().trim(); }).filter(function(v){ return MARKET_ALLOWED.indexOf(v) >= 0; });
+    list = list.filter(function(v, i){ return list.indexOf(v) === i; }).slice(0,6);
+    if(!list.length){
+      if(typeof window.showToast === 'function') window.showToast('Pick at least one valid symbol', 'error');
+      else window.alert('Pick at least one valid symbol.');
+      return;
+    }
+    try { localStorage.setItem('flintMarketsWatchlist', JSON.stringify(list)); } catch(e){}
+    applyCompactWatchlist();
+    if(typeof window.showToast === 'function') window.showToast('Watchlist updated', 'success');
+  };
+
   window.fpAddChallenge = function(){
     var built = buildChallengeFromInputs('fp');
     if (built.error) { if (typeof showToast === 'function') showToast(built.error, 'error'); return; }
@@ -8959,155 +8995,6 @@ function dismissWelcome() {
     .simplify-ai-mount{margin-bottom:14px;}
   }
 </style>
-<script id="simplify-main-ui-script">
-(function(){
-  function byId(id){return document.getElementById(id);}  
-  function esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]||c;});}
-  function ensureSimplifiedMain(){
-    var app = byId('app');
-    if(!app) return;
-
-    var hero = app.querySelector('.hero-stats-bar');
-    if(hero && !byId('simplifyStatusLine')){
-      var status = document.createElement('div');
-      status.id = 'simplifyStatusLine';
-      status.className = 'simplify-status-line';
-      var pills = hero.querySelector('.hero-balance-pills');
-      if(pills && pills.parentNode) pills.insertAdjacentElement('afterend', status);
-      else hero.appendChild(status);
-    }
-
-    var ai = byId('aiTipPanel');
-    if(ai){
-      var mount = byId('simplifyAiMount');
-      if(!mount){
-        mount = document.createElement('section');
-        mount.id = 'simplifyAiMount';
-        mount.className = 'simplify-ai-mount';
-        var summary = app.querySelector('.flint-summary-grid') || hero;
-        if(summary && summary.parentNode) summary.insertAdjacentElement('afterend', mount);
-      }
-      if(ai.parentElement !== mount) mount.appendChild(ai);
-    }
-
-    var historyList = byId('historyList');
-    var historyShell = historyList && historyList.parentElement;
-    if(historyShell){
-      var lower = byId('simplifyLowerGrid');
-      if(!lower){
-        lower = document.createElement('section');
-        lower.id = 'simplifyLowerGrid';
-        lower.className = 'simplify-lower-grid';
-        historyShell.insertAdjacentElement('afterend', lower);
-      }
-
-      var bSpend = byId('bSpend');
-      var gSpend = byId('gSpend');
-      var needWant = byId('needWantCard');
-      var memberGrid = bSpend && gSpend ? bSpend.closest('.member-card').parentElement : null;
-      if(memberGrid && needWant){
-        var household = byId('simplifyHouseholdShell');
-        if(!household){
-          household = document.createElement('section');
-          household.id = 'simplifyHouseholdShell';
-          household.className = 'simplify-group';
-          household.innerHTML = '<div class="simplify-group-head"><div><div class="simplify-group-kicker">Household breakdown</div><div class="simplify-group-title">Who spent what, and where your needs vs wants stand</div><div class="simplify-group-copy">Keep people and behavior together so the dashboard feels easier to scan and less fragmented.</div></div></div>';
-          lower.appendChild(household);
-        }
-        var head = household.querySelector('.simplify-group-head');
-        if(memberGrid.parentElement !== household) household.appendChild(memberGrid);
-        if(needWant.parentElement !== household) household.appendChild(needWant);
-        if(head) household.insertBefore(memberGrid, needWant);
-      }
-
-      var mortgageText = byId('mortgageBalText');
-      var carText = byId('carBalText');
-      var debtGrid = mortgageText && carText ? mortgageText.parentElement.parentElement : null;
-      if(debtGrid){
-        var debt = byId('simplifyDebtShell');
-        if(!debt){
-          debt = document.createElement('section');
-          debt.id = 'simplifyDebtShell';
-          debt.className = 'simplify-group';
-          debt.innerHTML = '<div class="simplify-group-head"><div><div class="simplify-group-kicker">Debt snapshot</div><div class="simplify-group-title">Keep long-term debt visible, but quieter than daily decisions</div><div class="simplify-group-copy">Mortgage and car progress stay accessible without competing with today's spend and immediate actions.</div></div></div>';
-          lower.appendChild(debt);
-        }
-        if(debtGrid.parentElement !== debt) debt.appendChild(debtGrid);
-      }
-    }
-  }
-
-  function updateSimplifiedMain(){
-    var status = byId('simplifyStatusLine');
-    if(status){
-      var totalCount = (typeof history !== 'undefined' && Array.isArray(history)) ? history.length : 0;
-      var remaining = byId('balanceNum') ? byId('balanceNum').textContent.trim() : '$0';
-      var spent = byId('heroTotalSpent') ? byId('heroTotalSpent').textContent.trim() : '$0';
-      var daysLeft = byId('heroDaysLeft') ? byId('heroDaysLeft').textContent.trim() : '0';
-      if(totalCount < 3){
-        status.innerHTML = '<b>Track a few more purchases.</b> You've logged ' + totalCount + ' this cycle so far, so the AI coach and trends will sharpen quickly as more data comes in.';
-      } else {
-        status.innerHTML = '<b>' + esc(remaining) + ' left</b> with ' + esc(daysLeft) + ' days remaining. You've logged ' + esc(spent) + ' so far this cycle.';
-      }
-    }
-
-    var ai = byId('aiTipPanel');
-    if(ai){
-      var label = ai.querySelector('.side-panel-header span');
-      if(label) label.textContent = 'AI coach summary';
-      var btn = ai.querySelector('.side-panel-link');
-      if(btn) btn.textContent = 'Refresh';
-    }
-
-    var count = byId('historyCount');
-    var visibleTx = document.querySelectorAll('#historyList .hist-item').length;
-    if(count && visibleTx){
-      count.textContent = visibleTx + ' transaction' + (visibleTx === 1 ? '' : 's');
-    }
-
-    var household = byId('simplifyHouseholdShell');
-    if(household){
-      var b = byId('bSpend') ? byId('bSpend').textContent.trim() : '$0';
-      var g = byId('gSpend') ? byId('gSpend').textContent.trim() : '$0';
-      var copy = household.querySelector('.simplify-group-copy');
-      if(copy) copy.textContent = 'Brandon has ' + b + ' logged and Gina has ' + g + '. Keep people and behavior together so this section reads as one household view.';
-    }
-
-    var debt = byId('simplifyDebtShell');
-    if(debt){
-      var m = byId('mortgageBalText') ? byId('mortgageBalText').textContent.trim() : '$0';
-      var c = byId('carBalText') ? byId('carBalText').textContent.trim() : '$0';
-      var copy2 = debt.querySelector('.simplify-group-copy');
-      if(copy2) copy2.textContent = 'Mortgage balance ' + m + ' and car balance ' + c + '. Keep debt visible, but secondary to today's decisions.';
-    }
-  }
-
-  function runSimplifyMain(){
-    ensureSimplifiedMain();
-    updateSimplifiedMain();
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(runSimplifyMain, 120); });
-
-  if(typeof window.renderDashboard === 'function'){
-    var prevRenderDashboard = window.renderDashboard;
-    window.renderDashboard = function(){
-      var res = prevRenderDashboard.apply(this, arguments);
-      setTimeout(runSimplifyMain, 20);
-      return res;
-    };
-  }
-
-  if(typeof window.fetchAiTip === 'function'){
-    var prevFetchAiTip = window.fetchAiTip;
-    window.fetchAiTip = async function(){
-      var res = await prevFetchAiTip.apply(this, arguments);
-      setTimeout(updateSimplifiedMain, 50);
-      return res;
-    };
-  }
-})();
-</script>
 
 
 <style id="flint-markets-watchlist-css">
@@ -9145,192 +9032,6 @@ function dismissWelcome() {
   @media (max-width: 1023px){.simplify-top-secondary{grid-template-columns:1fr;}.simplify-markets-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
   @media (max-width: 640px){.simplify-markets-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.simplify-markets-head,.simplify-markets-meta,.simplify-market-foot{flex-direction:column;align-items:flex-start;}.simplify-markets-actions{justify-content:flex-start;}}
 </style>
-<script id="flint-markets-watchlist-script">
-(function(){
-  var DEFAULT_WATCHLIST = ['BTC','ETH','SPY','QQQ','AAPL','NVDA'];
-  var ALLOWED_WATCHLIST = ['BTC','ETH','SOL','SPY','QQQ','AAPL','NVDA','TSLA','MSFT'];
-
-  function byId(id){ return document.getElementById(id); }
-  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || c; }); }
-  function getWatchlist(){
-    try {
-      var raw = localStorage.getItem('flintMarketsWatchlist');
-      var parsed = raw ? JSON.parse(raw) : null;
-      if (Array.isArray(parsed)) {
-        parsed = parsed.map(function(v){ return String(v || '').toUpperCase().trim(); }).filter(function(v){ return ALLOWED_WATCHLIST.indexOf(v) !== -1; });
-        if (parsed.length) return Array.from(new Set(parsed)).slice(0,6);
-      }
-    } catch(e){}
-    return DEFAULT_WATCHLIST.slice();
-  }
-  function setWatchlist(list){
-    try { localStorage.setItem('flintMarketsWatchlist', JSON.stringify(list.slice(0,6))); } catch(e){}
-  }
-  function parseTickerItems(){
-    var panel = byId('marketTickers');
-    var updateEl = byId('marketLastUpdate');
-    var updateText = updateEl ? updateEl.textContent.trim() : '';
-    if (!panel) return {state:'offline', items:[], update:updateText, note:'Market panel unavailable.'};
-    var items = Array.prototype.slice.call(panel.querySelectorAll('.ticker-item')).map(function(node){
-      var symbol = (node.querySelector('.ticker-symbol') || {}).textContent || '';
-      var name = (node.querySelector('.ticker-name') || {}).textContent || '';
-      var price = (node.querySelector('.ticker-price') || {}).textContent || '';
-      var changeEl = node.querySelector('.ticker-change');
-      var change = changeEl ? changeEl.textContent.replace(/\s+/g,' ').trim() : '';
-      var cls = changeEl && changeEl.classList.contains('ticker-down') ? 'down' : changeEl && changeEl.classList.contains('ticker-up') ? 'up' : 'flat';
-      var section = 'mixed';
-      var prev = node.previousElementSibling;
-      while (prev) {
-        if (prev.style && /uppercase/.test(prev.style.cssText || '')) {
-          section = prev.textContent.toLowerCase();
-          break;
-        }
-        prev = prev.previousElementSibling;
-      }
-      return { symbol: symbol.trim(), name: name.trim(), price: price.trim(), change: change.trim(), cls: cls, section: section };
-    }).filter(function(item){ return item.symbol; });
-
-    var txt = panel.textContent.replace(/\s+/g,' ').trim();
-    var state = 'live';
-    var note = '';
-    if (!items.length) {
-      if (/loading/i.test(txt)) { state = 'loading'; note = 'Refreshing prices…'; }
-      else if (/closed/i.test(txt)) { state = 'closed'; note = 'US market session is closed right now. Crypto continues to update.'; }
-      else { state = 'offline'; note = 'Prices are temporarily unavailable. Your budgeting tools still work normally.'; }
-    } else if (/closed/i.test(txt)) {
-      state = 'closed';
-      note = 'US market session is closed right now. Crypto continues to update.';
-    }
-    return {state:state, items:items, update:updateText, note:note};
-  }
-  function normalizeItem(item){
-    var symbol = item.symbol.toUpperCase();
-    var tag = /crypto/i.test(item.section) || ['BTC','ETH','SOL'].indexOf(symbol) !== -1 ? 'crypto' : /indices/i.test(item.section) || ['SPY','QQQ'].indexOf(symbol) !== -1 ? 'index' : 'stock';
-    return {symbol:symbol, name:item.name, price:item.price.replace(/^\$/, ''), change:item.change, cls:item.cls, tag:tag};
-  }
-  function ensureMarketsCard(){
-    var app = byId('app');
-    if (!app) return null;
-    var top = byId('simplifyTopSecondary');
-    if (!top) {
-      top = document.createElement('section');
-      top.id = 'simplifyTopSecondary';
-      top.className = 'simplify-top-secondary';
-      var aiMount = byId('simplifyAiMount');
-      var summary = app.querySelector('.flint-summary-grid') || app.querySelector('.hero-stats-bar') || app.firstElementChild;
-      if (aiMount && aiMount.parentNode) aiMount.insertAdjacentElement('beforebegin', top);
-      else if (summary && summary.parentNode) summary.insertAdjacentElement('afterend', top);
-      else app.insertBefore(top, app.firstChild);
-    }
-    var aiMountEl = byId('simplifyAiMount');
-    if (aiMountEl && aiMountEl.parentElement !== top) top.appendChild(aiMountEl);
-
-    var card = byId('simplifyMarketsCard');
-    if (!card) {
-      card = document.createElement('section');
-      card.id = 'simplifyMarketsCard';
-      card.className = 'simplify-markets-card';
-      card.innerHTML = ''
-        + '<div class="simplify-markets-head">'
-        + '  <div>'
-        + '    <div class="simplify-markets-kicker">Markets watchlist</div>'
-        + '    <div class="simplify-markets-title">Keep stocks and crypto visible without taking over the dashboard</div>'
-        + '    <div class="simplify-markets-copy">A compact pulse on a few symbols you actually care about — useful, but secondary to your cash flow and spending decisions.</div>'
-        + '  </div>'
-        + '  <div class="simplify-markets-actions">'
-        + '    <button class="simplify-markets-btn" type="button" onclick="customizeMarketsWatchlist()">Customize</button>'
-        + '    <button class="simplify-markets-btn" type="button" onclick="fetchMarkets()">Refresh</button>'
-        + '  </div>'
-        + '</div>'
-        + '<div class="simplify-markets-meta">'
-        + '  <div id="simplifyMarketsStatus" class="simplify-markets-status"><span class="dot"></span><span>Loading watchlist…</span></div>'
-        + '  <div id="simplifyMarketsUpdate" class="simplify-markets-update">Updating…</div>'
-        + '</div>'
-        + '<div id="simplifyMarketsGrid" class="simplify-markets-grid"></div>'
-        + '<div class="simplify-market-foot"><span>Use this as a quick pulse, not the main decision center.</span><span><b>Tip:</b> Keep the watchlist to six symbols max.</span></div>';
-      top.appendChild(card);
-    }
-    return card;
-  }
-  function renderMarketsCard(){
-    var card = ensureMarketsCard();
-    if (!card) return;
-    var parsed = parseTickerItems();
-    var list = getWatchlist();
-    var status = byId('simplifyMarketsStatus');
-    var update = byId('simplifyMarketsUpdate');
-    var grid = byId('simplifyMarketsGrid');
-    if (!status || !grid) return;
-    if (update) update.textContent = parsed.update && parsed.update !== 'Offline' ? 'Updated ' + parsed.update : (parsed.state === 'offline' ? 'Feed offline' : 'Updating…');
-
-    var normalized = parsed.items.map(normalizeItem);
-    var lookup = {};
-    normalized.forEach(function(item){ lookup[item.symbol] = item; });
-    var items = list.map(function(symbol){ return lookup[symbol]; }).filter(Boolean);
-    if (!items.length && normalized.length) items = normalized.slice(0,6);
-
-    status.className = 'simplify-markets-status' + (parsed.state === 'offline' ? ' offline' : parsed.state === 'closed' ? ' offline' : '');
-    if (parsed.state === 'loading') status.innerHTML = '<span class="dot"></span><span>Refreshing watchlist…</span>';
-    else if (parsed.state === 'offline') status.innerHTML = '<span class="dot"></span><span>' + esc(parsed.note || 'Feed unavailable right now.') + '</span>';
-    else if (parsed.state === 'closed') status.innerHTML = '<span class="dot"></span><span>' + esc(parsed.note || 'US market session is closed right now. Crypto still updates.') + '</span>';
-    else status.innerHTML = '<span class="dot"></span><span>Watchlist is live. Crypto and market prices are refreshing in the background.</span>';
-
-    if (!items.length) {
-      grid.innerHTML = '<div class="simplify-market-empty" style="grid-column:1 / -1;">Nothing to show yet. Try refreshing the feed or customize the watchlist once prices load.</div>';
-      return;
-    }
-
-    grid.innerHTML = items.map(function(item){
-      var tagLabel = item.tag === 'crypto' ? 'Crypto' : item.tag === 'index' ? 'Index' : 'Stock';
-      return ''
-        + '<article class="simplify-market-item">'
-        + '  <div class="simplify-market-top">'
-        + '    <div><div class="simplify-market-symbol">' + esc(item.symbol) + '</div><div class="simplify-market-name">' + esc(item.name) + '</div></div>'
-        + '    <div class="simplify-market-tag">' + tagLabel + '</div>'
-        + '  </div>'
-        + '  <div class="simplify-market-bottom">'
-        + '    <div class="simplify-market-price">$' + esc(item.price) + '</div>'
-        + '    <div class="simplify-market-change ' + item.cls + '">' + esc(item.change || '→ 0.00%') + '</div>'
-        + '  </div>'
-        + '</article>';
-    }).join('');
-  }
-
-  window.customizeMarketsWatchlist = function(){
-    var current = getWatchlist();
-    var input = window.prompt('Choose up to 6 symbols, separated by commas. Available: ' + ALLOWED_WATCHLIST.join(', '), current.join(', '));
-    if (input == null) return;
-    var list = input.split(',').map(function(v){ return String(v || '').toUpperCase().trim(); }).filter(function(v){ return ALLOWED_WATCHLIST.indexOf(v) !== -1; });
-    list = Array.from(new Set(list)).slice(0,6);
-    if (!list.length) {
-      window.alert('Pick at least one symbol from: ' + ALLOWED_WATCHLIST.join(', '));
-      return;
-    }
-    setWatchlist(list);
-    renderMarketsCard();
-  };
-
-  function run(){ ensureMarketsCard(); renderMarketsCard(); }
-
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(run, 180); });
-  if (typeof window.renderDashboard === 'function') {
-    var prevRenderDashboard = window.renderDashboard;
-    window.renderDashboard = function(){
-      var res = prevRenderDashboard.apply(this, arguments);
-      setTimeout(run, 40);
-      return res;
-    };
-  }
-  if (typeof window.fetchMarkets === 'function') {
-    var prevFetchMarkets = window.fetchMarkets;
-    window.fetchMarkets = async function(){
-      var res = await prevFetchMarkets.apply(this, arguments);
-      setTimeout(renderMarketsCard, 30);
-      return res;
-    };
-  }
-})();
-</script>
 
 
 <style id="final-home-layout-pass-css">
@@ -9566,6 +9267,146 @@ function dismissWelcome() {
       return res;
     };
   }
+})();
+</script>
+
+
+<style id="audit-mobile-fit-patch">
+@media (max-width: 1023px){
+  #flintPanel{left:0!important;right:0!important;top:0!important;bottom:0!important;padding:0!important;}
+  .flint-panel-shell,.flint-panel-compact,.flint-panel-wide,.flint-panel-full{width:100%!important;max-width:none!important;min-height:100dvh!important;border-radius:0!important;margin:0!important;box-shadow:none!important;}
+  .flint-panel-head{position:sticky;top:0;z-index:5;background:rgba(6,13,28,.96)!important;backdrop-filter:blur(12px);padding:16px 16px 12px!important;}
+  .flint-panel-body{padding:16px 14px 90px!important;}
+  .wrap{max-width:none!important;padding:16px 14px 92px!important;}
+  #app{padding-top:0!important;}
+  #finalHomeSecondary,.final-home-secondary{grid-template-columns:1fr!important;gap:14px!important;}
+  .hero-stats-bar,.flint-summary-grid,.loan-grid,.member-grid,.milestone-row{grid-template-columns:1fr!important;}
+  .dash-hero,.balance-hero,.card,.input-card,.final-home-card{border-radius:18px!important;}
+  .final-metric-row{grid-template-columns:1fr!important;gap:10px!important;}
+  .final-card-foot{flex-direction:column!important;align-items:flex-start!important;gap:8px!important;}
+  .final-mini-actions{width:100%;justify-content:flex-start!important;flex-wrap:wrap;}
+  .side-menu{width:min(88vw,320px)!important;}
+  .cycle-pill-inline{width:100%!important;min-width:0!important;}
+}
+@media (max-width: 767px){
+  .hero-balance-num,.bal-number{font-size:clamp(2.25rem,13vw,3.6rem)!important;line-height:1.02!important;}
+  .page-title,.flint-panel-title{font-size:.72rem!important;letter-spacing:2px!important;}
+  .top-bar{gap:8px!important;}
+  .top-right{gap:10px!important;}
+  .sheet-card{padding-bottom:calc(18px + env(safe-area-inset-bottom))!important;}
+  .simplify-markets-head,.final-home-head{flex-direction:column!important;align-items:flex-start!important;gap:10px!important;}
+  .simplify-markets-actions{width:100%;justify-content:flex-start!important;flex-wrap:wrap;}
+}
+</style>
+
+<script id="audit-bugfix-patch">
+(function(){
+  function escAttr(id){ return String(id).replace(/"/g,'\\"'); }
+  function activePanelRoot(){ return document.querySelector('#flintPanelContent') || document; }
+  function within(root, id){ return (root && root.querySelector('[id="' + escAttr(id) + '"]')) || document.getElementById(id); }
+  function adjustPanelFit(){
+    var p = document.getElementById('flintPanel');
+    if(!p) return;
+    if(window.innerWidth < 1024){
+      p.style.left = '0'; p.style.right = '0'; p.style.top = '0'; p.style.bottom = '0'; p.style.padding = '0';
+      return;
+    }
+    var menu = document.getElementById('sideMenu');
+    var left = 240;
+    if(menu){
+      var rect = menu.getBoundingClientRect();
+      if(rect.width) left = Math.round(rect.width);
+    }
+    p.style.left = left + 'px';
+  }
+
+  if(typeof window._buildAndShowPanel === 'function'){
+    var origBuildAndShowPanel = window._buildAndShowPanel;
+    window._buildAndShowPanel = function(id){
+      var res = origBuildAndShowPanel.apply(this, arguments);
+      setTimeout(adjustPanelFit, 0);
+      return res;
+    };
+  }
+
+  if(typeof window.openPanel === 'function' && typeof window.fetchData === 'function'){
+    var refreshIds = ['notesManager','familyFeed','subManager','analyticsModal','aiInsights'];
+    var originalBuild = window._buildAndShowPanel;
+    window.openPanel = function(id){
+      var old = document.getElementById('flintPanel');
+      if(old) old.remove();
+      document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
+      var nav = document.getElementById('nav-'+id);
+      if(nav) nav.classList.add('active');
+      if(typeof originalBuild === 'function') originalBuild(id);
+      if(refreshIds.indexOf(id) >= 0 && window.currentGroup){
+        Promise.resolve(window.fetchData()).then(function(){
+          if(document.getElementById('flintPanel') && typeof originalBuild === 'function') originalBuild(id);
+        }).catch(function(err){ console.warn('Background refresh failed for panel', id, err); });
+      }
+    };
+  }
+
+  function buildDesktopChallengeFromVisibleInputs(){
+    var root = activePanelRoot();
+    var modeEl = within(root, 'fp_chType');
+    var nameEl = within(root, 'fp_chName');
+    var targetEl = within(root, 'fp_chTarget');
+    var daysEl = within(root, 'fp_chDays');
+    var memberEl = within(root, 'fp_chMember');
+    var catEl = within(root, 'fp_chCat');
+    var merchantEl = within(root, 'fp_chMerchant');
+    var thresholdEl = within(root, 'fp_chThreshold');
+    var mode = modeEl ? modeEl.value : 'wants_cap';
+    var challenge = {
+      id: (typeof window.uid === 'function') ? window.uid() : ('ch_' + Date.now()),
+      mode: mode,
+      member: memberEl ? memberEl.value : 'Any',
+      durationDays: Math.max(1, parseInt(daysEl && daysEl.value || 7, 10) || 7),
+      startedAt: Date.now(),
+      category: catEl ? String(catEl.value || '') : '',
+      merchant: merchantEl ? String(merchantEl.value || '').trim() : '',
+      target: Number(targetEl && targetEl.value || 0),
+      threshold: Number(thresholdEl && thresholdEl.value || 0)
+    };
+    if ((mode === 'no_spend_category' || mode === 'category_cap') && !challenge.category) challenge.category = 'Dining';
+    if (mode === 'merchant_freeze' && !challenge.merchant) return { error: 'Enter a merchant name to freeze.' };
+    if ((mode === 'category_cap' || mode === 'wants_cap' || mode === 'total_cap') && challenge.target <= 0) return { error: 'Enter a spending cap greater than 0.' };
+    if (mode === 'ai_guardrail' && challenge.threshold <= 0) return { error: 'Enter a threshold amount for the AI guardrail.' };
+    challenge.name = (nameEl && String(nameEl.value || '').trim()) || (typeof window.buildChallengeTitle === 'function' ? window.buildChallengeTitle(challenge) : 'Challenge');
+    if (typeof window.normalizeChallenge === 'function') challenge = window.normalizeChallenge(challenge);
+    return { challenge: challenge };
+  }
+
+  window.fpChallengeTypeChanged = function(mode){
+    var root = activePanelRoot();
+    var targetWrap = within(root, 'fp_targetWrap');
+    var catWrap = within(root, 'fp_catWrap');
+    var merchantWrap = within(root, 'fp_merchantWrap');
+    var thresholdWrap = within(root, 'fp_thresholdWrap');
+    if (targetWrap) targetWrap.style.display = /category_cap|wants_cap|total_cap/.test(mode) ? 'block' : 'none';
+    if (catWrap) catWrap.style.display = /category_cap|no_spend_category/.test(mode) ? 'block' : 'none';
+    if (merchantWrap) merchantWrap.style.display = mode === 'merchant_freeze' ? 'block' : 'none';
+    if (thresholdWrap) thresholdWrap.style.display = mode === 'ai_guardrail' ? 'block' : 'none';
+  };
+
+  window.fpAddChallenge = function(){
+    var built = buildDesktopChallengeFromVisibleInputs();
+    if (built.error) { if (typeof window.showToast === 'function') window.showToast(built.error, 'error'); return; }
+    var list = (typeof window.readChallengeStore === 'function') ? window.readChallengeStore() : JSON.parse(localStorage.getItem('montoya_challenges')||'[]');
+    list.unshift(built.challenge);
+    if (typeof window.writeChallengeStore === 'function') window.writeChallengeStore(list);
+    else localStorage.setItem('montoya_challenges', JSON.stringify(list));
+    var root = activePanelRoot();
+    ['fp_chName','fp_chTarget','fp_chMerchant','fp_chThreshold'].forEach(function(id){ var el = within(root, id); if (el) el.value = ''; });
+    var daysEl = within(root, 'fp_chDays'); if (daysEl) daysEl.value = '7';
+    if (typeof window.showToast === 'function') window.showToast('Challenge started! 🏆', 'success');
+    if (typeof window.renderDesktopChallengesPanel === 'function') window.renderDesktopChallengesPanel();
+    if (typeof window.renderChallenges === 'function') window.renderChallenges();
+  };
+
+  window.addEventListener('resize', function(){ adjustPanelFit(); applyCompactWatchlist(); });
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ adjustPanelFit(); applyCompactWatchlist(); }, 60); });
 })();
 </script>
 
