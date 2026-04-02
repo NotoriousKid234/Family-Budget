@@ -10,6 +10,10 @@
         font-src   'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
         connect-src 'self' https://hieqohmhrpjvhotutwls.supabase.co https://*.netlify.app;
         img-src 'self' data:;
+        object-src 'none';
+        base-uri 'self';
+        frame-ancestors 'none';
+        form-action 'self';
     ">
     <title>Flint — Spark your financial future</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1612,6 +1616,76 @@
 }
 
 </style>
+
+<style id="flint-panel-fit-patch">
+  #flintPanel.flint-panel-overlay { scrollbar-width:none; -ms-overflow-style:none; }
+  #flintPanel.flint-panel-overlay::-webkit-scrollbar { width:0; height:0; }
+  .flint-panel-shell {
+    width: min(1380px, calc(100vw - 240px - 64px));
+    margin: 0 auto;
+    padding: 28px 32px 88px;
+    box-sizing: border-box;
+  }
+  .flint-panel-head {
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:24px;
+    position:sticky;
+    top:0;
+    z-index:5;
+    padding: 6px 0 14px;
+    background: linear-gradient(180deg, rgba(6,13,28,.96) 0%, rgba(6,13,28,.90) 72%, rgba(6,13,28,0) 100%);
+    backdrop-filter: blur(10px);
+  }
+  .flint-panel-back {
+    cursor:pointer;
+    width:36px;
+    height:36px;
+    border-radius:10px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.08);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#8899bb;
+    font-size:.85rem;
+    flex-shrink:0;
+    transition:all .18s ease;
+  }
+  .flint-panel-back:hover { color:#eef2ff; border-color:rgba(212,168,67,.28); background:rgba(255,255,255,.08); }
+  .flint-panel-title {
+    font-size:.82rem;
+    font-weight:700;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:#eef2ff;
+  }
+  .flint-panel-body { width:100%; }
+  .flint-panel-compact { width:min(980px, calc(100vw - 240px - 64px)); }
+  .flint-panel-wide { width:min(1180px, calc(100vw - 240px - 64px)); }
+  .flint-panel-full { width:min(1380px, calc(100vw - 240px - 64px)); }
+
+  @media (max-width: 1023px) {
+    #flintPanel.flint-panel-overlay { left:0 !important; }
+    .flint-panel-shell,
+    .flint-panel-compact,
+    .flint-panel-wide,
+    .flint-panel-full {
+      width:100% !important;
+      padding:20px 16px 88px !important;
+    }
+    .flint-panel-head {
+      margin-bottom:18px;
+      padding:0 0 10px;
+      position:relative;
+      top:auto;
+      background:none;
+      backdrop-filter:none;
+    }
+  }
+</style>
+
 <!-- ═══ FLINT PREMIUM UI ENHANCEMENTS ═══ -->
 <style id="flint-premium">
   /* ── Transaction row hover lift ── */
@@ -2836,8 +2910,8 @@ function showConfirm(msg, onConfirm) {
 }
 
 // ── Reaction state (declared early so renderDashboard can use them) ──
-let txnReactions = JSON.parse(localStorage.getItem('montoya_txn_reactions') || '{}');
-let myTxnReactions = JSON.parse(localStorage.getItem('montoya_my_txn_reactions') || '{}');
+let txnReactions = safeJsonParse(localStorage.getItem('montoya_txn_reactions'), {});
+let myTxnReactions = safeJsonParse(localStorage.getItem('montoya_my_txn_reactions'), {});
 
 // ── SECURITY: Never hardcode credentials in client-side code.
 // Load these values from your build environment (e.g. Netlify env vars injected
@@ -2862,6 +2936,125 @@ function escapeHtml(str) {
         .replace(/>/g,  '&gt;')
         .replace(/"/g,  '&quot;')
         .replace(/'/g,  '&#039;');
+}
+
+function sanitizePlainString(value, maxLen) {
+    let s = value == null ? '' : String(value);
+    s = s.replace(/[ --]/g, '');
+    s = s.replace(/[<>]/g, '');
+    if (typeof maxLen === 'number' && maxLen > 0) s = s.slice(0, maxLen);
+    return s.trim();
+}
+
+function safeJsonParse(raw, fallback) {
+    try {
+        const parsed = JSON.parse(raw);
+        return parsed == null ? fallback : parsed;
+    } catch (_) {
+        return fallback;
+    }
+}
+
+function safeNumber(value, fallback = 0) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+}
+
+function safeBool(value) {
+    return value === true || value === 'true' || value === 1 || value === '1';
+}
+
+function safeIdValue(id) {
+    const s = id == null ? '' : String(id).trim();
+    return /^[A-Za-z0-9_-]{1,80}$/.test(s) ? s : '';
+}
+
+function sanitizeTransactionRow(t) {
+    const allowedMembers = ['Brandon', 'Gina', 'Split'];
+    const allowedCategories = ['Groceries','Dining','Utilities','Mortgage','Car','CreditCard','Subscription','Beauty','Goal','Misc'];
+    const allowedIntents = ['Need', 'Want'];
+    return {
+        ...t,
+        id: safeIdValue(t?.id),
+        user_id: safeIdValue(t?.user_id),
+        group_id: safeIdValue(t?.group_id),
+        amount: safeNumber(t?.amount),
+        member: allowedMembers.includes(t?.member) ? t.member : 'Split',
+        category: allowedCategories.includes(t?.category) ? t.category : 'Misc',
+        note: sanitizePlainString(t?.note, 240),
+        intent: allowedIntents.includes(t?.intent) ? t.intent : 'Need',
+        created_at: t?.created_at || new Date(0).toISOString(),
+        is_recurring: safeBool(t?.is_recurring)
+    };
+}
+
+function sanitizeRecurringRow(r) {
+    return {
+        ...r,
+        id: safeIdValue(r?.id),
+        user_id: safeIdValue(r?.user_id),
+        group_id: safeIdValue(r?.group_id),
+        name: sanitizePlainString(r?.name, 120),
+        category: sanitizePlainString(r?.category, 40) || 'Utilities',
+        intent: (r?.intent === 'Want' ? 'Want' : 'Need'),
+        member: ['Brandon','Gina','Split'].includes(r?.member) ? r.member : 'Split',
+        amount: safeNumber(r?.amount),
+        billing_day: Math.max(1, Math.min(31, parseInt(r?.billing_day, 10) || 1))
+    };
+}
+
+function sanitizeNoteRow(n) {
+    const allowedTypes = ['general','budget','bill','purchase','urgent'];
+    const allowedStatuses = ['open','acknowledged','resolved'];
+    return {
+        ...n,
+        id: safeIdValue(n?.id),
+        user_id: safeIdValue(n?.user_id),
+        group_id: safeIdValue(n?.group_id),
+        author: sanitizePlainString(n?.author, 80) || 'Partner',
+        message: sanitizePlainString(n?.message, 500),
+        category: sanitizePlainString(n?.category, 40),
+        note_type: allowedTypes.includes(n?.note_type) ? n.note_type : 'general',
+        status: allowedStatuses.includes(n?.status) ? n.status : 'open',
+        pinned: safeBool(n?.pinned),
+        read_by: sanitizePlainString(n?.read_by, 80),
+        created_at: n?.created_at || new Date(0).toISOString(),
+        updated_at: n?.updated_at || null,
+        read_at: n?.read_at || null,
+        due_at: n?.due_at || null,
+        acknowledged_at: n?.acknowledged_at || null,
+        resolved_at: n?.resolved_at || null
+    };
+}
+
+function sanitizeVaultRow(v) {
+    return {
+        name: sanitizePlainString(v?.name, 80),
+        target: safeNumber(v?.target),
+        saved: safeNumber(v?.saved),
+        emoji: sanitizePlainString(v?.emoji, 8) || '🎯'
+    };
+}
+
+function sanitizeBillRow(b) {
+    return {
+        name: sanitizePlainString(b?.name, 80),
+        amount: safeNumber(b?.amount),
+        day: Math.max(1, Math.min(31, parseInt(b?.day, 10) || 1)),
+        icon: sanitizePlainString(b?.icon, 8) || '💳',
+        category: sanitizePlainString(b?.category, 40)
+    };
+}
+
+function sanitizeChallengeRow(c) {
+    return {
+        id: safeIdValue(c?.id) || ('c_' + Date.now()),
+        name: sanitizePlainString(c?.name, 80),
+        type: sanitizePlainString(c?.type, 24),
+        target: safeNumber(c?.target),
+        cat: sanitizePlainString(c?.cat, 40),
+        emoji: sanitizePlainString(c?.emoji, 8) || '🎯'
+    };
 }
 
 const CAT_COLORS = { Groceries:'#34d399', Dining:'#fbbf24', Utilities:'#06b6d4', Mortgage:'#a78bfa', Car:'#60a5fa', CreditCard:'#fb7185', Subscription:'#c084fc', Beauty:'#f472b6', Goal:'#e8c252', Misc:'#64748b' };
@@ -3011,12 +3204,15 @@ async function acceptJoin(key) {
 }
 
 function loadStoredData() {
-    const v = localStorage.getItem('montoya_vaults');
-    if (v) vaults = JSON.parse(v);
-    const b = localStorage.getItem('montoya_bills');
-    if (b) billReminders = JSON.parse(b);
-    const nw = localStorage.getItem('montoya_networth');
-    if (nw) netWorth = JSON.parse(nw);
+    vaults = safeJsonParse(localStorage.getItem('montoya_vaults'), []).filter(Boolean).map(sanitizeVaultRow);
+    billReminders = safeJsonParse(localStorage.getItem('montoya_bills'), []).filter(Boolean).map(sanitizeBillRow);
+    const nw = safeJsonParse(localStorage.getItem('montoya_networth'), {});
+    netWorth = {
+        home: safeNumber(nw.home),
+        cash: safeNumber(nw.cash),
+        invest: safeNumber(nw.invest),
+        other: safeNumber(nw.other)
+    };
     const nwInputs = ['home','cash','invest','other'];
     nwInputs.forEach(k => { const el = document.getElementById('nw_'+k); if(el) el.value = netWorth[k]||''; });
 }
@@ -3029,7 +3225,7 @@ async function fetchData() {
         _sb.from('recurring_expenses').select('*').eq('group_id',currentGroup),
         _sb.from('app_notes').select('*').eq('group_id',currentGroup).order('created_at',{ascending:false})
     ]);
-    history=tRes.data||[]; recurring=rRes.data||[]; notes=nRes.data||[];
+    history=(tRes.data||[]).map(sanitizeTransactionRow).filter(function(r){ return r.id; }); recurring=(rRes.data||[]).map(sanitizeRecurringRow).filter(function(r){ return r.id; }); notes=(nRes.data||[]).map(sanitizeNoteRow).filter(function(r){ return r.id; });
     // Keep polling baseline in sync
     if (history.length > 0) _lastSeenTxnId = history[0].id;
     if (notes.length > 0)   _lastSeenNoteId = notes[0].id;
@@ -3275,7 +3471,7 @@ function openMemberView(name) {
         const splitBadge = item.member==='Split' ? '<span style="font-size:.6rem;font-weight:700;color:#8b7fd4;background:rgba(139,127,212,.12);border-radius:6px;padding:2px 6px;margin-left:4px;">SPLIT ÷2</span>' : '';
         const dateStr = item.created_at ? (()=>{ const d=new Date(item.created_at); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); })() : '';
         const div=document.createElement('div'); div.className='hist-item'; div.style.background=intentColor; div.style.borderColor=intentBorder;
-        div.innerHTML=`<div style="min-width:0;flex:1;"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-bottom:3px;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${item.category}</span>${intentBadge}${splitBadge}</div><span class="hist-note">${item.note||item.category}</span><div style="font-size:.66rem;color:var(--text-dim);margin-top:3px;">${dateStr}</div></div><div class="hist-right"><div class="hist-amt">-$${a.toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-edit" onclick="editEntry('${item.id}')"><i class="fa-solid fa-pen-to-square"></i></button><button class="act-btn act-del" onclick="deleteEntry('${item.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        div.innerHTML=`<div style="min-width:0;flex:1;"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-bottom:3px;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${escapeHtml(sanitizePlainString(item.category, 40))}</span>${intentBadge}${splitBadge}</div><span class="hist-note">${escapeHtml(sanitizePlainString(item.note||item.category, 120))}</span><div style="font-size:.66rem;color:var(--text-dim);margin-top:3px;">${dateStr}</div></div><div class="hist-right"><div class="hist-amt">-$${a.toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-edit" onclick="editEntry('${safeIdValue(item.id)}')"><i class="fa-solid fa-pen-to-square"></i></button><button class="act-btn act-del" onclick="deleteEntry('${safeIdValue(item.id)}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
         list.appendChild(div);
     });
 }
@@ -3309,15 +3505,15 @@ function renderVaults() {
     vaults.forEach((v,i)=>{
         const pct=v.target>0?Math.min(100,v.saved/v.target*100):0;
         const div=document.createElement('div'); div.className='vault-item';
-        div.innerHTML=`<div class="vault-head"><div><div style="font-size:1.4rem;margin-bottom:4px;">${v.emoji||'🎯'}</div><div class="vault-name">${v.name}</div></div><div class="vault-amounts"><div class="vault-saved">$${fmt0(v.saved)}</div><div class="vault-target">of $${fmt0(v.target)} goal</div></div></div><div class="prog-bar"><div class="prog-fill fill-goal" style="width:${pct}%"></div></div><div class="prog-meta" style="margin-top:5px;"><span>${Math.round(pct)}% complete</span><span>$${fmt0(v.target-v.saved)} to go</span></div><div class="vault-contrib"><input type="number" id="contrib_${i}" placeholder="Add $"><button class="btn btn-teal" onclick="contributeVault(${i})" style="width:auto;">Add</button><button class="act-btn act-del" onclick="deleteVault(${i})" style="margin-left:auto;"><i class="fa-solid fa-trash-can"></i></button></div>`;
+        div.innerHTML=`<div class="vault-head"><div><div style="font-size:1.4rem;margin-bottom:4px;">${escapeHtml(sanitizePlainString(v.emoji||'🎯', 8))}</div><div class="vault-name">${escapeHtml(sanitizePlainString(v.name, 80))}</div></div><div class="vault-amounts"><div class="vault-saved">$${fmt0(v.saved)}</div><div class="vault-target">of $${fmt0(v.target)} goal</div></div></div><div class="prog-bar"><div class="prog-fill fill-goal" style="width:${pct}%"></div></div><div class="prog-meta" style="margin-top:5px;"><span>${Math.round(pct)}% complete</span><span>$${fmt0(v.target-v.saved)} to go</span></div><div class="vault-contrib"><input type="number" id="contrib_${i}" placeholder="Add $"><button class="btn btn-teal" onclick="contributeVault(${i})" style="width:auto;">Add</button><button class="act-btn act-del" onclick="deleteVault(${i})" style="margin-left:auto;"><i class="fa-solid fa-trash-can"></i></button></div>`;
         list.appendChild(div);
     });
 }
 
 function addVault() {
-    const name=document.getElementById('vaultName').value, target=parseFloat(document.getElementById('vaultTarget').value), emoji=document.getElementById('vaultEmoji').value||'🎯', saved=parseFloat(document.getElementById('vaultSaved').value)||0;
+    const name=sanitizePlainString(document.getElementById('vaultName').value, 80), target=parseFloat(document.getElementById('vaultTarget').value), emoji=sanitizePlainString(document.getElementById('vaultEmoji').value, 8)||'🎯', saved=parseFloat(document.getElementById('vaultSaved').value)||0;
     if(!name||!target) return;
-    vaults.push({name,target,saved,emoji});
+    vaults.push(sanitizeVaultRow({name,target,saved,emoji}));
     localStorage.setItem('montoya_vaults',JSON.stringify(vaults));
     document.getElementById('vaultName').value=''; document.getElementById('vaultTarget').value=''; document.getElementById('vaultEmoji').value=''; document.getElementById('vaultSaved').value='';
     renderVaults(); showToast('Vault created!');
@@ -3351,12 +3547,12 @@ function renderBills() {
         // upcoming (≤7 days)
         if(days<=7){
             const d=document.createElement('div'); d.className='bill-item';
-            d.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">${b.icon||'💳'}</div><div><div class="bill-name">${b.name}</div><div class="bill-due">Day ${b.day} of each cycle</div></div></div><div class="bill-right"><div class="bill-amt">$${parseFloat(b.amount).toFixed(2)}</div><div class="bill-countdown ${cls}">${label}</div></div>`;
+            d.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">${escapeHtml(sanitizePlainString(b.icon||'💳', 8))}</div><div><div class="bill-name">${escapeHtml(sanitizePlainString(b.name, 80))}</div><div class="bill-due">Day ${Math.max(1, Math.min(31, parseInt(b.day, 10) || 1))} of each cycle</div></div></div><div class="bill-right"><div class="bill-amt">$${safeNumber(b.amount).toFixed(2)}</div><div class="bill-countdown ${cls}">${label}</div></div>`;
             upcoming.appendChild(d);
         }
 
         const div=document.createElement('div'); div.className='bill-item';
-        div.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">${b.icon||'💳'}</div><div><div class="bill-name">${b.name}</div><div class="bill-due">Due day ${b.day}</div></div></div><div class="bill-right"><div class="bill-amt">$${parseFloat(b.amount).toFixed(2)}</div><div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;"><span class="bill-countdown ${cls}">${label}</span><button class="act-btn act-del" onclick="deleteBill(${i})"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        div.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">${escapeHtml(sanitizePlainString(b.icon||'💳', 8))}</div><div><div class="bill-name">${escapeHtml(sanitizePlainString(b.name, 80))}</div><div class="bill-due">Due day ${Math.max(1, Math.min(31, parseInt(b.day, 10) || 1))}</div></div></div><div class="bill-right"><div class="bill-amt">$${safeNumber(b.amount).toFixed(2)}</div><div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;"><span class="bill-countdown ${cls}">${label}</span><button class="act-btn act-del" onclick="deleteBill(${i})"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
         all.appendChild(div);
     });
 
@@ -3364,9 +3560,9 @@ function renderBills() {
 }
 
 function addBill() {
-    const name=document.getElementById('billName').value, amt=document.getElementById('billAmt').value, day=parseInt(document.getElementById('billDay').value), icon=document.getElementById('billIcon').value||'💳';
+    const name=sanitizePlainString(document.getElementById('billName').value, 80), amt=document.getElementById('billAmt').value, day=parseInt(document.getElementById('billDay').value), icon=sanitizePlainString(document.getElementById('billIcon').value, 8)||'💳';
     if(!name||!amt||!day) return;
-    billReminders.push({name,amount:parseFloat(amt),day,icon});
+    billReminders.push(sanitizeBillRow({name,amount:parseFloat(amt),day,icon}));
     localStorage.setItem('montoya_bills',JSON.stringify(billReminders));
     document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('billDay').value=''; document.getElementById('billIcon').value='';
     renderBills(); showToast('Bill added!');
@@ -3429,7 +3625,7 @@ async function askAI() {
 function addAIHistory(q,a) {
     const hist=document.getElementById('aiHistory');
     const div=document.createElement('div'); div.className='card'; div.style.marginBottom='10px';
-    div.innerHTML=`<div style="font-size:.72rem;font-weight:700;color:var(--violet);margin-bottom:6px;">You asked</div><div style="font-size:.82rem;color:var(--text-soft);margin-bottom:10px;">${q}</div><div style="font-size:.72rem;font-weight:700;color:var(--gold);margin-bottom:6px;">AI Coach</div><div style="font-size:.82rem;color:var(--text);line-height:1.6;">${a}</div>`;
+    div.innerHTML=`<div style="font-size:.72rem;font-weight:700;color:var(--violet);margin-bottom:6px;">You asked</div><div style="font-size:.82rem;color:var(--text-soft);margin-bottom:10px;">${escapeHtml(sanitizePlainString(q, 500))}</div><div style="font-size:.72rem;font-weight:700;color:var(--gold);margin-bottom:6px;">AI Coach</div><div style="font-size:.82rem;color:var(--text);line-height:1.6;">${escapeHtml(sanitizePlainString(a, 2000))}</div>`;
     hist.insertBefore(div,hist.firstChild);
 }
 
@@ -3496,9 +3692,9 @@ function renderAnalytics() {
 
 // ── Notes Chat ──
 let selectedNoteCat = 'General';
-let notePins = JSON.parse(localStorage.getItem('montoya_note_pins') || '[]');
-let noteReactions = JSON.parse(localStorage.getItem('montoya_note_reactions') || '{}');
-let myNoteReactions = JSON.parse(localStorage.getItem('montoya_my_note_reactions') || '{}');
+let notePins = safeJsonParse(localStorage.getItem('montoya_note_pins'), []).map(safeIdValue).filter(Boolean);
+let noteReactions = safeJsonParse(localStorage.getItem('montoya_note_reactions'), {});
+let myNoteReactions = safeJsonParse(localStorage.getItem('montoya_my_note_reactions'), {});
 let lastSeenNoteTime = parseInt(localStorage.getItem('montoya_notes_seen') || '0');
 
 function selectNoteCat(cat) {
@@ -3618,7 +3814,8 @@ function renderSubs() {
     const list=document.getElementById('subList'); list.innerHTML='';
     recurring.forEach(s=>{
         const div=document.createElement('div'); div.className='hist-item';
-        div.innerHTML=`<div><span class="hist-note">${s.name}</span><span class="hist-date">Billed day ${s.billing_day}</span></div><div class="hist-right"><div class="hist-amt" style="color:var(--gold);">$${s.amount.toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-del" onclick="deleteSub('${s.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        const safeSubId = safeIdValue(s.id);
+        div.innerHTML=`<div><span class="hist-note">${escapeHtml(sanitizePlainString(s.name, 120))}</span><span class="hist-date">Billed day ${Math.max(1, Math.min(31, parseInt(s.billing_day, 10) || 1))}</span></div><div class="hist-right"><div class="hist-amt" style="color:var(--gold);">$${safeNumber(s.amount).toFixed(2)}</div><div class="hist-actions"><button class="act-btn act-del" onclick="deleteSub('${safeSubId}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
         list.appendChild(div);
     });
 }
@@ -3627,8 +3824,8 @@ function renderSubs() {
 function renderNotifs() {
     const list=document.getElementById('notifList'); list.innerHTML='';
     let acts=[];
-    history.forEach(t=>{if(t.user_id!==currentUser){let n= t.member==='Brandon'?'Brandon':t.member==='Gina'?'Gina':'Partner';acts.push({user:n,text:`synced $${t.amount.toFixed(2)} — ${t.note||t.category}`,time:new Date(t.created_at),type:'txn'});}});
-    notes.forEach(n=>acts.push({user:n.author,text:'posted a note: '+(n.message&&n.message.length>40?n.message.substring(0,40)+'…':n.message||''),time:new Date(n.created_at),type:'note'}));
+    history.forEach(t=>{if(t.user_id!==currentUser){let n= t.member==='Brandon'?'Brandon':t.member==='Gina'?'Gina':'Partner';acts.push({user:n,text:`synced $${safeNumber(t.amount).toFixed(2)} — ${sanitizePlainString(t.note||t.category, 80)}`,time:new Date(t.created_at),type:'txn'});}});
+    notes.forEach(n=>acts.push({user:sanitizePlainString(n.author, 40),text:'posted a note: '+sanitizePlainString((n.message&&n.message.length>40?n.message.substring(0,40)+'…':n.message||''), 80),time:new Date(n.created_at),type:'note'}));
     acts.sort((a,b)=>b.time-a.time);
     const lastV=parseInt(localStorage.getItem('montoya_notifs')||'0');
     const unread = acts.filter(a=>a.time.getTime()>lastV).length;
@@ -3650,7 +3847,9 @@ function renderNotifs() {
         const isNew = a.time.getTime()>lastV;
         const typeIcon = a.type==='note' ? '📝' : '💸';
         const div=document.createElement('div'); div.style.cssText='padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;'+(isNew?'background:rgba(212,168,67,.04);border-radius:8px;padding:10px 8px;':'');
-        div.innerHTML=`<span style="font-size:1rem;flex-shrink:0;margin-top:1px;">${typeIcon}</span><div style="min-width:0;"><div style="font-size:.82rem;color:var(--text);"><b style="color:${a.user==='Brandon'?'var(--brandon)':'var(--gina)'}">${a.user}</b> ${a.text}</div><div style="font-size:.62rem;color:var(--text-dim);margin-top:2px;">${a.time.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${a.time.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div></div>${isNew?'<span style="width:7px;height:7px;background:var(--rose);border-radius:50%;flex-shrink:0;margin-top:5px;"></span>':''}`;
+        const safeUser = escapeHtml(sanitizePlainString(a.user, 40));
+        const safeTextLine = escapeHtml(sanitizePlainString(a.text, 120));
+        div.innerHTML=`<span style="font-size:1rem;flex-shrink:0;margin-top:1px;">${typeIcon}</span><div style="min-width:0;"><div style="font-size:.82rem;color:var(--text);"><b style="color:${a.user==='Brandon'?'var(--brandon)':a.user==='Gina'?'var(--gina)':'var(--text-soft)'}">${safeUser}</b> ${safeTextLine}</div><div style="font-size:.62rem;color:var(--text-dim);margin-top:2px;">${a.time.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${a.time.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div></div>${isNew?'<span style="width:7px;height:7px;background:var(--rose);border-radius:50%;flex-shrink:0;margin-top:5px;"></span>':''}`;
         list.appendChild(div);
     });
     // Update notes unread badge
@@ -3725,7 +3924,7 @@ async function addEntry() {
     if(cat==='Mortgage'&&!editingId) config.m_balance-=amt;
     if(cat==='Car'&&!editingId)      config.c_balance-=amt;
     const isRecurChecked=document.getElementById('isRecur')?document.getElementById('isRecur').checked:false;
-    const payload={amount:amt,member:document.getElementById('memberSelect').value,category:cat,note:document.getElementById('noteInput').value,intent:currentType,user_id:currentUser,group_id:currentGroup,is_recurring:isRecurChecked};
+    const payload={amount:amt,member:document.getElementById('memberSelect').value,category:cat,note:sanitizePlainString(document.getElementById('noteInput').value, 240),intent:currentType,user_id:currentUser,group_id:currentGroup,is_recurring:isRecurChecked};
     try {
         if(editingId){await _sb.from('transactions').update(payload).eq('id',editingId);editingId=null;document.getElementById('syncBtn').innerText='Sync Transaction';document.getElementById('recurRow').style.display='flex';showToast('Transaction updated! ✓');}
         else{
@@ -3762,9 +3961,9 @@ function editEntry(id) {
     setTimeout(()=>{ openSheet(); }, 50);
 }
 
-async function deleteEntry(id){ if(confirm('Delete?')){ await _sb.from('transactions').delete().eq('id',id); fetchData(); } }
-async function deleteSub(id){ if(confirm('Delete?')){ await _sb.from('recurring_expenses').delete().eq('id',id); fetchData(); } }
-async function deleteNote(id){ if(confirm('Delete?')){ await _sb.from('app_notes').delete().eq('id',id); fetchData(); } }
+async function deleteEntry(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid transaction id', 'error'); if(confirm('Delete?')){ await _sb.from('transactions').delete().eq('id',safeId); fetchData(); } }
+async function deleteSub(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid subscription id', 'error'); if(confirm('Delete?')){ await _sb.from('recurring_expenses').delete().eq('id',safeId); fetchData(); } }
+async function deleteNote(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid note id', 'error'); if(confirm('Delete?')){ await _sb.from('app_notes').delete().eq('id',safeId); fetchData(); } }
 
 async function addNote() {
     const msgEl = document.getElementById('noteMessage');
@@ -3977,8 +4176,8 @@ function resetScanner() {
 // ── Challenges ──
 let challenges = [];
 function loadChallenges() {
-    const saved = localStorage.getItem('montoya_challenges');
-    if (saved) challenges = JSON.parse(saved);
+    const saved = safeJsonParse(localStorage.getItem('montoya_challenges'), []);
+    if (Array.isArray(saved)) challenges = saved.map(sanitizeChallengeRow).filter(function(c){ return c.name; });
     renderChallenges();
 }
 
@@ -4015,15 +4214,15 @@ function renderChallenges() {
 
         if (complete) {
             const b = document.createElement('div'); b.className = 'badge';
-            b.innerHTML = `<span>${ch.emoji || '🏅'}</span><span class="badge-lbl">${ch.name.substring(0,8)}</span>`;
+            b.innerHTML = `<span>${escapeHtml(sanitizePlainString(ch.emoji || '🏅', 8))}</span><span class="badge-lbl">${escapeHtml(sanitizePlainString(ch.name, 8))}</span>`;
             badges.appendChild(b);
         }
 
         const div = document.createElement('div'); div.className = 'challenge-item' + (complete ? ' complete' : '');
-        div.innerHTML = `<div class="ch-head"><div><div class="ch-name">${ch.emoji || '🎯'} ${ch.name}</div><div style="font-size:.7rem;color:var(--text-dim);margin-top:3px;">${label}</div></div><span class="ch-status ${complete ? 'ch-done' : 'ch-active'}">${complete ? '✓ Done' : 'Active'}</span></div><div class="prog-bar"><div class="prog-fill ${complete ? 'fill-goal' : 'fill-car'}" style="width:${complete ? 100 : (ch.type.includes('under') || ch.type==='nocat' ? 100 - progress : progress)}%"></div></div>`;
+        div.innerHTML = `<div class="ch-head"><div><div class="ch-name">${escapeHtml(sanitizePlainString(ch.emoji || '🎯', 8))} ${escapeHtml(sanitizePlainString(ch.name, 80))}</div><div style="font-size:.7rem;color:var(--text-dim);margin-top:3px;">${escapeHtml(sanitizePlainString(label, 80))}</div></div><span class="ch-status ${complete ? 'ch-done' : 'ch-active'}">${complete ? '✓ Done' : 'Active'}</span></div><div class="prog-bar"><div class="prog-fill ${complete ? 'fill-goal' : 'fill-car'}" style="width:${Math.max(0, Math.min(100, complete ? 100 : (ch.type.includes('under') || ch.type==='nocat' ? 100 - progress : progress)))}%"></div></div>`;
         if (!complete && ch.id && ch.id.startsWith('c_')) {
             const del = document.createElement('button'); del.className = 'act-btn act-del'; del.style.marginTop = '6px'; del.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-            del.onclick = () => { challenges = challenges.filter(c => c.id !== ch.id); localStorage.setItem('montoya_challenges', JSON.stringify(challenges)); renderChallenges(); };
+            del.onclick = () => { const safeChId = safeIdValue(ch.id); challenges = challenges.filter(c => c.id !== safeChId); localStorage.setItem('montoya_challenges', JSON.stringify(challenges)); renderChallenges(); };
             div.appendChild(del);
         }
         list.appendChild(div);
@@ -4034,7 +4233,7 @@ function renderChallenges() {
 }
 
 function addChallenge() {
-    const name = document.getElementById('chName').value, target = parseFloat(document.getElementById('chTarget').value) || 0, type = document.getElementById('chType').value;
+    const name = sanitizePlainString(document.getElementById('chName').value, 80), target = parseFloat(document.getElementById('chTarget').value) || 0, type = sanitizePlainString(document.getElementById('chType').value, 24);
     if (!name) return;
     const emojis = { under:'💸', save:'💰', nocat:'🚫' };
     challenges.push({ id: 'c_' + Date.now(), name, type, target, cat: document.getElementById('chCat').value, emoji: emojis[type] || '🎯' });
@@ -4048,7 +4247,7 @@ function renderFamilyFeed() {
     const list = document.getElementById('feedList'); if (!list) return;
     list.innerHTML = '';
     let bS = 0, gS = 0, bCount = 0, gCount = 0;
-    const reactions = JSON.parse(localStorage.getItem('montoya_reactions') || '{}');
+    const reactions = safeJsonParse(localStorage.getItem('montoya_reactions'), {});
 
     const combined = [...history].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -4062,24 +4261,27 @@ function renderFamilyFeed() {
         }
 
         const who = item.member === 'Gina' ? 'Gina' : 'Brandon';
+        const safeItemId = safeIdValue(item.id);
+        const safeFeedCategory = escapeHtml(sanitizePlainString(item.category, 40));
+        const safeFeedNote = escapeHtml(sanitizePlainString(item.note || item.category, 120));
         const d = new Date(item.created_at);
         const timeStr = d.toLocaleDateString('en-US', {month:'short',day:'numeric'}) + ' · ' + d.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
         const itemReactions = reactions[item.id] || {};
-        const myReactions = JSON.parse(localStorage.getItem('montoya_my_reactions') || '{}');
+        const myReactions = safeJsonParse(localStorage.getItem('montoya_my_reactions'), {});
 
         const div = document.createElement('div'); div.className = 'feed-item';
         div.innerHTML = `
             <div class="feed-top">
                 <div class="feed-avatar feed-av-${who.toLowerCase()}">${who[0]}</div>
                 <div><div class="feed-name" style="color:var(--${who.toLowerCase()})">${who}</div><div class="feed-time">${timeStr}</div></div>
-                <div style="margin-left:auto;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${item.category}</span></div>
+                <div style="margin-left:auto;"><span class="cat-badge" style="background:${CAT_COLORS[item.category]||'#64748b'}22;color:${CAT_COLORS[item.category]||'#94a3b8'}">${safeFeedCategory}</span></div>
             </div>
-            <div class="feed-body">${item.note || item.category} <span class="feed-amt">-$${item.amount.toFixed(2)}</span></div>
+            <div class="feed-body">${safeFeedNote} <span class="feed-amt">-$${safeNumber(item.amount).toFixed(2)}</span></div>
             <div class="reaction-row">
                 ${['👍','❤️','😮','😅','🔥'].map(emoji => {
                     const count = itemReactions[emoji] || 0;
                     const reacted = myReactions[item.id] === emoji;
-                    return `<div class="reaction-btn${reacted?' reacted':''}" onclick="reactTo('${item.id}','${emoji}')">${emoji}${count > 0 ? `<span class="reaction-count">${count}</span>` : ''}</div>`;
+                    return `<div class="reaction-btn${reacted?' reacted':''}" onclick="reactTo('${safeItemId}','${emoji}')">${emoji}${count > 0 ? `<span class="reaction-count">${count}</span>` : ''}</div>`;
                 }).join('')}
             </div>`;
         list.appendChild(div);
@@ -4115,7 +4317,7 @@ function reactTo(itemId, emoji) {
 async function checkAutoSync() {
     if (!currentGroup) return;
     const today = new Date().getDate();
-    const synced = JSON.parse(localStorage.getItem('flint_autosynced') || '{}');
+    const synced = safeJsonParse(localStorage.getItem('flint_autosynced'), {});
     const monthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
     if (!synced[monthKey]) synced[monthKey] = [];
     for (const bill of (billReminders || [])) {
@@ -4275,7 +4477,7 @@ Be specific, warm, and end with one actionable tip for next week. Keep it under 
         });
         const data = await res.json();
         const text = data.content?.[0]?.text || '';
-        body.innerHTML = `<div class="recap-body">${text}</div>`;
+        body.innerHTML = `<div class="recap-body">${escapeHtml(sanitizePlainString(text, 400))}</div>`;
     } catch(e) {
         body.innerHTML = `<div class="recap-body">Great job tracking your spending this week! You logged ${txCount} transactions totaling $${fmt(weekTotal)}. Your top category was ${topCat} — keep an eye on that next week!</div>`;
     }
@@ -4536,7 +4738,7 @@ function renderCatLimits() {
         div.style.cssText = 'margin-bottom:12px;';
         div.innerHTML =
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">' +
-            '<span style="font-size:.82rem;font-weight:600;">' + cat + '</span>' +
+            '<span style="font-size:.82rem;font-weight:600;">' + escapeHtml(sanitizePlainString(cat, 40)) + '</span>' +
             '<div style="display:flex;align-items:center;gap:8px;">' +
             '<span style="font-size:.72rem;color:var(--text-dim);">$' + spent.toFixed(0) + ' / $' + limit + '</span>' +
             '<button onclick="removeCatLimit(\'' + cat + '\')" style="background:none;border:none;color:var(--rose);cursor:pointer;font-size:.7rem;">✕</button>' +
@@ -4618,7 +4820,7 @@ function renderCategoryBreakdown() {
         html +=
             '<div style="margin-bottom:12px;">' +
             '<div style="display:flex;justify-content:space-between;margin-bottom:5px;">' +
-            '<span style="font-size:.82rem;font-weight:600;">' + cat + '</span>' +
+            '<span style="font-size:.82rem;font-weight:600;">' + escapeHtml(sanitizePlainString(cat, 40)) + '</span>' +
             '<span style="font-size:.78rem;color:var(--text-soft);">$' + amt.toFixed(2) + ' (' + pct + '%)</span>' +
             '</div>' +
             '<div style="height:6px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden;">' +
@@ -4671,7 +4873,7 @@ function renderSpendByDay() {
 
 // ── Subscriptions enhanced render ──
 function renderSubSummary() {
-    const subs = JSON.parse(localStorage.getItem('montoya_subs') || '[]');
+    const subs = safeJsonParse(localStorage.getItem('montoya_subs'), []);
     const totalEl = document.getElementById('subTotalDisplay');
     const countEl = document.getElementById('subCountDisplay');
     const yearlyEl = document.getElementById('subYearlyDisplay');
@@ -4947,7 +5149,7 @@ async function fetchAiTip(force = false) {
         let html = '<div style="display:flex;flex-direction:column;gap:10px;">';
         if (lines.length > 0) {
             lines.forEach((line, i) => {
-                const txt = line.replace(/^[1-3][\.\)]\s*/, '');
+                const txt = escapeHtml(sanitizePlainString(line.replace(/^[1-3][\.\)]\s*/, ''), 240));
                 html += '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.07);">'
                       + '<span style="font-size:.85rem;flex-shrink:0;">' + (icons[i]||'💡') + '</span>'
                       + '<span style="font-size:.78rem;line-height:1.55;color:rgba(240,244,255,.85);">' + txt + '</span>'
@@ -4955,7 +5157,7 @@ async function fetchAiTip(force = false) {
             });
         } else {
             // Fallback: show raw text formatted
-            html += '<div style="font-size:.78rem;line-height:1.65;color:rgba(240,244,255,.8);">' + text.replace(/\n/g,'<br>') + '</div>';
+            html += '<div style="font-size:.78rem;line-height:1.65;color:rgba(240,244,255,.8);">' + escapeHtml(sanitizePlainString(text, 1200)).replace(/\n/g,'<br>') + '</div>';
         }
         html += '</div>';
 
@@ -5421,17 +5623,17 @@ function _buildAndShowPanel(id) {
 
     var panel = document.createElement('div');
     panel.id = 'flintPanel';
+    panel.className = 'flint-panel-overlay';
     panel.style.cssText = 'position:fixed;top:0;right:0;bottom:0;left:240px;z-index:900;background:#060d1c;overflow-y:auto;padding:0;';
-    var panelMaxWidth = '600px';
-    if (id === 'profileManager') panelMaxWidth = '980px';
-    else if (id === 'analyticsModal') panelMaxWidth = '1100px';
-    else if (id === 'aiInsights' || id === 'familyFeed' || id === 'notesManager' || id === 'shareManager') panelMaxWidth = '900px';
-    panel.innerHTML = '<div style="max-width:' + panelMaxWidth + ';margin:0 auto;padding:28px 24px 80px;">' +
-        '<div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">' +
-            '<div onclick="closePanel()" style="cursor:pointer;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#8899bb;font-size:.85rem;"><i class="fa-solid fa-arrow-left"></i></div>' +
-            '<div style="font-size:.82rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#eef2ff;">' + title + '</div>' +
+    var panelSize = 'compact';
+    if (['networth','vaults','bills','subManager','challenges','familyFeed','shareManager'].indexOf(id) >= 0) panelSize = 'wide';
+    if (['analyticsModal','aiInsights','notesManager','profileManager','configManager'].indexOf(id) >= 0) panelSize = 'full';
+    panel.innerHTML = '<div class="flint-panel-shell flint-panel-' + panelSize + '">' +
+        '<div class="flint-panel-head">' +
+            '<div onclick="closePanel()" class="flint-panel-back"><i class="fa-solid fa-arrow-left"></i></div>' +
+            '<div class="flint-panel-title">' + title + '</div>' +
         '</div>' +
-        '<div id="flintPanelContent">' + content + '</div>' +
+        '<div id="flintPanelContent" class="flint-panel-body">' + content + '</div>' +
     '</div>';
     document.body.appendChild(panel);
     if(window.innerWidth < 1024) panel.style.left = '0';
@@ -5713,7 +5915,7 @@ function buildNotesPanel(){
     });}
     return h;
 }
-function fpSendNote(){var msg=document.getElementById('fp_noteMsg').value;if(!msg){showToast('Write a message first','error');return;}var author='Partner';if(currentDisplayName==='BRANDON')author='Brandon';else if(currentDisplayName==='GINA')author='Gina';var cat=document.getElementById('fp_noteCat').value||'General';_sb.from('app_notes').insert([{author:author,message:msg,category:cat,user_id:currentUser,group_id:currentGroup}]).then(function(){showToast('Note sent!');fetchData().then(function(){openPanel('notesManager');});});}
+function fpSendNote(){var msg=document.getElementById('fp_noteMsg').value;if(!msg){showToast('Write a message first','error');return;}var author='Partner';if(currentDisplayName==='BRANDON')author='Brandon';else if(currentDisplayName==='GINA')author='Gina';var cat=document.getElementById('fp_noteCat').value||'General';_sb.from('app_notes').insert([{author:author,message:sanitizePlainString(msg, 500),category:cat,user_id:currentUser,group_id:currentGroup}]).then(function(){showToast('Note sent!');fetchData().then(function(){openPanel('notesManager');});});}
 function fpDelNote(id){if(!confirm('Delete note?'))return;_sb.from('app_notes').delete().eq('id',id).then(function(){notes=notes.filter(function(n){return n.id!==id;});showToast('Note deleted');openPanel('notesManager');});}
 
 // ── FAMILY FEED PANEL ──
@@ -8536,8 +8738,9 @@ function dismissWelcome() {
   }
 
   async function familyNoteUpdate(id, patch, successMsg){
+    var safeId = safeIdValue(id); if (!safeId) return showToast('Invalid note id', 'error');
     var payload = Object.assign({}, patch, { updated_at: new Date().toISOString() });
-    var res = await _sb.from('app_notes').update(payload).eq('id', id).eq('group_id', currentGroup);
+    var res = await _sb.from('app_notes').update(payload).eq('id', safeId).eq('group_id', currentGroup);
     if (res.error) return handleFamilyNotesDbError(res.error);
     notes = (notes || []).map(function(n){ return Number(n.id) === Number(id) ? Object.assign({}, n, payload) : n; });
     renderFamilyNotesViews();
@@ -8556,7 +8759,7 @@ function dismissWelcome() {
     var typeEl = document.getElementById('fnType');
     var dueEl = document.getElementById('fnDue');
     var pinEl = document.getElementById('fnPin');
-    var message = (msgEl && msgEl.value ? msgEl.value.trim() : '');
+    var message = sanitizePlainString(msgEl && msgEl.value ? msgEl.value.trim() : '', FAMILY_NOTES_LIMIT);
     if (!message) return showToast('Write a note first.', 'error');
     if (message.length > FAMILY_NOTES_LIMIT) return showToast('Keep notes under ' + FAMILY_NOTES_LIMIT + ' characters.', 'error');
     var payload = {
@@ -8595,7 +8798,8 @@ function dismissWelcome() {
   };
   window.deleteFamilyNote = async function(id){
     if (!confirm('Delete this note?')) return;
-    var res = await _sb.from('app_notes').delete().eq('id', id).eq('group_id', currentGroup).eq('user_id', currentUser);
+    var safeId = safeIdValue(id); if (!safeId) return showToast('Invalid note id', 'error');
+    var res = await _sb.from('app_notes').delete().eq('id', safeId).eq('group_id', currentGroup).eq('user_id', currentUser);
     if (res.error) return handleFamilyNotesDbError(res.error);
     notes = (notes || []).filter(function(n){ return Number(n.id) !== Number(id); });
     renderFamilyNotesViews();
@@ -8685,6 +8889,31 @@ function dismissWelcome() {
       renderFamilyNotesViews();
     }, 120);
   });
+})();
+</script>
+
+
+<script id="flint-panel-layout-patch">
+(function(){
+  function widenNoteComposer(){
+    var root = document.getElementById('flintPanelContent');
+    if (!root) return;
+    var hero = root.querySelector('.fn-shell');
+    if (hero) {
+      hero.style.maxWidth = 'none';
+      hero.style.width = '100%';
+    }
+  }
+  var orig = window._buildAndShowPanel;
+  if (typeof orig === 'function') {
+    window._buildAndShowPanel = function(id){
+      var result = orig.apply(this, arguments);
+      setTimeout(function(){
+        if (id === 'notesManager') widenNoteComposer();
+      }, 0);
+      return result;
+    };
+  }
 })();
 </script>
 
