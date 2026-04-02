@@ -6332,5 +6332,651 @@ function dismissWelcome() {
 })();
 </script>
 
+
+<style id="flint-profile-v2">
+  .flint-prof-shell{display:flex;flex-direction:column;gap:14px}
+  .flint-prof-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .flint-prof-grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  .flint-prof-card{background:var(--ink-2);border:1px solid var(--border);border-radius:18px;padding:16px}
+  .flint-prof-card.soft{background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(232,194,82,.05));border-color:rgba(249,115,22,.18)}
+  .flint-prof-section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.8px;color:var(--text-soft);margin-bottom:12px}
+  .flint-prof-hero{display:flex;align-items:center;gap:16px;padding:22px;background:linear-gradient(135deg,rgba(249,115,22,.09),rgba(232,194,82,.05));border:1px solid rgba(249,115,22,.18);border-radius:22px;position:relative;overflow:hidden}
+  .flint-prof-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#f97316,#e8c252,transparent)}
+  .flint-prof-avatar{width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;color:var(--gold);background:linear-gradient(135deg,rgba(212,168,67,.22),rgba(96,165,250,.12));border:1px solid rgba(212,168,67,.36);flex-shrink:0}
+  .flint-prof-name{font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:700;color:var(--text);margin-bottom:3px}
+  .flint-prof-email{font-size:.8rem;color:var(--text-soft);margin-bottom:8px}
+  .flint-prof-badges{display:flex;flex-wrap:wrap;gap:8px}
+  .flint-prof-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:100px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--border)}
+  .flint-prof-badge.role{background:rgba(96,165,250,.1);color:var(--blue);border-color:rgba(96,165,250,.2)}
+  .flint-prof-badge.focus{background:rgba(167,139,250,.1);color:var(--violet);border-color:rgba(167,139,250,.2)}
+  .flint-prof-badge.household{background:rgba(52,211,153,.1);color:var(--green);border-color:rgba(52,211,153,.2)}
+  .flint-prof-stat{background:var(--ink-2);border:1px solid var(--border);border-radius:16px;padding:14px 12px}
+  .flint-prof-stat-k{font-size:.56rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px}
+  .flint-prof-stat-v{font-size:1.02rem;font-weight:700;color:var(--text);line-height:1.2}
+  .flint-prof-stat-s{font-size:.67rem;color:var(--text-soft);margin-top:4px;line-height:1.45}
+  .flint-prof-label{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-dim);margin-bottom:6px}
+  .flint-prof-note{font-size:.72rem;color:var(--text-dim);line-height:1.55}
+  .flint-prof-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
+  .flint-prof-row:last-child{border-bottom:none;padding-bottom:0}
+  .flint-prof-row:first-child{padding-top:0}
+  .flint-prof-row-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .flint-prof-row-title{font-size:.84rem;font-weight:600;color:var(--text)}
+  .flint-prof-row-sub{font-size:.72rem;color:var(--text-dim);line-height:1.45}
+  .flint-prof-mini{font-size:.75rem;font-weight:700;color:var(--text-soft)}
+  .flint-prof-select,.flint-prof-input,.flint-prof-textarea{width:100%;background:rgba(6,12,28,.55);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:.84rem;font-family:'DM Sans',sans-serif;outline:none}
+  .flint-prof-textarea{min-height:82px;resize:vertical}
+  .flint-prof-select:focus,.flint-prof-input:focus,.flint-prof-textarea:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px var(--gold-glow)}
+  .flint-prof-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .flint-prof-btn{appearance:none;border:none;border-radius:12px;padding:12px 14px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+  .flint-prof-btn.primary{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:var(--ink)}
+  .flint-prof-btn.secondary{background:rgba(96,165,250,.12);color:var(--blue);border:1px solid rgba(96,165,250,.24)}
+  .flint-prof-btn.ghost{background:rgba(255,255,255,.04);color:var(--text-soft);border:1px solid var(--border)}
+  .flint-prof-btn.danger{background:rgba(251,113,133,.1);color:var(--rose);border:1px solid rgba(251,113,133,.24)}
+  .flint-prof-chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  .flint-prof-chip{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--border);font-size:.7rem;font-weight:700;color:var(--text-soft)}
+  .flint-prof-avatar-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+  .flint-prof-avatar-opt{height:52px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:1.05rem;color:var(--text-soft);cursor:pointer;transition:all .18s}
+  .flint-prof-avatar-opt.active,.flint-prof-avatar-opt:hover{border-color:rgba(212,168,67,.35);color:var(--gold);background:rgba(212,168,67,.08);transform:translateY(-1px)}
+  .flint-inline-saved{display:none;font-size:.76rem;font-weight:700;color:var(--green);padding-top:4px}
+  body.flint-hide-balances .bal-number,
+  body.flint-hide-balances #balanceNum,
+  body.flint-hide-balances #heroTotalSpent,
+  body.flint-hide-balances #bSpend,
+  body.flint-hide-balances #gSpend,
+  body.flint-hide-balances .loan-val,
+  body.flint-hide-balances .member-amt,
+  body.flint-hide-balances .hist-amt,
+  body.flint-hide-balances .prof-stat-val,
+  body.flint-hide-balances .flint-prof-stat-v,
+  body.flint-hide-balances .m-bal-num,
+  body.flint-hide-balances .m-txn-amt,
+  body.flint-hide-balances .m-card-v,
+  body.flint-hide-balances .ticker-price{filter:blur(10px);user-select:none}
+  body.flint-blur-shared .hist-item .hist-amt,
+  body.flint-blur-shared .hist-item .hist-note{filter:blur(5px)}
+  @media (max-width: 700px){
+    .flint-prof-grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .flint-prof-grid-2{grid-template-columns:1fr}
+    .flint-prof-avatar-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .flint-prof-hero{align-items:flex-start}
+  }
+</style>
+<script id="flint-profile-v2-script">
+(function(){
+  var CATEGORY_OPTIONS = ['Groceries','Dining','Mortgage','Car','Utilities','CreditCard','Subscription','Shopping','Beauty','Travel','Health','Entertainment','Income','Misc'];
+  var AVATARS = ['fa-user','fa-user-astronaut','fa-user-ninja','fa-crown','fa-dog','fa-cat','fa-hat-wizard','fa-car','fa-rocket','fa-fire','fa-star','fa-gem'];
+  function esc(v){
+    if (typeof escapeHtml === 'function') return escapeHtml(v == null ? '' : String(v));
+    return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});
+  }
+  function currentName(){
+    if (currentDisplayName === 'BRANDON') return 'Brandon';
+    if (currentDisplayName === 'GINA') return 'Gina';
+    if (currentDisplayName && String(currentDisplayName).trim()) {
+      var rawName = String(currentDisplayName).trim();
+      return rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
+    }
+    try {
+      var raw = localStorage.getItem('sb-hieqohmhrpjvhotutwls-auth-token');
+      var user = raw ? JSON.parse(raw).user : null;
+      var meta = user && user.user_metadata && user.user_metadata.display_name;
+      if (meta) return String(meta);
+    } catch(e) {}
+    return 'Partner';
+  }
+  function defaultProfilePrefs(){
+    return {
+      role: currentDisplayName === 'GINA' ? 'Partner' : 'Primary',
+      colorTag: currentDisplayName === 'GINA' ? 'Rose' : 'Blue',
+      defaultMember: currentDisplayName === 'GINA' ? 'Gina' : 'Brandon',
+      defaultIntent: 'Need',
+      defaultCategory: 'Groceries',
+      cycleStartDay: (config && config.cycle_start_day) || 1,
+      aiStyle: 'balanced',
+      aiFocus: 'stay_on_budget',
+      aiThreshold: 75,
+      aiRedFlags: 'Dining, Beauty, Subscription',
+      aiSensitivity: 'balanced',
+      hideBalances: false,
+      blurShared: false,
+      notif: { bills: true, partner: true, recap: true, anomalies: true }
+    };
+  }
+  function getProfilePrefs(){
+    var base = defaultProfilePrefs();
+    try {
+      var raw = localStorage.getItem('flint_profile_prefs');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          base = Object.assign(base, parsed);
+          base.notif = Object.assign({}, defaultProfilePrefs().notif, parsed.notif || {});
+        }
+      }
+    } catch(e) {}
+    try {
+      var old = JSON.parse(localStorage.getItem('montoya_notif_prefs') || '{}');
+      if (old && typeof old === 'object') {
+        if (typeof old.bills !== 'undefined') base.notif.bills = old.bills !== false;
+        if (typeof old.partner !== 'undefined') base.notif.partner = old.partner !== false;
+        if (typeof old.recap !== 'undefined') base.notif.recap = old.recap !== false;
+      }
+    } catch(e) {}
+    return base;
+  }
+  function saveProfilePrefs(prefs){
+    localStorage.setItem('flint_profile_prefs', JSON.stringify(prefs));
+    localStorage.setItem('montoya_notif_prefs', JSON.stringify({
+      bills: prefs.notif.bills !== false,
+      partner: prefs.notif.partner !== false,
+      recap: prefs.notif.recap !== false
+    }));
+  }
+  function focusLabel(val){
+    return ({
+      stay_on_budget:'Stay on budget',
+      cut_wants:'Cut wants',
+      pay_down_debt:'Pay down debt',
+      build_savings:'Build savings'
+    })[val] || 'Stay on budget';
+  }
+  function styleLabel(val){
+    return ({strict:'Strict',balanced:'Balanced',encouraging:'Encouraging'})[val] || 'Balanced';
+  }
+  function sensitivityLabel(val){
+    return ({strict:'Strict',balanced:'Balanced',easy:'Flexible'})[val] || 'Balanced';
+  }
+  function categorySpendForCycle(){
+    var map = {};
+    var total = 0;
+    var tx = [];
+    try {
+      var cds = cycleDates(currentViewDate);
+      tx = (history || []).filter(function(t){
+        var d = new Date(t.created_at || t.date || Date.now());
+        return d >= cds.start && d <= new Date();
+      });
+    } catch(e) {
+      tx = history || [];
+    }
+    tx.forEach(function(t){
+      var amt = parseFloat(t.amount || 0) || 0;
+      total += amt;
+      map[t.category || 'Misc'] = (map[t.category || 'Misc'] || 0) + amt;
+    });
+    var top = Object.keys(map).sort(function(a,b){ return map[b] - map[a]; })[0] || 'No data';
+    return { tx: tx, total: total, topCategory: top, categories: map };
+  }
+  function profileSnapshot(){
+    var prefs = getProfilePrefs();
+    var info = categorySpendForCycle();
+    var budget = parseFloat((config && config.budget) || 7400) || 7400;
+    var savingsRate = budget > 0 ? Math.max(0, Math.round(((budget - info.total) / budget) * 100)) : 0;
+    var streak = '0';
+    try { streak = (document.getElementById('streakVal') && document.getElementById('streakVal').innerText) || '0'; } catch(e) {}
+    var counts = {
+      txns: (history || []).length,
+      vaults: (vaults || []).length,
+      bills: (billReminders || []).length,
+      cycles: Math.max(1, info.tx.length ? Math.round(((new Date()) - new Date(Math.min.apply(null, (history||[]).map(function(t){return new Date(t.created_at || t.date || Date.now()).getTime();})))) / (30*24*60*60*1000)) : 1)
+    };
+    return {
+      cycleSpend: info.total,
+      budget: budget,
+      savingsRate: savingsRate,
+      topCategory: info.topCategory,
+      coachMode: styleLabel(prefs.aiStyle),
+      focus: focusLabel(prefs.aiFocus),
+      streak: streak,
+      counts: counts
+    };
+  }
+  function fmtMoney(n){
+    var num = parseFloat(n || 0) || 0;
+    return '$' + num.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function buildAvatarGrid(selected){
+    return AVATARS.map(function(ic){
+      var active = ic === selected ? ' active' : '';
+      return '<button type="button" class="flint-prof-avatar-opt'+active+'" onclick="setIcon(\''+ic+'\'); setTimeout(function(){ if(document.getElementById(\'profileManager\') && document.getElementById(\'profileManager\').style.display!==\'none\'){ populateProfile(); } var p=document.getElementById(\'flintPanel\'); if(p){ closePanel(); openPanel(\'profileManager\'); } }, 40);"><i class="fa-solid '+ic+'"></i></button>';
+    }).join('');
+  }
+  function buildProfileContentHTML(){
+    var prefs = getProfilePrefs();
+    var snap = profileSnapshot();
+    var icon = localStorage.getItem('montoya_icon') || 'fa-user';
+    var joined = '';
+    try {
+      var raw = localStorage.getItem('sb-hieqohmhrpjvhotutwls-auth-token');
+      var user = raw ? JSON.parse(raw).user : null;
+      joined = (user && user.created_at) ? new Date(user.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'}) : '';
+    } catch(e) {}
+    if(!joined){
+      var j = new Date(); j.setMonth(j.getMonth()-2);
+      joined = j.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    }
+    var partnerStatus = currentGroup ? 'Shared ledger active' : 'Solo mode';
+    var isShared = !!currentGroup;
+    var roleOptions = ['Primary','Partner','Viewer'].map(function(v){return '<option value="'+v+'"'+(prefs.role===v?' selected':'')+'>'+v+'</option>';}).join('');
+    var colorOptions = ['Blue','Rose','Gold','Teal','Violet'].map(function(v){return '<option value="'+v+'"'+(prefs.colorTag===v?' selected':'')+'>'+v+'</option>';}).join('');
+    var memberOptions = ['Brandon','Gina','Split'].map(function(v){return '<option value="'+v+'"'+(prefs.defaultMember===v?' selected':'')+'>'+v+'</option>';}).join('');
+    var intentOptions = ['Need','Want'].map(function(v){return '<option value="'+v+'"'+(prefs.defaultIntent===v?' selected':'')+'>'+v+'</option>';}).join('');
+    var catOptions = CATEGORY_OPTIONS.map(function(v){return '<option value="'+v+'"'+(prefs.defaultCategory===v?' selected':'')+'>'+v+'</option>';}).join('');
+    var aiStyleOptions = [
+      ['strict','Strict'],['balanced','Balanced'],['encouraging','Encouraging']
+    ].map(function(v){return '<option value="'+v[0]+'"'+(prefs.aiStyle===v[0]?' selected':'')+'>'+v[1]+'</option>';}).join('');
+    var aiFocusOptions = [
+      ['stay_on_budget','Stay on budget'],
+      ['cut_wants','Cut wants'],
+      ['pay_down_debt','Pay down debt'],
+      ['build_savings','Build savings']
+    ].map(function(v){return '<option value="'+v[0]+'"'+(prefs.aiFocus===v[0]?' selected':'')+'>'+v[1]+'</option>';}).join('');
+    var aiSensitivityOptions = [
+      ['strict','Strict'],['balanced','Balanced'],['easy','Flexible']
+    ].map(function(v){return '<option value="'+v[0]+'"'+(prefs.aiSensitivity===v[0]?' selected':'')+'>'+v[1]+'</option>';}).join('');
+    var html = '';
+    html += '<div class="flint-prof-shell">';
+    html += '<div class="flint-prof-hero">';
+    html +=   '<div class="flint-prof-avatar"><i class="fa-solid '+esc(icon)+'"></i></div>';
+    html +=   '<div style="min-width:0;flex:1">';
+    html +=     '<div class="flint-prof-name">'+esc(currentName())+'</div>';
+    html +=     '<div class="flint-prof-email">'+esc(currentEmail || '')+'</div>';
+    html +=     '<div class="flint-prof-badges">';
+    html +=       '<span class="flint-prof-badge role"><i class="fa-solid fa-user-shield"></i>'+esc(prefs.role)+'</span>';
+    html +=       '<span class="flint-prof-badge focus"><i class="fa-solid fa-sparkles"></i>'+esc(focusLabel(prefs.aiFocus))+'</span>';
+    html +=       '<span class="flint-prof-badge household"><i class="fa-solid fa-link"></i>'+esc(partnerStatus)+'</span>';
+    html +=     '</div>';
+    html +=   '</div>';
+    html += '</div>';
+
+    html += '<div class="flint-prof-grid-4">';
+    html +=   '<div class="flint-prof-stat"><div class="flint-prof-stat-k">This Cycle</div><div class="flint-prof-stat-v">'+fmtMoney(snap.cycleSpend)+'</div><div class="flint-prof-stat-s">'+snap.counts.txns+' transactions logged</div></div>';
+    html +=   '<div class="flint-prof-stat"><div class="flint-prof-stat-k">Savings Rate</div><div class="flint-prof-stat-v">'+snap.savingsRate+'%</div><div class="flint-prof-stat-s">Against a '+fmtMoney(snap.budget)+' budget</div></div>';
+    html +=   '<div class="flint-prof-stat"><div class="flint-prof-stat-k">Top Category</div><div class="flint-prof-stat-v">'+esc(snap.topCategory)+'</div><div class="flint-prof-stat-s">Largest spend this cycle</div></div>';
+    html +=   '<div class="flint-prof-stat"><div class="flint-prof-stat-k">Coach Mode</div><div class="flint-prof-stat-v">'+esc(snap.coachMode)+'</div><div class="flint-prof-stat-s">'+esc(snap.focus)+'</div></div>';
+    html += '</div>';
+
+    html += '<div class="flint-prof-grid-2">';
+    html +=   '<div class="flint-prof-card soft">';
+    html +=     '<div class="flint-prof-section-title">Identity</div>';
+    html +=     '<div class="flint-prof-grid-2">';
+    html +=       '<div><div class="flint-prof-label">Display Name</div><input id="flint-edit-name" class="flint-prof-input" type="text" value="'+esc(currentName())+'" placeholder="Your name"></div>';
+    html +=       '<div><div class="flint-prof-label">Email Address</div><input id="flint-edit-email" class="flint-prof-input" type="email" value="'+esc(currentEmail || '')+'" placeholder="your@email.com"></div>';
+    html +=       '<div><div class="flint-prof-label">Role</div><select id="pref_role" class="flint-prof-select">'+roleOptions+'</select></div>';
+    html +=       '<div><div class="flint-prof-label">Color Tag</div><select id="pref_color" class="flint-prof-select">'+colorOptions+'</select></div>';
+    html +=       '<div style="grid-column:1 / -1"><div class="flint-prof-label">New Password</div><input id="flint-edit-pass" class="flint-prof-input" type="password" placeholder="Leave blank to keep current"></div>';
+    html +=     '</div>';
+    html +=   '</div>';
+
+    html +=   '<div class="flint-prof-card">';
+    html +=     '<div class="flint-prof-section-title">Money Preferences</div>';
+    html +=     '<div class="flint-prof-grid-2">';
+    html +=       '<div><div class="flint-prof-label">Default Member</div><select id="pref_member" class="flint-prof-select">'+memberOptions+'</select></div>';
+    html +=       '<div><div class="flint-prof-label">Default Type</div><select id="pref_intent" class="flint-prof-select">'+intentOptions+'</select></div>';
+    html +=       '<div><div class="flint-prof-label">Default Category</div><select id="pref_category" class="flint-prof-select">'+catOptions+'</select></div>';
+    html +=       '<div><div class="flint-prof-label">Cycle Start Day</div><input id="pref_cycle_day" class="flint-prof-input" type="number" min="1" max="28" value="'+esc(prefs.cycleStartDay)+'"></div>';
+    html +=     '</div>';
+    html +=     '<div class="flint-prof-note" style="margin-top:10px">These defaults prefill the Add Transaction sheet so logging feels faster and more personal.</div>';
+    html +=   '</div>';
+    html += '</div>';
+
+    html += '<div class="flint-prof-grid-2">';
+    html +=   '<div class="flint-prof-card">';
+    html +=     '<div class="flint-prof-section-title">AI Coach Preferences</div>';
+    html +=     '<div class="flint-prof-grid-2">';
+    html +=       '<div><div class="flint-prof-label">Coaching Style</div><select id="pref_ai_style" class="flint-prof-select">'+aiStyleOptions+'</select></div>';
+    html +=       '<div><div class="flint-prof-label">Main Focus</div><select id="pref_ai_focus" class="flint-prof-select">'+aiFocusOptions+'</select></div>';
+    html +=       '<div><div class="flint-prof-label">Challenge Wants Over</div><input id="pref_ai_threshold" class="flint-prof-input" type="number" min="1" value="'+esc(prefs.aiThreshold)+'"></div>';
+    html +=       '<div><div class="flint-prof-label">Coach Sensitivity</div><select id="pref_ai_sensitivity" class="flint-prof-select">'+aiSensitivityOptions+'</select></div>';
+    html +=       '<div style="grid-column:1 / -1"><div class="flint-prof-label">Red Flag Categories</div><textarea id="pref_ai_redflags" class="flint-prof-textarea" placeholder="Dining, Beauty, Subscription">'+esc(prefs.aiRedFlags || '')+'</textarea></div>';
+    html +=     '</div>';
+    html +=     '<div class="flint-prof-note" style="margin-top:10px">Flint will use these settings to shape AI purchase verdicts and coaching tone.</div>';
+    html +=   '</div>';
+
+    html +=   '<div class="flint-prof-card">';
+    html +=     '<div class="flint-prof-section-title">Privacy & Alerts</div>';
+    html +=     '<div class="flint-prof-row"><div class="flint-prof-row-copy"><div class="flint-prof-row-title">Hide balances on open</div><div class="flint-prof-row-sub">Blur key money totals until you choose to reveal them.</div></div><label class="toggle-switch"><input id="pref_hide_balances" type="checkbox" '+(prefs.hideBalances?'checked':'')+'><span class="toggle-slider"></span></label></div>';
+    html +=     '<div class="flint-prof-row"><div class="flint-prof-row-copy"><div class="flint-prof-row-title">Blur shared activity amounts</div><div class="flint-prof-row-sub">Keep ledger feed values less visible on shared screens.</div></div><label class="toggle-switch"><input id="pref_blur_shared" type="checkbox" '+(prefs.blurShared?'checked':'')+'><span class="toggle-slider"></span></label></div>';
+    html +=     '<div class="flint-prof-row"><div class="flint-prof-row-copy"><div class="flint-prof-row-title">Bill reminders</div><div class="flint-prof-row-sub">Alert when a bill is due soon.</div></div><label class="toggle-switch"><input id="pref_notif_bills" type="checkbox" '+(prefs.notif.bills!==false?'checked':'')+'><span class="toggle-slider"></span></label></div>';
+    html +=     '<div class="flint-prof-row"><div class="flint-prof-row-copy"><div class="flint-prof-row-title">Partner activity</div><div class="flint-prof-row-sub">Show when your partner logs or edits a transaction.</div></div><label class="toggle-switch"><input id="pref_notif_partner" type="checkbox" '+(prefs.notif.partner!==false?'checked':'')+'><span class="toggle-slider"></span></label></div>';
+    html +=     '<div class="flint-prof-row"><div class="flint-prof-row-copy"><div class="flint-prof-row-title">Weekly AI recap</div><div class="flint-prof-row-sub">Get a Flint summary of the week every Sunday.</div></div><label class="toggle-switch"><input id="pref_notif_recap" type="checkbox" '+(prefs.notif.recap!==false?'checked':'')+'><span class="toggle-slider"></span></label></div>';
+    html +=     '<div class="flint-prof-row"><div class="flint-prof-row-copy"><div class="flint-prof-row-title">Unusual spending alerts</div><div class="flint-prof-row-sub">Highlight anomalies sooner.</div></div><label class="toggle-switch"><input id="pref_notif_anomalies" type="checkbox" '+(prefs.notif.anomalies!==false?'checked':'')+'><span class="toggle-slider"></span></label></div>';
+    html +=   '</div>';
+    html += '</div>';
+
+    html += '<div class="flint-prof-grid-2">';
+    html +=   '<div class="flint-prof-card">';
+    html +=     '<div class="flint-prof-section-title">Household & Data</div>';
+    html +=     '<div class="flint-prof-row"><div class="flint-prof-row-copy"><div class="flint-prof-row-title">Member since</div><div class="flint-prof-row-sub">Your Flint account age.</div></div><div class="flint-prof-mini">'+esc(joined)+'</div></div>';
+    html +=     '<div class="flint-prof-row"><div class="flint-prof-row-copy"><div class="flint-prof-row-title">Ledger status</div><div class="flint-prof-row-sub">'+(isShared?'Connected to a shared household ledger.':'Currently using Flint as a solo ledger.')+'</div></div><div class="flint-prof-mini" style="color:'+(isShared?'var(--green)':'var(--text-soft)')+'">'+(isShared?'Shared':'Solo')+'</div></div>';
+    html +=     '<div class="flint-prof-row"><div class="flint-prof-row-copy"><div class="flint-prof-row-title">Current streak</div><div class="flint-prof-row-sub">Consistency in tracking matters.</div></div><div class="flint-prof-mini">'+esc(snap.streak)+' days</div></div>';
+    html +=     '<div class="flint-prof-actions" style="margin-top:14px">';
+    html +=       '<button class="flint-prof-btn secondary" onclick="exportCSV()"><i class="fa-solid fa-download" style="margin-right:8px"></i>Export CSV</button>';
+    html +=       '<button class="flint-prof-btn ghost" onclick="copyKey()"><i class="fa-solid fa-link" style="margin-right:8px"></i>Copy Ledger Link</button>';
+    html +=     '</div>';
+    html +=   '</div>';
+
+    html +=   '<div class="flint-prof-card">';
+    html +=     '<div class="flint-prof-section-title">Choose Avatar</div>';
+    html +=     '<div class="flint-prof-avatar-grid">'+buildAvatarGrid(icon)+'</div>';
+    html +=     '<div class="flint-prof-note" style="margin-top:10px">Your avatar appears on the dashboard, in notes, and in shared activity.</div>';
+    html +=   '</div>';
+    html += '</div>';
+
+    html += '<div class="flint-prof-card">';
+    html +=   '<div class="flint-prof-section-title">Save Profile</div>';
+    html +=   '<div class="flint-prof-actions">';
+    html +=     '<button class="flint-prof-btn primary" onclick="flintSaveProfileV2()"><i class="fa-solid fa-floppy-disk" style="margin-right:8px"></i>Save Profile Settings</button>';
+    html +=     '<button class="flint-prof-btn ghost" onclick="applyFlintProfilePrefs(true)"><i class="fa-solid fa-eye" style="margin-right:8px"></i>Apply Privacy Settings</button>';
+    html +=   '</div>';
+    html +=   '<div id="flint-inline-saved" class="flint-inline-saved">✓ Profile settings saved</div>';
+    html += '</div>';
+
+    html += '<div class="flint-prof-card">';
+    html +=   '<div class="flint-prof-section-title" style="color:var(--rose)">Danger Zone</div>';
+    html +=   '<div class="flint-prof-actions">';
+    html +=     '<button class="flint-prof-btn danger" onclick="typeof fpClearCycle===\'function\'?fpClearCycle():openPanel(\'configManager\')"><i class="fa-solid fa-trash" style="margin-right:8px"></i>Clear My Current Cycle</button>';
+    html +=     '<button class="flint-prof-btn danger" onclick="typeof leaveSharedLedger===\'function\'?leaveSharedLedger():openPanel(\'shareManager\')"><i class="fa-solid fa-link-slash" style="margin-right:8px"></i>Leave Shared Ledger</button>';
+    html +=     '<button class="flint-prof-btn danger" onclick="logoutApp()"><i class="fa-solid fa-right-from-bracket" style="margin-right:8px"></i>Sign Out</button>';
+    html +=   '</div>';
+    html += '</div>';
+    html += '</div>';
+    return html;
+  }
+  function readProfilePrefsFromUI(){
+    var prefs = getProfilePrefs();
+    prefs.role = (document.getElementById('pref_role') || {}).value || prefs.role;
+    prefs.colorTag = (document.getElementById('pref_color') || {}).value || prefs.colorTag;
+    prefs.defaultMember = (document.getElementById('pref_member') || {}).value || prefs.defaultMember;
+    prefs.defaultIntent = (document.getElementById('pref_intent') || {}).value || prefs.defaultIntent;
+    prefs.defaultCategory = (document.getElementById('pref_category') || {}).value || prefs.defaultCategory;
+    var cd = parseInt((document.getElementById('pref_cycle_day') || {}).value || prefs.cycleStartDay, 10);
+    prefs.cycleStartDay = (!isNaN(cd) && cd >= 1 && cd <= 28) ? cd : prefs.cycleStartDay;
+    prefs.aiStyle = (document.getElementById('pref_ai_style') || {}).value || prefs.aiStyle;
+    prefs.aiFocus = (document.getElementById('pref_ai_focus') || {}).value || prefs.aiFocus;
+    var th = parseFloat((document.getElementById('pref_ai_threshold') || {}).value || prefs.aiThreshold);
+    prefs.aiThreshold = (!isNaN(th) && th > 0) ? th : prefs.aiThreshold;
+    prefs.aiRedFlags = (document.getElementById('pref_ai_redflags') || {}).value || prefs.aiRedFlags;
+    prefs.aiSensitivity = (document.getElementById('pref_ai_sensitivity') || {}).value || prefs.aiSensitivity;
+    prefs.hideBalances = !!((document.getElementById('pref_hide_balances') || {}).checked);
+    prefs.blurShared = !!((document.getElementById('pref_blur_shared') || {}).checked);
+    prefs.notif = {
+      bills: !!((document.getElementById('pref_notif_bills') || {}).checked),
+      partner: !!((document.getElementById('pref_notif_partner') || {}).checked),
+      recap: !!((document.getElementById('pref_notif_recap') || {}).checked),
+      anomalies: !!((document.getElementById('pref_notif_anomalies') || {}).checked)
+    };
+    return prefs;
+  }
+  window.applyFlintProfilePrefs = function(showToastFlag){
+    var prefs = getProfilePrefs();
+    document.body.classList.toggle('flint-hide-balances', !!prefs.hideBalances);
+    document.body.classList.toggle('flint-blur-shared', !!prefs.blurShared);
+    try {
+      if (config) config.cycle_start_day = parseInt(prefs.cycleStartDay, 10) || config.cycle_start_day;
+      var cs = document.getElementById('conf_cycle');
+      if (cs) cs.value = prefs.cycleStartDay;
+    } catch(e) {}
+    if (showToastFlag) showToast('Profile privacy settings applied', 'success');
+  };
+  function saveInlineState(){
+    var el = document.getElementById('flint-inline-saved');
+    if (!el) return;
+    el.style.display = 'block';
+    clearTimeout(window.__flintSaveTmr);
+    window.__flintSaveTmr = setTimeout(function(){ el.style.display = 'none'; }, 2400);
+  }
+  window.flintSaveProfileV2 = async function(){
+    var prefs = readProfilePrefsFromUI();
+    saveProfilePrefs(prefs);
+    applyFlintProfilePrefs(false);
+    var newName = ((document.getElementById('flint-edit-name') || {}).value || '').trim();
+    var newEmail = ((document.getElementById('flint-edit-email') || {}).value || '').trim();
+    var newPass = ((document.getElementById('flint-edit-pass') || {}).value || '');
+    var updates = {};
+    if (newEmail && newEmail !== currentEmail) updates.email = newEmail;
+    if (newPass && newPass.length >= 6) updates.password = newPass;
+    if (newName) updates.data = { display_name: newName };
+    var client = window.supabaseClient || window.supabase || window._sb;
+    try {
+      if (Object.keys(updates).length && client && client.auth && typeof client.auth.updateUser === 'function') {
+        var res = await client.auth.updateUser(updates);
+        if (res && res.error) throw res.error;
+        if (newName) currentDisplayName = newName.toUpperCase();
+        if (newEmail) currentEmail = newEmail;
+      }
+      if (newPass) {
+        var passEl = document.getElementById('flint-edit-pass');
+        if (passEl) passEl.value = '';
+      }
+      if (newName) {
+        var topName = document.getElementById('profHeroName');
+        if (topName) topName.textContent = newName;
+      }
+      saveInlineState();
+      showToast('Profile updated', 'success');
+      if (document.getElementById('profileManager') && document.getElementById('profileManager').style.display !== 'none') {
+        setTimeout(function(){ populateProfile(); }, 60);
+      }
+    } catch(e) {
+      showToast((e && e.message) ? e.message : 'Could not update profile right now', 'error');
+    }
+  };
+  window.saveNotifPrefs = function(){
+    var prefs = getProfilePrefs();
+    var b = document.getElementById('pref_notif_bills') || document.getElementById('notif_bills');
+    var p = document.getElementById('pref_notif_partner') || document.getElementById('notif_partner');
+    var r = document.getElementById('pref_notif_recap') || document.getElementById('notif_recap');
+    var a = document.getElementById('pref_notif_anomalies');
+    prefs.notif = {
+      bills: b ? !!b.checked : prefs.notif.bills,
+      partner: p ? !!p.checked : prefs.notif.partner,
+      recap: r ? !!r.checked : prefs.notif.recap,
+      anomalies: a ? !!a.checked : prefs.notif.anomalies
+    };
+    saveProfilePrefs(prefs);
+    showToast('Notification preferences saved', 'success');
+  };
+  var originalSetIcon = window.setIcon;
+  window.setIcon = function(cls){
+    if (typeof originalSetIcon === 'function') originalSetIcon(cls);
+    else {
+      localStorage.setItem('montoya_icon', cls);
+      if (typeof loadIcon === 'function') loadIcon();
+    }
+    setTimeout(function(){
+      applyFlintProfilePrefs(false);
+      try {
+        if (document.getElementById('profileManager') && document.getElementById('profileManager').style.display !== 'none') populateProfile();
+      } catch(e) {}
+    }, 40);
+  };
+  var originalBuildProfilePanel = window.buildProfilePanel;
+  window.buildProfilePanel = function(){
+    return buildProfileContentHTML();
+  };
+  window.populateProfile = function(){
+    var panel = document.getElementById('profileManager');
+    if (!panel) return;
+    var top = panel.querySelector('.top-bar');
+    var topHTML = top ? top.outerHTML : '<div class="top-bar"><div class="top-left"><i class="fa-solid fa-bars hamburger" onclick="toggleMenu()"></i></div><div class="page-title">PROFILE</div><div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView(\'app\')"></i></div></div>';
+    panel.innerHTML = topHTML + buildProfileContentHTML();
+    applyFlintProfilePrefs(false);
+  };
+  function applyAddTransactionDefaults(){
+    var prefs = getProfilePrefs();
+    if (typeof editingId !== 'undefined' && editingId) return;
+    var member = document.getElementById('memberSelect');
+    var category = document.getElementById('category');
+    if (member) {
+      member.value = prefs.defaultMember || member.value || 'Brandon';
+      if (typeof selectMember === 'function') selectMember(member.value);
+    }
+    if (category && !category.value) category.value = prefs.defaultCategory || '';
+    if (typeof setType === 'function') setType(prefs.defaultIntent || 'Need');
+  }
+  var originalOpenSheet = window.openSheet;
+  if (typeof originalOpenSheet === 'function') {
+    window.openSheet = function(){
+      var result = originalOpenSheet.apply(this, arguments);
+      setTimeout(function(){ applyAddTransactionDefaults(); }, 60);
+      return result;
+    };
+  }
+  function aiStyleSystem(prefs, purchaseMode){
+    var tone = prefs.aiStyle === 'strict' ? 'firm and blunt' : (prefs.aiStyle === 'encouraging' ? 'supportive and motivating' : 'balanced and direct');
+    var focus = focusLabel(prefs.aiFocus);
+    var redFlags = (prefs.aiRedFlags || '').trim() || 'none';
+    if (purchaseMode) {
+      return 'You are Flint, a ' + tone + ' finance coach. The verdict is already decided by math. Explain the verdict in 2-3 punchy sentences using real numbers. Focus on ' + focus + '. Watch red-flag categories: ' + redFlags + '. End with one actionable tip. Never use markdown.';
+    }
+    return 'You are Flint, a ' + tone + ' financial coach for a household ledger. Use the real data. Give concise, actionable advice in 2-4 sentences. Focus on ' + focus + '. Watch red-flag categories: ' + redFlags + '. No markdown, just plain conversational text.';
+  }
+  window.askAI = async function(){
+    var qEl = document.getElementById('aiQuestion');
+    var q = qEl ? qEl.value.trim() : '';
+    if (!q) return;
+    var body = document.getElementById('aiBody');
+    if (body) body.innerHTML = '<div class="ai-body loading"><div class="ai-spinner"></div>Analyzing your ledger…</div>';
+    var prefs = getProfilePrefs();
+    var spent=0,bS=0,gS=0,cats={};
+    (history||[]).forEach(function(i){
+      var amt = parseFloat(i.amount||0) || 0;
+      spent += amt;
+      if(!['Mortgage','Car','Utilities'].includes(i.category)){
+        if(i.member==='Brandon') bS += amt;
+        else if(i.member==='Gina') gS += amt;
+        else if(i.member==='Split'){ bS += amt/2; gS += amt/2; }
+      }
+      cats[i.category || 'Misc'] = (cats[i.category || 'Misc'] || 0) + amt;
+    });
+    var catStr = Object.keys(cats).map(function(k){ return k + ': $' + cats[k].toFixed(2); }).join(', ');
+    var context = 'Family finance data for current billing cycle:\n'
+      + '- Monthly budget: $' + (config.budget || 0) + '\n'
+      + '- Total spent: $' + spent.toFixed(2) + '\n'
+      + '- Remaining: $' + ((config.budget || 0) - spent).toFixed(2) + '\n'
+      + '- Brandon\'s spend: $' + bS.toFixed(2) + '\n'
+      + '- Gina\'s spend: $' + gS.toFixed(2) + '\n'
+      + '- Mortgage balance: $' + (config.m_balance || 0) + '\n'
+      + '- Car loan balance: $' + (config.c_balance || 0) + '\n'
+      + '- Spending by category: ' + (catStr || 'No transactions yet') + '\n'
+      + '- Number of transactions: ' + (history || []).length + '\n'
+      + '- Coach style: ' + styleLabel(prefs.aiStyle) + '\n'
+      + '- Main focus: ' + focusLabel(prefs.aiFocus) + '\n'
+      + '- Red-flag categories: ' + (prefs.aiRedFlags || 'none');
+    try {
+      var res = await fetch('/.netlify/functions/ai-proxy', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          system: aiStyleSystem(prefs, false),
+          prompt: context + '\n\nUser question: ' + q
+        })
+      });
+      var d = await res.json();
+      var text = d && d.content && d.content[0] && d.content[0].text ? d.content[0].text : 'Unable to get a response. Please try again.';
+      if (body) body.innerText = text;
+      if (typeof addAIHistory === 'function') addAIHistory(q, text);
+    } catch(e) {
+      if (body) body.innerText = 'Connection error. Please try again in a moment.';
+    }
+    if (qEl) qEl.value = '';
+  };
+  window.askPurchaseAI = async function(){
+    var prefs = getProfilePrefs();
+    var amt = parseFloat((document.getElementById('amount') || {}).value);
+    var note = ((document.getElementById('noteInput') || {}).value || 'this item');
+    var cat = ((document.getElementById('category') || {}).value || 'Misc');
+    if (!amt) { showToast('Enter an amount first!'); return; }
+    if (currentType !== 'Want') { showToast('AI Coach is for Want purchases only!', 'warning'); return; }
+    var panel = document.getElementById('aiAdvicePanel');
+    var adviceText = document.getElementById('aiAdviceText');
+    var verdict = document.getElementById('aiVerdict');
+    if (panel) panel.style.display = 'block';
+    if (verdict) verdict.style.display = 'none';
+    if (adviceText) adviceText.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--text-dim);font-size:.82rem;"><div class="ai-spinner"></div>Analyzing your finances…</div>';
+    var wantSpent=0,needSpent=0,totalSpent=0;
+    (history||[]).forEach(function(i){
+      var val = parseFloat(i.amount || 0) || 0;
+      totalSpent += val;
+      if (i.intent === 'Want') wantSpent += val; else needSpent += val;
+    });
+    var wantCap = config.want_cap || 0;
+    var budget = config.budget || 7400;
+    var remaining = budget - totalSpent;
+    var cds = cycleDates(currentViewDate);
+    var now = new Date();
+    var daysInCycle = Math.max(1, Math.round((cds.end - cds.start) / (1000*60*60*24)));
+    var daysLeft = Math.max(0, Math.round((cds.end - now) / (1000*60*60*24)));
+    var wantCapPct = wantCap > 0 ? Math.round((wantSpent / wantCap) * 100) : null;
+    var budgetPressure = Math.min(100, Math.round((totalSpent / budget) * 100));
+    var wantPressure = wantCap > 0 ? Math.min(100, Math.round((wantSpent / wantCap) * 100)) : budgetPressure;
+    var dailyBudget = budget / daysInCycle;
+    var sizeScore = Math.min(100, Math.round((amt / (dailyBudget * 3)) * 100));
+    var sevenDaysAgo = new Date(now.getTime() - 7*24*60*60*1000);
+    var recentWants = (history||[]).filter(function(i){ return i.intent === 'Want' && new Date(i.date || i.created_at) > sevenDaysAgo; }).length;
+    var freqLevel = recentWants >= 5 ? 'high' : recentWants >= 3 ? 'moderate' : 'low';
+    var cyclePctLeft = daysLeft / daysInCycle;
+    var lateInCycle = cyclePctLeft < 0.25 && budgetPressure > 70;
+    var redFlags = (prefs.aiRedFlags || '').split(',').map(function(s){ return s.trim().toLowerCase(); }).filter(Boolean);
+    var threshold = parseFloat(prefs.aiThreshold || 75) || 75;
+    var strict = prefs.aiSensitivity === 'strict';
+    var easy = prefs.aiSensitivity === 'easy';
+    var verdictCode;
+    if ((strict && (wantPressure >= 80 || budgetPressure >= 85)) || (!strict && (wantPressure >= 90 || budgetPressure >= 90))) verdictCode = 'SKIP';
+    else if (lateInCycle && amt > dailyBudget * (strict ? 1.4 : 2)) verdictCode = 'SKIP';
+    else if (freqLevel === 'high' && wantPressure > (easy ? 70 : 60)) verdictCode = 'SKIP';
+    else if (wantPressure < (strict ? 45 : 50) && budgetPressure < (strict ? 55 : 60) && sizeScore < (easy ? 40 : 30) && freqLevel === 'low') verdictCode = 'GO';
+    else if (budgetPressure < (easy ? 55 : 45) && amt < dailyBudget) verdictCode = 'GO';
+    else verdictCode = 'WARN';
+    if (amt >= threshold && verdictCode === 'GO') verdictCode = 'WARN';
+    if (redFlags.indexOf(String(cat).toLowerCase()) >= 0 && verdictCode === 'GO') verdictCode = 'WARN';
+    if (redFlags.indexOf(String(cat).toLowerCase()) >= 0 && wantPressure > 70) verdictCode = 'SKIP';
+    var pressureLabel = budgetPressure > 80 ? 'critical' : budgetPressure > 60 ? 'elevated' : 'healthy';
+    var context = 'Financial snapshot:\n'
+      + '- Budget: $' + budget + ' | Spent: $' + totalSpent.toFixed(2) + ' (' + budgetPressure + '% — ' + pressureLabel + ') | Remaining: $' + remaining.toFixed(2) + '\n'
+      + '- Days left: ' + daysLeft + ' of ' + daysInCycle + ' (' + Math.round(cyclePctLeft*100) + '% remaining)\n'
+      + '- Needs: $' + needSpent.toFixed(2) + ' | Wants: $' + wantSpent.toFixed(2) + '\n'
+      + (wantCap > 0 ? ('- Want cap: $' + wantCap + ' — ' + wantCapPct + '% used\n') : '- No want cap set\n')
+      + '- Want purchases last 7 days: ' + recentWants + ' (freq: ' + freqLevel + ')\n'
+      + '- Coach style: ' + styleLabel(prefs.aiStyle) + ' | Focus: ' + focusLabel(prefs.aiFocus) + '\n'
+      + '- Red-flag categories: ' + (prefs.aiRedFlags || 'none') + '\n'
+      + '- Challenge wants over: $' + threshold + '\n'
+      + '- Mortgage: $' + (config.m_balance || 0) + ' | Car: $' + (config.c_balance || 0) + '\n'
+      + 'Purchase: "' + note + '" (' + cat + ') — $' + amt.toFixed(2) + '\n'
+      + 'Budget pressure: ' + budgetPressure + '% | Size: ' + sizeScore + '/100 | Freq: ' + freqLevel + '\n'
+      + 'VERDICT: ' + verdictCode;
+    try {
+      var res = await fetch('/.netlify/functions/ai-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: aiStyleSystem(prefs, true),
+          prompt: context + '\n\nExplain this ' + verdictCode + ' verdict in 2-3 sentences. Use real numbers. End with one concrete tip.'
+        })
+      });
+      var data = await res.json();
+      var full = data && data.content && data.content[0] && data.content[0].text ? data.content[0].text : 'Unable to analyze right now.';
+      if (adviceText) adviceText.innerText = full;
+      if (verdict) {
+        verdict.style.display = 'block';
+        verdict.className = '';
+        var pc = budgetPressure > 80 ? 'var(--rose)' : budgetPressure > 60 ? 'var(--amber)' : 'var(--green)';
+        var fc = freqLevel === 'high' ? 'var(--rose)' : freqLevel === 'moderate' ? 'var(--amber)' : 'var(--green)';
+        var bar = '<div style="display:flex;gap:12px;margin-top:6px;font-size:.62rem;font-family:\\'DM Mono\\',monospace;opacity:.8;"><span>Budget: <b style="color:'+pc+'">'+budgetPressure+'%</b></span><span>Wants: <b style="color:'+fc+'">'+recentWants+' this wk</b></span><span>$'+remaining.toFixed(0)+' left</span></div>';
+        if (verdictCode === 'GO') { verdict.classList.add('verdict-go'); verdict.innerHTML = '✅ GO — You can afford this!' + bar; }
+        else if (verdictCode === 'WARN') { verdict.classList.add('verdict-warn'); verdict.innerHTML = '⚠️ WARN — Think twice' + bar; }
+        else { verdict.classList.add('verdict-skip'); verdict.innerHTML = '🚫 SKIP — Not the right time' + bar; }
+      }
+    } catch(e) {
+      if (adviceText) adviceText.innerText = 'Could not connect to AI Coach. Please try again.';
+    }
+  };
+  setTimeout(function(){
+    applyFlintProfilePrefs(false);
+  }, 80);
+})();
+</script>
+
 </body>
 </html>
