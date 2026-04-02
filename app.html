@@ -1583,7 +1583,32 @@
             .sheet-amount-input { text-align: center !important; width: 100% !important; }
             .sheet-amount-wrap { padding: 20px 0 24px; }
         }
-    </style>
+    
+
+/* ─── RESTORE + DESKTOP POLISH PATCH ─── */
+.side-menu { scrollbar-width: none; -ms-overflow-style: none; }
+.side-menu::-webkit-scrollbar { width: 0; height: 0; }
+
+@media (min-width: 1024px) {
+    .wrap {
+        margin-right: 320px !important;
+    }
+    #marketPanel {
+        width: 320px !important;
+        padding: 24px 18px !important;
+        display: block !important;
+    }
+    .float-modal {
+        left: calc(240px + (100vw - 240px - 320px) / 2) !important;
+    }
+    #app, .app-panel {
+        max-width: 780px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+}
+
+</style>
 <!-- ═══ FLINT PREMIUM UI ENHANCEMENTS ═══ -->
 <style id="flint-premium">
   /* ── Transaction row hover lift ── */
@@ -6242,565 +6267,68 @@ function dismissWelcome() {
     });
     </script>
 
-<script id="flint-v2-dashboard-refresh">
+<script id="flint-restore-ai-desktop-patch">
 (function(){
-  if(window.__flintV2RefreshLoaded) return;
-  window.__flintV2RefreshLoaded = true;
-
   function q(id){ return document.getElementById(id); }
-  function sum(arr, fn){ return (arr||[]).reduce(function(s,x){ return s + (fn?fn(x):x); }, 0); }
-  function fmtMoney(n){
-    var num = Number(n||0);
-    try { return num.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
-    catch(e){ return (Math.round(num*100)/100).toFixed(2); }
-  }
-  function injectStyles(){
-    if(q('flintV2Styles')) return;
-    var style=document.createElement('style');
-    style.id='flintV2Styles';
-    style.textContent = '\n'
-      + 'body.flint-v2 #marketPanel{display:none !important;}\n'
-      + 'body.flint-v2 #weeklyRecapCard, body.flint-v2 #budgetWarningCard, body.flint-v2 #anomalyCard{display:none !important;}\n'
-      + 'body.flint-v2 .nav-item.flint-primary{background:rgba(255,255,255,.03);}\n'
-      + 'body.flint-v2 .nav-item.flint-primary.active{background:linear-gradient(135deg, rgba(232,194,82,.12), rgba(232,194,82,.06));}\n'
-      + 'body.flint-v2 .dashboard-callout{background:var(--ink-2);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px;}\n'
-      + 'body.flint-v2 .attention-list{display:flex;flex-direction:column;gap:10px;margin-top:10px;}\n'
-      + 'body.flint-v2 .attention-item{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);}\n'
-      + 'body.flint-v2 .attention-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(232,194,82,.12);border:1px solid rgba(232,194,82,.18);font-size:.95rem;flex-shrink:0;}\n'
-      + 'body.flint-v2 .attention-title{font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:2px;}\n'
-      + 'body.flint-v2 .attention-copy{font-size:.73rem;color:var(--text-soft);line-height:1.45;}\n'
-      + 'body.flint-v2 .attention-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}\n'
-      + 'body.flint-v2 .mini-action{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text-soft);border-radius:999px;padding:7px 12px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:inherit;}\n'
-      + 'body.flint-v2 .mini-action:hover{border-color:rgba(212,168,67,.25);color:var(--text);}\n'
-      + 'body.flint-v2 .recent-preview-list{display:flex;flex-direction:column;gap:8px;margin-top:12px;}\n'
-      + 'body.flint-v2 .recent-preview-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);cursor:pointer;}\n'
-      + 'body.flint-v2 .recent-preview-row:hover{border-color:rgba(212,168,67,.2);transform:translateY(-1px);}\n'
-      + 'body.flint-v2 .recent-preview-left{min-width:0;display:flex;flex-direction:column;gap:3px;}\n'
-      + 'body.flint-v2 .recent-preview-title{font-size:.8rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}\n'
-      + 'body.flint-v2 .recent-preview-sub{font-size:.68rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}\n'
-      + 'body.flint-v2 .recent-preview-amt{font-size:.82rem;font-weight:700;font-family:DM Mono,monospace;color:var(--text);flex-shrink:0;}\n'
-      + 'body.flint-v2 #historySection{scroll-margin-top:22px;}\n'
-      + 'body.flint-v2 .history-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.05);}\n'
-      + 'body.flint-v2 .history-heading-title{font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:1.7px;color:var(--text-soft);}\n'
-      + 'body.flint-v2 .history-heading-sub{font-size:.68rem;color:var(--text-dim);}\n'
-      + 'body.flint-v2 .sheet-similar-wrap{display:flex;gap:8px;overflow:auto;padding-bottom:4px;margin:10px 0 14px;scrollbar-width:none;}\n'
-      + 'body.flint-v2 .sheet-similar-chip{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text-soft);border-radius:999px;padding:8px 12px;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;}\n'
-      + 'body.flint-v2 .sheet-similar-chip:hover{border-color:rgba(212,168,67,.25);color:var(--text);}\n'
-      + 'body.flint-v2 .sheet-helper-copy{font-size:.65rem;color:var(--text-dim);margin:8px 0 6px;}\n'
-      + 'body.flint-v2 .insights-market-wrap .ticker-item{padding:8px 10px;border-radius:10px;}\n'
-      + 'body.flint-v2 .side-menu{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;-ms-overflow-style:none;}\n'
-      + 'body.flint-v2 .side-menu::-webkit-scrollbar{width:0;height:0;display:none;}\n'
-      + '@media (min-width:1024px){body.logged-in.flint-v2 .wrap{max-width:720px !important;padding:24px 24px 90px !important;}body.flint-v2 .float-modal{left:calc(240px + (100vw - 240px)/2) !important;}}\n';
-    document.head.appendChild(style);
-    document.body.classList.add('flint-v2');
-  }
 
-  function markNav(id){
-    document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
-    var nav = typeof id === 'string' ? document.getElementById(id) : id;
-    if(nav) nav.classList.add('active');
-  }
+  function enhanceRightRail(){
+    var market = q('marketPanel');
+    var aiPanel = q('aiTipPanel');
+    if(!market || !aiPanel || market.dataset.aiRestored === '1') return;
+    market.dataset.aiRestored = '1';
 
-  window.goHomeDashboard = function(){
-    if(typeof switchView === 'function') switchView('app');
-    markNav('nav-app');
-    window.scrollTo({top:0,behavior:'smooth'});
-  };
-
-  window.openDashboardSection = function(sectionId){
-    if(typeof switchView === 'function') switchView('app');
-    markNav(sectionId==='historySection' ? 'nav-transactions' : 'nav-app');
-    setTimeout(function(){
-      var el = document.getElementById(sectionId);
-      if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
-    }, 80);
-  };
-
-  function rebuildSideMenu(){
-    var menu = q('sideMenu');
-    if(!menu || menu.dataset.v2Built==='1') return;
-    var logo = menu.querySelector('.menu-logo') ? menu.querySelector('.menu-logo').outerHTML : '';
-    menu.innerHTML = logo + [
-      '<div class="nav-section-label">Core</div>',
-      '<div class="nav-item flint-primary active" onclick="goHomeDashboard()" id="nav-app"><i class="fa-solid fa-house"></i><div class="nav-item-content"><span class="nav-item-label">Home</span><span class="nav-item-sub">Dashboard & pace</span></div></div>',
-      '<div class="nav-item flint-primary" onclick="openDashboardSection(\'historySection\')" id="nav-transactions"><i class="fa-solid fa-receipt"></i><div class="nav-item-content"><span class="nav-item-label">Transactions</span><span class="nav-item-sub">Search, filter, edit</span></div></div>',
-      '<div class="nav-item" onclick="openPanel(\'receiptScanner\')" id="nav-receiptScanner"><i class="fa-solid fa-camera"></i><div class="nav-item-content"><span class="nav-item-label">Receipt Scan</span><span class="nav-item-sub">Capture & log</span></div></div>',
-      '<div class="nav-section-label">Planning</div>',
-      '<div class="nav-item" onclick="openPanel(\'bills\')" id="nav-bills"><i class="fa-solid fa-calendar-check"></i><div class="nav-item-content"><span class="nav-item-label">Bill Planner</span><span class="nav-item-sub">Due soon & recurring</span></div></div>',
-      '<div class="nav-item" onclick="openPanel(\'vaults\')" id="nav-vaults"><i class="fa-solid fa-piggy-bank"></i><div class="nav-item-content"><span class="nav-item-label">Savings Vaults</span><span class="nav-item-sub">Goals in progress</span></div></div>',
-      '<div class="nav-item" onclick="openPanel(\'subManager\')" id="nav-subManager"><i class="fa-solid fa-clock-rotate-left"></i><div class="nav-item-content"><span class="nav-item-label">Subscriptions</span><span class="nav-item-sub">Monthly commitments</span></div></div>',
-      '<div class="nav-item" onclick="openPanel(\'networth\')" id="nav-networth"><i class="fa-solid fa-chart-pie"></i><div class="nav-item-content"><span class="nav-item-label">Net Worth</span><span class="nav-item-sub">Assets & debts</span></div></div>',
-      '<div class="nav-section-label">Insights</div>',
-      '<div class="nav-item" onclick="openPanel(\'aiInsights\')" id="nav-aiInsights"><i class="fa-solid fa-lightbulb"></i><div class="nav-item-content"><span class="nav-item-label">Insights</span><span class="nav-item-sub">Alerts, recap, AI coach</span></div></div>',
-      '<div class="nav-item" onclick="openPanel(\'analyticsModal\')" id="nav-analyticsModal"><i class="fa-solid fa-chart-line"></i><div class="nav-item-content"><span class="nav-item-label">Analytics</span><span class="nav-item-sub">Spending patterns</span></div></div>',
-      '<div class="nav-item" onclick="openPanel(\'familyFeed\')" id="nav-familyFeed"><i class="fa-solid fa-people-group"></i><div class="nav-item-content"><span class="nav-item-label">Shared Activity</span><span class="nav-item-sub">Who spent what</span></div></div>',
-      '<div class="nav-section-label">Account</div>',
-      '<div class="nav-item" onclick="openPanel(\'configManager\')" id="nav-configManager"><i class="fa-solid fa-gear"></i><div class="nav-item-content"><span class="nav-item-label">Settings</span><span class="nav-item-sub">Budget & rules</span></div></div>',
-      '<div class="nav-item" onclick="openPanel(\'shareManager\')" id="nav-shareManager"><i class="fa-solid fa-cloud"></i><div class="nav-item-content"><span class="nav-item-label">Share Ledger</span><span class="nav-item-sub">Invite & connect</span></div></div>',
-      '<div class="nav-item" onclick="openPanel(\'profileManager\')" id="nav-profileManager"><i class="fa-solid fa-user-astronaut"></i><div class="nav-item-content"><span class="nav-item-label">Profile</span><span class="nav-item-sub">Account details</span></div></div>',
-      '<div class="nav-spacer"></div>',
-      '<div class="nav-item nav-logout" onclick="logoutApp()"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>'
-    ].join('');
-    menu.dataset.v2Built='1';
-  }
-
-  function ensureDashboardCards(){
-    var app=q('app');
-    if(!app) return;
-    var hero = app.querySelector('.hero-stats-bar');
-    if(!hero) return;
-    if(!q('attentionCenterCard')){
-      var attention = document.createElement('div');
-      attention.id='attentionCenterCard';
-      attention.className='dashboard-callout';
-      attention.innerHTML='';
-      hero.insertAdjacentElement('afterend', attention);
+    var marketHeader = market.querySelector('.market-header');
+    if(marketHeader && aiPanel.parentElement === market){
+      market.insertBefore(aiPanel, marketHeader);
     }
-    if(!q('recentPreviewCard')){
-      var recent = document.createElement('div');
-      recent.id='recentPreviewCard';
-      recent.className='dashboard-callout';
-      q('attentionCenterCard').insertAdjacentElement('afterend', recent);
+
+    var sideHeader = aiPanel.querySelector('.side-panel-header span');
+    if(sideHeader) sideHeader.textContent = '🤖 AI Coach Snapshot';
+
+    if(!q('openAiCoachBtn')){
+      var btn = document.createElement('button');
+      btn.id = 'openAiCoachBtn';
+      btn.type = 'button';
+      btn.textContent = 'Open Full AI Coach';
+      btn.style.cssText = 'width:100%;margin-top:12px;padding:12px 14px;border:none;border-radius:12px;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;font-weight:700;font-size:.78rem;cursor:pointer;font-family:inherit;box-shadow:0 10px 24px rgba(124,58,237,.22);';
+      btn.onclick = function(){ if(typeof openPanel === 'function') openPanel('aiInsights'); };
+      aiPanel.appendChild(btn);
     }
-    var list=q('historyList');
-    if(list){
-      var section=list.closest('div[style*="overflow:hidden"]');
-      if(section){
-        section.id='historySection';
-        if(!section.querySelector('.history-heading')){
-          var head=document.createElement('div');
-          head.className='history-heading';
-          head.innerHTML='<div><div class="history-heading-title">All Transactions</div><div class="history-heading-sub">Full cycle history, filters, and edits</div></div><button class="mini-action" type="button" onclick="openSheet()">+ Quick add</button>';
-          section.insertBefore(head, section.firstChild);
-        }
-      }
+
+    if(!q('aiRailNote')){
+      var note = document.createElement('div');
+      note.id = 'aiRailNote';
+      note.textContent = 'Your AI coach stays front and center here, while the full coach panel remains available from the left menu.';
+      note.style.cssText = 'font-size:.72rem;line-height:1.55;color:var(--text-dim);margin-top:10px;';
+      aiPanel.appendChild(note);
     }
   }
 
-  function getUpcomingBills(){
-    if(!Array.isArray(window.billReminders)) return [];
-    return billReminders
-      .map(function(b){ return Object.assign({}, b, {days: typeof daysUntil==='function' ? daysUntil(b.day) : 99}); })
-      .sort(function(a,b){ return a.days - b.days; })
-      .filter(function(b){ return b.days <= 7; });
-  }
-
-  function computeBudgetAlert(){
-    var budget = Number((window.config||{}).budget || 0);
-    var total = sum(window.history || [], function(t){ return Number(t.amount||0); });
-    if(!budget) return null;
-    var remaining = budget - total;
-    var now = new Date();
-    var cycleDay = Number((window.config||{}).cycle_start_day || 16);
-    var nextCycle = new Date(now.getFullYear(), now.getMonth(), cycleDay);
-    if(nextCycle <= now) nextCycle.setMonth(nextCycle.getMonth()+1);
-    var daysLeft = Math.ceil((nextCycle - now) / 86400000);
-    var pctUsed = total / budget * 100;
-    var start = new Date(now.getFullYear(), now.getMonth(), cycleDay);
-    if(start > now) start.setMonth(start.getMonth()-1);
-    var elapsed = Math.max(1, Math.ceil((now - start) / 86400000));
-    var projected = total + (total/elapsed) * daysLeft;
-    var projectedOver = projected - budget;
-    if(pctUsed >= 90 || projectedOver > 50) {
-      return 'Budget pace is hot. You\'ve used ' + Math.round(pctUsed) + '% of budget with $' + fmtMoney(Math.abs(remaining)) + ' ' + (remaining >= 0 ? 'left' : 'over') + ' and ' + daysLeft + ' days left.';
-    }
-    if(pctUsed >= 75) {
-      return 'Budget use is climbing. You\'re at ' + Math.round(pctUsed) + '% used with ' + daysLeft + ' days left in this cycle.';
-    }
-    return null;
-  }
-
-  function renderAttentionCenter(){
-    var card=q('attentionCenterCard');
-    if(!card) return;
-    var items=[];
-    var upcoming = getUpcomingBills();
-    if(upcoming.length){
-      var nextBill = upcoming[0];
-      var billLabel = nextBill.days === 0 ? 'due today' : nextBill.days === 1 ? 'due tomorrow' : 'due in ' + nextBill.days + ' days';
-      items.push({icon:'🗓️', title:'Upcoming bills', copy: nextBill.name + ' is ' + billLabel + ' for $' + fmtMoney(nextBill.amount) + (upcoming.length > 1 ? '. ' + (upcoming.length-1) + ' more bill' + (upcoming.length>2?'s':'') + ' due this week.' : '.')});
-    }
-    var budgetAlert = computeBudgetAlert();
-    if(budgetAlert) items.push({icon:'⚠️', title:'Budget pacing', copy: budgetAlert});
-    var wantCap = Number((window.config||{}).want_cap || 0);
-    if(wantCap > 0){
-      var wantSpent = sum((window.history||[]).filter(function(t){ return t.intent === 'Want'; }), function(t){ return Number(t.amount||0); });
-      var wantPct = wantCap ? Math.round((wantSpent / wantCap) * 100) : 0;
-      if(wantPct >= 80){
-        items.push({icon:'💸', title:'Want spending', copy:'You have used ' + Math.min(wantPct,999) + '% of your $' + fmtMoney(wantCap) + ' want cap.'});
-      }
-    }
-    var anomalyCopy = (q('anomalyMsg') && q('anomalyMsg').textContent || '').trim();
-    if(anomalyCopy) items.push({icon:'🔎', title:'Unusual activity', copy: anomalyCopy});
-    if(!items.length){
-      items.push({icon:'✅', title:'Nothing urgent', copy:'You are on pace right now. Keep logging transactions and check back before your next bill window.'});
-    }
-    card.innerHTML = ''
-      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">'
-      + '  <div><div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--text-soft);">Needs Attention</div><div style="font-size:.76rem;color:var(--text-dim);margin-top:4px;">The most important things to look at right now</div></div>'
-      + '  <button class="mini-action" type="button" onclick="openPanel(\'aiInsights\')">Open insights</button>'
-      + '</div>'
-      + '<div class="attention-list">'
-      + items.slice(0,4).map(function(item){
-          return '<div class="attention-item"><div class="attention-icon">' + item.icon + '</div><div><div class="attention-title">' + item.title + '</div><div class="attention-copy">' + item.copy + '</div></div></div>';
-        }).join('')
-      + '</div>'
-      + '<div class="attention-actions">'
-      + '  <button class="mini-action" type="button" onclick="openPanel(\'bills\')">Upcoming bills</button>'
-      + '  <button class="mini-action" type="button" onclick="openDashboardSection(\'historySection\')">Recent transactions</button>'
-      + '  <button class="mini-action" type="button" onclick="openSheet()">Quick add</button>'
-      + '</div>';
-  }
-
-  function renderRecentPreview(){
-    var card=q('recentPreviewCard');
-    if(!card) return;
-    var txns = (window.history || []).slice().sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); }).slice(0,5);
-    card.innerHTML = ''
-      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">'
-      + '  <div><div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--text-soft);">Recent Transactions</div><div style="font-size:.76rem;color:var(--text-dim);margin-top:4px;">Latest activity before you dive into the full ledger</div></div>'
-      + '  <button class="mini-action" type="button" onclick="openDashboardSection(\'historySection\')">View all</button>'
-      + '</div>';
-    if(!txns.length){
-      card.innerHTML += '<div style="font-size:.8rem;color:var(--text-dim);padding:20px 0 6px;">No transactions yet this cycle.</div>';
-      return;
-    }
-    var html = '<div class="recent-preview-list">';
-    txns.forEach(function(t){
-      var when = t.created_at ? new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' + new Date(t.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
-      var note = t.note || t.category || 'Transaction';
-      html += '<div class="recent-preview-row" onclick="openDashboardSection(\'historySection\')">'
-           +  '<div class="recent-preview-left"><div class="recent-preview-title">' + note + '</div><div class="recent-preview-sub">' + (t.member || 'Partner') + ' · ' + (t.category || 'Misc') + ' · ' + when + '</div></div>'
-           +  '<div class="recent-preview-amt">-$' + fmtMoney(t.amount) + '</div>'
-           + '</div>';
-    });
-    html += '</div>';
-    card.innerHTML += html;
-  }
-
-  function setupFilterBar(){
-    var bar=q('txnFilterBar');
-    if(!bar || bar.dataset.v2Built==='1') return;
-    bar.innerHTML = [
-      '<div class="txn-fp active" onclick="setTxnFilter(\'all\',this)">All</div>',
-      '<div class="txn-fp" onclick="setTxnFilter(\'today\',this)">Today</div>',
-      '<div class="txn-fp" onclick="setTxnFilter(\'week\',this)">This Week</div>',
-      '<div class="txn-fp" onclick="setTxnFilter(\'need\',this)">Needs</div>',
-      '<div class="txn-fp" onclick="setTxnFilter(\'want\',this)">Wants</div>',
-      '<div class="txn-fp" onclick="setTxnFilter(\'recurring\',this)">Recurring</div>'
-    ].join('');
-    bar.dataset.v2Built='1';
-    var search=q('searchBar');
-    if(search){ search.placeholder='Search merchant, note, or category…'; }
-  }
-
-  function getTxnIdFromItem(itemEl){
-    if(!itemEl) return '';
-    var editBtn = itemEl.querySelector('.act-edit');
-    if(!editBtn) return '';
-    var onclick = editBtn.getAttribute('onclick') || '';
-    var m = onclick.match(/editEntry\('([^']+)'\)/);
-    return m ? m[1] : '';
-  }
-
-  function applyAdvancedHistoryFilters(){
-    var list=q('historyList');
-    if(!list) return;
-    var query=(q('searchBar')&&q('searchBar').value||'').toLowerCase().trim();
-    var filter=window._txnFilter||'all';
-    var now=new Date();
-    var weekAgo=new Date();
-    weekAgo.setHours(0,0,0,0);
-    weekAgo.setDate(weekAgo.getDate()-6);
-    var visibleCount=0;
-
-    Array.prototype.forEach.call(list.querySelectorAll('.hist-item'), function(itemEl){
-      var id=getTxnIdFromItem(itemEl);
-      var txn=(window.history||[]).find(function(t){ return t.id===id; });
-      var show=true;
-      if(query && itemEl.innerText.toLowerCase().indexOf(query)===-1) show=false;
-      if(txn){
-        var created=txn.created_at ? new Date(txn.created_at) : null;
-        if(filter==='today' && created){ show = show && created.toDateString()===now.toDateString(); }
-        if(filter==='week' && created){ show = show && created >= weekAgo; }
-      }
-      itemEl.style.display = show ? 'flex' : 'none';
-      var rx = itemEl.nextElementSibling;
-      if(rx && rx.classList.contains('txn-reaction-row')) rx.style.display = show ? 'flex' : 'none';
-      if(show) visibleCount++;
-    });
-
-    Array.prototype.forEach.call(list.querySelectorAll('.txn-date-group'), function(groupEl){
-      var hasVisible=false;
-      var cur=groupEl.nextElementSibling;
-      while(cur && !cur.classList.contains('txn-date-group')){
-        if(cur.classList.contains('hist-item') && cur.style.display!=='none'){ hasVisible=true; break; }
-        cur=cur.nextElementSibling;
-      }
-      groupEl.style.display = hasVisible ? 'block' : 'none';
-    });
-
-    var countEl=q('historyCount');
-    if(countEl) countEl.innerText = visibleCount === 1 ? '1 transaction' : visibleCount + ' transactions';
-
-    var empty=q('historyNoResults');
-    if(!empty){
-      empty=document.createElement('div');
-      empty.id='historyNoResults';
-      empty.style.cssText='display:none;text-align:center;color:var(--text-dim);padding:24px 12px 14px;font-size:.82rem;';
-      list.appendChild(empty);
-    }
-    empty.innerText = query || filter!=='all' ? 'No transactions match your current filters.' : 'No transactions yet this cycle.';
-    empty.style.display = visibleCount ? 'none' : 'block';
-  }
-
-  function ensureMerchantUI(){
-    var note=q('noteInput');
-    if(!note) return;
-    note.setAttribute('list','merchantSuggestions');
-    if(!q('merchantSuggestions')){
-      var dl=document.createElement('datalist');
-      dl.id='merchantSuggestions';
-      note.parentElement.appendChild(dl);
-    }
-    if(!q('sheetHelperCopy')){
-      var helper=document.createElement('div');
-      helper.id='sheetHelperCopy';
-      helper.className='sheet-helper-copy';
-      helper.textContent='Suggestions from your recent transactions';
-      var wrap=document.createElement('div');
-      wrap.id='sheetSimilarWrap';
-      wrap.className='sheet-similar-wrap';
-      note.closest('.sheet-row-2').insertAdjacentElement('afterend', helper);
-      helper.insertAdjacentElement('afterend', wrap);
-    }
-    if(!note.dataset.v2Bound){
-      note.addEventListener('input', renderMerchantSuggestions);
-      note.addEventListener('focus', renderMerchantSuggestions);
-      note.dataset.v2Bound='1';
-    }
-    var cat=q('category');
-    if(cat && !cat.dataset.v2Bound){
-      cat.addEventListener('change', function(){ setTimeout(renderMerchantSuggestions,0); refreshMerchantDatalist(); });
-      cat.dataset.v2Bound='1';
-    }
-  }
-
-  function refreshMerchantDatalist(){
-    var dl=q('merchantSuggestions');
-    var cat=q('category');
-    if(!dl || !cat) return;
-    var category=cat.value;
-    var seen={};
-    var options=(window.history||[])
-      .slice()
-      .sort(function(a,b){ return new Date(b.created_at)-new Date(a.created_at); })
-      .filter(function(t){ return t.category===category && (t.note||'').trim(); })
-      .filter(function(t){ var n=t.note.trim(); if(seen[n]) return false; seen[n]=1; return true; })
-      .slice(0,12);
-    dl.innerHTML = options.map(function(t){ return '<option value="' + (t.note||'').replace(/"/g,'&quot;') + '"></option>'; }).join('');
-  }
-
-  window.pickMerchantSuggestion = function(note, avg){
-    var noteEl=q('noteInput');
-    var amountEl=q('amount');
-    if(noteEl) noteEl.value=note;
-    if(amountEl && !amountEl.value && avg) amountEl.value=avg;
-    if(noteEl) noteEl.focus();
-  };
-
-  function renderMerchantSuggestions(){
-    var wrap=q('sheetSimilarWrap');
-    var helper=q('sheetHelperCopy');
-    var cat=q('category');
-    var note=q('noteInput');
-    if(!wrap || !cat || !note) return;
-    var category=cat.value;
-    var qv=(note.value||'').toLowerCase().trim();
-    var map={};
-    (window.history||[]).forEach(function(t){
-      if(t.category!==category) return;
-      var name=(t.note||'').trim();
-      if(!name) return;
-      if(qv && name.toLowerCase().indexOf(qv)===-1) return;
-      if(!map[name]) map[name]={count:0,total:0};
-      map[name].count += 1;
-      map[name].total += Number(t.amount||0);
-    });
-    var items=Object.keys(map).map(function(name){ return {name:name,count:map[name].count,avg:map[name].total/map[name].count}; })
-      .sort(function(a,b){ return b.count-a.count || b.avg-a.avg; })
-      .slice(0,5);
-    helper.style.display = items.length ? 'block' : 'none';
-    wrap.innerHTML = items.map(function(it){
-      return '<button type="button" class="sheet-similar-chip" onclick="pickMerchantSuggestion(' + JSON.stringify(it.name) + ',' + JSON.stringify((Math.round(it.avg*100)/100).toFixed(2)) + ')">' + it.name + ' · ~$' + fmtMoney(it.avg) + '</button>';
-    }).join('');
-  }
-
-  function getAttentionSummaryHtml(){
-    var upcoming = getUpcomingBills();
-    var budgetAlert = computeBudgetAlert();
-    var lines=[];
-    if(upcoming.length) lines.push('• ' + upcoming[0].name + ' due ' + (upcoming[0].days<=1 ? (upcoming[0].days===0 ? 'today' : 'tomorrow') : 'in ' + upcoming[0].days + ' days'));
-    if(budgetAlert) lines.push('• Budget pace needs a closer look');
-    var anomalyCopy = (q('anomalyMsg') && q('anomalyMsg').textContent || '').trim();
-    if(anomalyCopy) lines.push('• An unusual spending pattern was spotted');
-    if(!lines.length) lines.push('• No urgent issues right now');
-    return '<div class="dashboard-callout" style="margin-bottom:16px;"><div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1.7px;color:#a78bfa;margin-bottom:10px;">Attention Summary</div><div style="font-size:.8rem;color:var(--text-soft);line-height:1.6;">' + lines.join('<br>') + '</div><div class="attention-actions" style="margin-top:14px;"><button class="mini-action" onclick="openPanel(\'bills\')">Bills</button><button class="mini-action" onclick="openDashboardSection(\'historySection\')">Transactions</button><button class="mini-action" onclick="openPanel(\'analyticsModal\')">Analytics</button></div></div>';
-  }
-
-  function getMarketSnapshotHtml(){
-    var tickers=q('marketTickers');
-    var updateEl=q('marketLastUpdate');
-    var body='';
-    if(tickers && tickers.innerHTML && tickers.innerHTML.trim()) body=tickers.innerHTML;
-    else body='<div style="font-size:.78rem;color:var(--text-dim);line-height:1.6;">Market snapshot will appear here after data loads. Use Refresh once if needed.</div>';
-    return '<div class="dashboard-callout insights-market-wrap" style="margin-top:16px;"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;"><div><div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1.7px;color:var(--text-soft);">Market Watch</div><div style="font-size:.68rem;color:var(--text-dim);margin-top:3px;">Moved out of Home so the dashboard stays focused</div></div><button class="mini-action" onclick="fetchMarkets()">Refresh</button></div><div style="font-size:.65rem;color:var(--text-dim);margin-bottom:10px;">Last update: ' + (updateEl && updateEl.textContent ? updateEl.textContent : '—') + '</div>' + body + '</div>';
-  }
-
-  function patchInsightsPanel(){
-    if(!window.buildAiPanel || window.__flintV2AiPatched) return;
-    window.__flintV2AiPatched = true;
-    var orig = window.buildAiPanel;
-    window.buildAiPanel = function(){
-      var shortcuts = '<div class="dashboard-callout" style="margin-bottom:16px;"><div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1.7px;color:var(--text-soft);margin-bottom:10px;">Quick Shortcuts</div><div class="attention-actions"><button class="mini-action" onclick="openPanel(\'bills\')">Bills</button><button class="mini-action" onclick="openPanel(\'analyticsModal\')">Analytics</button><button class="mini-action" onclick="openPanel(\'familyFeed\')">Shared activity</button></div></div>';
-      return getAttentionSummaryHtml() + shortcuts + orig.apply(this, arguments) + getMarketSnapshotHtml();
-    };
-  }
-
-  function patchOpenPanel(){
-    if(!window._buildAndShowPanel || !window.openPanel || window.__flintV2OpenPanelPatched) return;
-    window.__flintV2OpenPanelPatched = true;
-    window.openPanel = function(id){
-      var old = document.getElementById('flintPanel');
-      if(old) old.remove();
-      markNav('nav-' + id);
-      try {
-        _buildAndShowPanel(id);
-      } catch(err) {
-        console.error('Panel render failed:', id, err);
-        try {
-          var panel = document.createElement('div');
-          panel.id = 'flintPanel';
-          panel.style.cssText = 'position:fixed;top:0;right:0;bottom:0;left:240px;z-index:900;background:#060d1c;overflow-y:auto;padding:0;';
-          panel.innerHTML = '<div style="max-width:600px;margin:0 auto;padding:28px 24px 80px;">'
-            + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">'
-            + '<div onclick="closePanel()" style="cursor:pointer;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#8899bb;font-size:.85rem;"><i class="fa-solid fa-arrow-left"></i></div>'
-            + '<div style="font-size:.82rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#eef2ff;">' + id + '</div>'
-            + '</div>'
-            + '<div class="dashboard-callout"><div class="attention-title">This panel hit an error.</div><div class="attention-copy">Try reopening it. Your data is still intact.</div></div>'
-            + '</div>';
-          document.body.appendChild(panel);
-          if(window.innerWidth < 1024) panel.style.left = '0';
-        } catch(e) {}
-      }
-
-      var menu = document.getElementById('sideMenu');
-      if(menu && menu.classList.contains('open') && typeof toggleMenu === 'function') toggleMenu();
-
-      var needsRefresh = ['notesManager','familyFeed','subManager','analyticsModal','aiInsights'].indexOf(id) >= 0;
-      if(needsRefresh && window.currentGroup && typeof fetchData === 'function') {
-        Promise.resolve(fetchData()).then(function(){
-          var stillOpen = document.getElementById('flintPanel');
-          if(!stillOpen) return;
-          try {
-            stillOpen.remove();
-            _buildAndShowPanel(id);
-          } catch(err) {
-            console.error('Panel refresh render failed:', id, err);
-          }
-        }).catch(function(err){
-          console.warn('Background refresh failed for panel:', id, err);
-        });
-      }
-    };
-  }
-
-  function patchPanelTitles(){
-    if(!window._buildAndShowPanel || window.__flintV2PanelTitles) return;
-    window.__flintV2PanelTitles = true;
-    var orig = window._buildAndShowPanel;
-    window._buildAndShowPanel = function(id){
-      orig.apply(this, arguments);
-      var titleEl = document.querySelector('#flintPanel div[style*="letter-spacing:2px"]');
-      if(!titleEl) return;
-      if(id==='aiInsights') titleEl.textContent='INSIGHTS';
-      if(id==='familyFeed') titleEl.textContent='SHARED ACTIVITY';
-    };
-  }
-
-  function patchSwitchView(){
-    if(!window.switchView || window.__flintV2SwitchPatched) return;
-    window.__flintV2SwitchPatched = true;
-    var orig = window.switchView;
-    window.switchView = function(id, isBack){
-      orig.apply(this, arguments);
-      if(id==='app') markNav('nav-app');
-    };
-  }
-
-  function patchRenderDashboard(){
-    if(!window.renderDashboard || window.__flintV2RenderPatched) return;
-    window.__flintV2RenderPatched = true;
-    var orig = window.renderDashboard;
-    window.renderDashboard = function(){
-      orig.apply(this, arguments);
-      ensureDashboardCards();
-      renderAttentionCenter();
-      renderRecentPreview();
-      setupFilterBar();
-      ensureMerchantUI();
-      refreshMerchantDatalist();
-      renderMerchantSuggestions();
-      applyAdvancedHistoryFilters();
-      var market=q('marketPanel'); if(market) market.style.display='none';
-    };
-  }
-
-  function patchHelpers(){
-    if(window.filterHistory && !window.__flintV2FilterPatched){
-      window.__flintV2FilterPatched = true;
-      var origFilter = window.filterHistory;
-      window.filterHistory = function(){
-        try{ origFilter.apply(this, arguments); }catch(e){}
-        applyAdvancedHistoryFilters();
-      };
-    }
-    if(window.openSheet && !window.__flintV2SheetPatched){
-      window.__flintV2SheetPatched = true;
-      var origSheet = window.openSheet;
-      window.openSheet = function(){
-        origSheet.apply(this, arguments);
-        setTimeout(function(){ ensureMerchantUI(); refreshMerchantDatalist(); renderMerchantSuggestions(); }, 120);
-      };
-    }
-    if(window.autoSuggest && !window.__flintV2SuggestPatched){
-      window.__flintV2SuggestPatched = true;
-      var origAuto = window.autoSuggest;
-      window.autoSuggest = function(c){
-        origAuto.apply(this, arguments);
-        setTimeout(function(){ refreshMerchantDatalist(); renderMerchantSuggestions(); }, 0);
-      };
-    }
+  function polishDesktopHeader(){
+    var title = document.querySelector('#nav-aiInsights .nav-item-label');
+    if(title) title.textContent = 'AI Insights';
+    var sub = document.querySelector('#nav-aiInsights .nav-item-sub');
+    if(sub) sub.textContent = 'Ask your coach';
+    var feedTitle = document.querySelector('#nav-familyFeed .nav-item-label');
+    if(feedTitle) feedTitle.textContent = 'Shared Activity';
+    var feedSub = document.querySelector('#nav-familyFeed .nav-item-sub');
+    if(feedSub) feedSub.textContent = 'Who spent what';
   }
 
   function init(){
-    injectStyles();
-    rebuildSideMenu();
-    ensureDashboardCards();
-    setupFilterBar();
-    ensureMerchantUI();
-    patchInsightsPanel();
-    patchOpenPanel();
-    patchPanelTitles();
-    patchSwitchView();
-    patchRenderDashboard();
-    patchHelpers();
-    var market=q('marketPanel'); if(market) market.style.display='none';
-    if(typeof renderDashboard==='function'){ try{ renderDashboard(); }catch(e){} }
+    enhanceRightRail();
+    polishDesktopHeader();
   }
 
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){
+      setTimeout(init, 1200);
+      setTimeout(init, 2500);
+    });
+  } else {
+    setTimeout(init, 1200);
+    setTimeout(init, 2500);
+  }
 })();
 </script>
 
