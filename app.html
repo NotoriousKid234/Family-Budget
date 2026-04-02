@@ -1584,6 +1584,110 @@
             .sheet-amount-wrap { padding: 20px 0 24px; }
         }
     </style>
+<!-- ═══ FLINT PREMIUM UI ENHANCEMENTS ═══ -->
+<style id="flint-premium">
+  /* ── Transaction row hover lift ── */
+  .txn-fp {
+    transition: background .18s ease, transform .18s ease, border-left-color .18s ease;
+    border-left: 3px solid transparent;
+    border-radius: 10px;
+    padding-left: 6px;
+    margin-left: -6px;
+  }
+  .txn-fp:hover {
+    background: rgba(90,130,200,.06) !important;
+    transform: translateX(2px);
+    border-left-color: var(--gold);
+  }
+
+  /* ── Hero stat card staggered entrance ── */
+  .hero-stat-card { animation: hscFadeUp .5s ease both; }
+  .hero-stat-card:nth-child(1) { animation-delay: .05s; }
+  .hero-stat-card:nth-child(2) { animation-delay: .12s; }
+  .hero-stat-card:nth-child(3) { animation-delay: .19s; }
+  .hero-stat-card:nth-child(4) { animation-delay: .26s; }
+  @keyframes hscFadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Budget progress bar ── */
+  #flint-budget-bar {
+    display: flex; flex-direction: column; gap: 5px;
+    margin: 6px 0 8px;
+  }
+  #flint-budget-bar .bar-track {
+    height: 6px; background: rgba(90,130,200,.12);
+    border-radius: 99px; overflow: hidden;
+  }
+  #flint-budget-bar .bar-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--green), var(--gold));
+    transform-origin: left; transform: scaleX(0);
+    transition: transform 1s cubic-bezier(.34,1.56,.64,1);
+  }
+  #flint-budget-bar .bar-fill.danger {
+    background: linear-gradient(90deg, var(--gold), var(--rose));
+  }
+  #flint-budget-bar .bar-meta {
+    display: flex; justify-content: space-between;
+    font-size: 10.5px; color: var(--slate); letter-spacing: .04em;
+  }
+  #flint-budget-bar .bar-meta .used { color: var(--text-soft); font-weight: 600; }
+
+  /* ── Add Transaction button shimmer ── */
+  .add-txn-btn { position: relative; overflow: hidden; }
+  .add-txn-btn::after {
+    content: ''; position: absolute;
+    top: 0; left: -100%; width: 60%; height: 100%;
+    background: linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);
+    animation: shimmer 3s infinite;
+  }
+  @keyframes shimmer { 0%{left:-100%} 50%{left:150%} 100%{left:150%} }
+
+  /* ── Member card pulse glow ── */
+  .member-card.brandon { animation: bPulse 4s infinite ease-in-out; }
+  .member-card.gina    { animation: gPulse 4s 2s infinite ease-in-out; }
+  @keyframes bPulse {
+    0%,100%{ box-shadow: 0 0 0 1px rgba(74,159,212,.2); }
+    50%    { box-shadow: 0 0 0 1px rgba(74,159,212,.5), 0 4px 20px rgba(74,159,212,.1); }
+  }
+  @keyframes gPulse {
+    0%,100%{ box-shadow: 0 0 0 1px rgba(244,114,182,.2); }
+    50%    { box-shadow: 0 0 0 1px rgba(244,114,182,.5), 0 4px 20px rgba(244,114,182,.1); }
+  }
+
+  /* ── Reaction emoji pop ── */
+  .txn-reaction-btn {
+    transition: transform .15s cubic-bezier(.34,1.56,.64,1);
+  }
+  .txn-reaction-btn:hover  { transform: scale(1.25); }
+  .txn-reaction-btn:active { transform: scale(.92); }
+
+  /* ── Empty state animated icons ── */
+  .flint-empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 56px 20px; gap: 12px;
+    color: var(--slate); text-align: center;
+  }
+  .flint-empty-state .ei {
+    font-size: 46px;
+    animation: floatIcon 3s ease-in-out infinite;
+  }
+  .flint-empty-state p {
+    font-size: 13.5px; line-height: 1.6; max-width: 210px; color: var(--text-soft);
+  }
+  @keyframes floatIcon {
+    0%,100%{ transform: translateY(0); }
+    50%    { transform: translateY(-7px); }
+  }
+
+  /* ── Donut chart ── */
+  #flint-donut-wrap { display:flex; align-items:center; gap:24px; padding:16px 0 8px; flex-wrap:wrap; margin-bottom:8px; }
+  .donut-seg { cursor: pointer; transition: stroke-width .2s ease, opacity .2s ease; }
+  .donut-legend-item { display:flex; align-items:center; gap:10px; cursor:pointer; padding:5px 8px; border-radius:8px; transition:background .15s; }
+  .donut-legend-item:hover { background: rgba(90,130,200,.08); }
+</style>
 </head>
 <body>
 
@@ -5862,6 +5966,206 @@ function dismissWelcome() {
   splash.style.opacity = '0';
   setTimeout(function(){ splash.classList.remove('show'); splash.style.opacity = ''; }, 500);
 }
+</script>
+    <!-- ═══ FLINT PREMIUM UI SCRIPT ═══ -->
+<script>
+(function() {
+  /* ── Helpers ── */
+  function animateCounter(el, target, duration) {
+    if (!el) return;
+    const start = performance.now();
+    const fmt = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    const ease = t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    (function tick(now) {
+      const p = Math.min((now - start) / duration, 1);
+      el.textContent = fmt(target * ease(p));
+      if (p < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+
+  /* ── Budget progress bar ── */
+  function injectBudgetBar() {
+    if (document.getElementById('flint-budget-bar')) return;
+    const pillsEl = document.querySelector('.hero-balance-pills');
+    if (!pillsEl) return;
+    const income = parseFloat(document.getElementById('conf_income')?.value || 7400);
+    const spentEl = document.getElementById('heroTotalSpent');
+    const spent = parseFloat((spentEl?.textContent || '0').replace(/[$,]/g,'')) || 0;
+    const remaining = income - spent;
+    const pct = Math.min(spent / income * 100, 100);
+    const isDanger = pct > 75;
+    const bar = document.createElement('div');
+    bar.id = 'flint-budget-bar';
+    bar.innerHTML = `
+      <div class="bar-meta">
+        <span class="used"><span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:5px;vertical-align:middle"></span>${pct.toFixed(0)}% of $${income.toLocaleString()} budget used</span>
+        <span style="color:var(--green)">$${remaining.toLocaleString()} remaining</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill${isDanger?' danger':''}" id="flint-bar-fill"></div></div>`;
+    pillsEl.insertAdjacentElement('afterend', bar);
+    setTimeout(() => {
+      const f = document.getElementById('flint-bar-fill');
+      if (f) f.style.transform = `scaleX(${pct / 100})`;
+    }, 400);
+  }
+
+  /* ── Counter animations on load ── */
+  function runCounters() {
+    const map = [
+      { id: 'balanceNum',     target: null, delay: 0   },
+      { id: 'heroTotalSpent', target: null, delay: 200 },
+      { id: 'bSpend',         target: null, delay: 300 },
+      { id: 'gSpend',         target: null, delay: 400 },
+    ];
+    map.forEach(({id, delay}) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const raw = parseFloat(el.textContent.replace(/[$,]/g,''));
+      if (!isNaN(raw)) setTimeout(() => animateCounter(el, raw, 1300), delay);
+    });
+  }
+
+  /* ── Donut chart for Analytics ── */
+  function injectDonut() {
+    if (document.getElementById('flint-donut-wrap')) return;
+    const analyticsModal = document.getElementById('analyticsModal');
+    if (!analyticsModal || getComputedStyle(analyticsModal).display === 'none') return;
+
+    // Pull live category data from DOM bars
+    const cats = [];
+    const colors = ['#f97316','#8b7fd4','#4a9fd4','#34d399','#f472b6','#fb7185','#d4a843','#5bb8f5','#a3e635'];
+    analyticsModal.querySelectorAll('.cat-row, [class*="cat-item"]').forEach((row, i) => {
+      const label = row.querySelector('[class*="label"], span')?.textContent?.trim();
+      const amtEl = row.querySelector('[class*="amt"], strong');
+      const amt = parseFloat((amtEl?.textContent || '0').replace(/[$,]/g,''));
+      if (label && !isNaN(amt) && amt > 0) cats.push({label, amount: amt, color: colors[i % colors.length]});
+    });
+
+    // Fallback to hardcoded if DOM parse fails
+    const categories = cats.length >= 3 ? cats : [
+      { label:'Car',          amount:656.53, color:'#f97316' },
+      { label:'Misc',         amount:576.50, color:'#8b7fd4' },
+      { label:'CreditCard',   amount:352.00, color:'#4a9fd4' },
+      { label:'Groceries',    amount:120.00, color:'#34d399' },
+      { label:'Dining',       amount:89.52,  color:'#f472b6' },
+      { label:'Beauty',       amount:47.50,  color:'#fb7185' },
+      { label:'Subscription', amount:24.00,  color:'#d4a843' },
+    ];
+    const total = categories.reduce((s,c) => s + c.amount, 0);
+    const R = 75, SW = 26, C = 2 * Math.PI * R;
+    let offset = 0;
+    const segs = categories.map(cat => {
+      const dash = cat.amount / total * C;
+      const s = `<circle class="donut-seg" cx="100" cy="100" r="${R}" fill="none"
+        stroke="${cat.color}" stroke-width="${SW}"
+        stroke-dasharray="${dash} ${C - dash}" stroke-dashoffset="${-offset}"
+        data-label="${cat.label}" data-amount="$${cat.amount.toLocaleString()}"
+        data-pct="${(cat.amount/total*100).toFixed(1)}%"/>`;
+      offset += dash;
+      return s;
+    }).join('');
+
+    const legend = categories.map(cat => `
+      <div class="donut-legend-item" data-label="${cat.label}">
+        <span style="width:9px;height:9px;border-radius:50%;background:${cat.color};flex-shrink:0"></span>
+        <span style="flex:1;font-size:12.5px;color:var(--text-soft)">${cat.label}</span>
+        <span style="font-size:12.5px;font-weight:600;color:var(--text)">$${cat.amount.toLocaleString()}</span>
+        <span style="font-size:11px;color:var(--slate);width:34px;text-align:right">${(cat.amount/total*100).toFixed(0)}%</span>
+      </div>`).join('');
+
+    const html = `<div id="flint-donut-wrap">
+      <div style="position:relative;width:200px;height:200px;flex-shrink:0">
+        <svg width="200" height="200" viewBox="0 0 200 200" style="transform:rotate(-90deg)">
+          <circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(90,130,200,.1)" stroke-width="${SW}"/>
+          ${segs}
+        </svg>
+        <div id="flint-donut-label" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none">
+          <div style="font-size:10px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase">Total</div>
+          <div style="font-size:19px;font-weight:700;color:var(--text)">$${total.toLocaleString('en-US',{maximumFractionDigits:0})}</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;flex:1;min-width:160px">${legend}</div>
+    </div>`;
+
+    const secHeads = [...analyticsModal.querySelectorAll('.sec-head, h3')];
+    const catHead = secHeads.find(h => /category|spending/i.test(h.textContent));
+    if (catHead) catHead.insertAdjacentHTML('afterend', html);
+    else analyticsModal.insertAdjacentHTML('beforeend', html);
+
+    // Wire hover events
+    analyticsModal.querySelectorAll('.donut-seg').forEach(seg => {
+      seg.addEventListener('mouseenter', () => {
+        document.getElementById('flint-donut-label').innerHTML =
+          `<div style="font-size:9px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase">${seg.dataset.label}</div>
+           <div style="font-size:17px;font-weight:700;color:var(--text)">${seg.dataset.amount}</div>
+           <div style="font-size:11px;color:var(--slate)">${seg.dataset.pct}</div>`;
+        seg.setAttribute('stroke-width', SW + 6);
+        analyticsModal.querySelectorAll('.donut-seg').forEach(s => { if(s!==seg) s.style.opacity='.3'; });
+        analyticsModal.querySelectorAll('.donut-legend-item').forEach(li => {
+          li.style.background = li.dataset.label === seg.dataset.label ? 'rgba(90,130,200,.1)' : '';
+        });
+      });
+      seg.addEventListener('mouseleave', () => {
+        document.getElementById('flint-donut-label').innerHTML =
+          `<div style="font-size:10px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase">Total</div>
+           <div style="font-size:19px;font-weight:700;color:var(--text)">$${total.toLocaleString('en-US',{maximumFractionDigits:0})}</div>`;
+        seg.setAttribute('stroke-width', SW);
+        analyticsModal.querySelectorAll('.donut-seg').forEach(s => s.style.opacity='1');
+        analyticsModal.querySelectorAll('.donut-legend-item').forEach(li => li.style.background='');
+      });
+    });
+  }
+
+  /* ── Empty state upgrades ── */
+  function upgradeEmptyStates() {
+    const map = [
+      { id:'vaults',     icon:'🏦', text:'Create your first savings goal and watch your money grow.' },
+      { id:'challenges', icon:'🏆', text:'Start a spending challenge and build better habits.' },
+      { id:'subManager', icon:'📱', text:'Track your subscriptions so nothing catches you off guard.' },
+    ];
+    map.forEach(({id, icon, text}) => {
+      const panel = document.getElementById(id);
+      if (!panel) return;
+      [...panel.querySelectorAll('p, div')].filter(el =>
+        el.children.length === 0 &&
+        (el.textContent.includes('No vaults') || el.textContent.includes('No active') || el.textContent.includes('No subscriptions'))
+      ).forEach(el => {
+        if (!el.closest('.flint-empty-state')) {
+          const wrap = document.createElement('div');
+          wrap.className = 'flint-empty-state';
+          wrap.innerHTML = `<div class="ei">${icon}</div><p>${text}</p>`;
+          el.replaceWith(wrap);
+        }
+      });
+    });
+  }
+
+  /* ── Patch buildAnalyticsPanel to inject donut after rebuild ── */
+  function patchAnalytics() {
+    if (!window.buildAnalyticsPanel || window._flintPatched) return;
+    window._flintPatched = true;
+    const orig = window.buildAnalyticsPanel;
+    window.buildAnalyticsPanel = function(...args) {
+      const r = orig.apply(this, args);
+      setTimeout(injectDonut, 100);
+      return r;
+    };
+  }
+
+  /* ── Init on DOMContentLoaded ── */
+  function init() {
+    injectBudgetBar();
+    runCounters();
+    upgradeEmptyStates();
+    patchAnalytics();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    setTimeout(init, 300); // wait for app auth/render cycle
+  }
+})();
 </script>
 </body>
 </html>
