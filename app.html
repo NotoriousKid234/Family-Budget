@@ -3836,7 +3836,7 @@ function renderSubs() {
         const safeSubId = safeIdValue(s.id);
         const safeName = escapeHtml(sanitizePlainString(s.name, 120));
         const safeCategory = escapeHtml(getSubscriptionCategoryLabel(s.category));
-        div.innerHTML = '<div><span class="hist-note">' + safeName + '</span><span class="hist-date">' + safeCategory + ' · billed day ' + Math.max(1, Math.min(31, parseInt(s.billing_day, 10) || 1)) + '</span></div><div class="hist-right"><div class="hist-amt" style="color:var(--gold);">$' + safeNumber(s.amount).toFixed(2) + '</div><div class="hist-actions"><button class="act-btn act-del" onclick="deleteSub('' + safeSubId + '')"><i class="fa-solid fa-trash-can"></i></button></div></div>';
+        div.innerHTML = '<div><span class="hist-note">' + safeName + '</span><span class="hist-date">' + safeCategory + ' · billed day ' + Math.max(1, Math.min(31, parseInt(s.billing_day, 10) || 1)) + '</span></div><div class="hist-right"><div class="hist-amt" style="color:var(--gold);">$' + safeNumber(s.amount).toFixed(2) + '</div><div class="hist-actions"><button class="act-btn act-del" onclick="deleteSub(\'" + safeSubId + "\')"><i class="fa-solid fa-trash-can"></i></button></div></div>';
         list.appendChild(div);
     });
 }
@@ -8016,6 +8016,8 @@ function dismissWelcome() {
       card.style.display = list.indexOf(symbol) >= 0 ? '' : 'none';
     });
   }
+  window.applyCompactWatchlist = applyCompactWatchlist;
+
   window.customizeMarketsWatchlist = function(){
     var current = readCompactWatchlist();
     var input = window.prompt('Choose up to 6 symbols, separated by commas. Available: ' + MARKET_ALLOWED.join(', '), current.join(', '));
