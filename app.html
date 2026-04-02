@@ -1671,85 +1671,59 @@
   .donut-legend-item { display:flex; align-items:center; gap:10px; cursor:pointer; padding:5px 8px; border-radius:8px; transition:background .15s; }
   .donut-legend-item:hover { background:rgba(90,130,200,.08); }
 
-  /* ════════════════════════════════════════════
-     PROFILE PANEL — PREMIUM UPGRADE
-  ════════════════════════════════════════════ */
-  .prof-hero-card {
-    background:linear-gradient(135deg,var(--ink-3) 0%,var(--ink-4) 100%);
-    border:1px solid var(--border-hi); border-radius:20px;
-    padding:28px 24px 20px; text-align:center;
-    position:relative; overflow:hidden; margin-bottom:16px;
-  }
-  .prof-hero-card::before {
-    content:''; position:absolute; top:-40px; left:50%; transform:translateX(-50%);
-    width:200px; height:200px;
-    background:radial-gradient(circle,var(--gold-glow) 0%,transparent 70%);
-    pointer-events:none;
-  }
-  .prof-avatar-large {
-    width:72px; height:72px;
-    background:linear-gradient(135deg,var(--ink-4),var(--slate-dim));
-    border:2px solid var(--gold); border-radius:22px;
-    display:flex; align-items:center; justify-content:center; font-size:28px;
-    margin:0 auto 12px; box-shadow:0 0 0 4px var(--gold-glow);
-  }
-  .prof-hero-name  { font-size:1.3rem; font-weight:700; color:var(--text); }
-  .prof-hero-email { font-size:.75rem; color:var(--slate); margin-top:3px; }
-  .prof-hero-since { font-size:.7rem; color:var(--text-dim); margin-top:4px; letter-spacing:.05em; }
-  .prof-member-badge {
-    display:inline-flex; align-items:center; gap:5px;
-    background:var(--gold-glow); border:1px solid rgba(212,168,67,.3);
-    color:var(--gold); font-size:.68rem; font-weight:700;
-    padding:3px 10px; border-radius:99px; margin-top:10px;
-    letter-spacing:.05em; text-transform:uppercase;
-  }
-
-  /* Edit profile form */
-  .prof-edit-grid  { display:flex; flex-direction:column; gap:10px; padding:4px 0; }
-  .prof-field-group { display:flex; flex-direction:column; gap:5px; }
-  .prof-field-label {
-    font-size:.68rem; font-weight:700; text-transform:uppercase;
-    letter-spacing:.08em; color:var(--slate);
-  }
-  .prof-field-input {
-    background:var(--ink-3); border:1px solid var(--border);
-    border-radius:10px; padding:10px 14px;
-    color:var(--text); font-size:.85rem; font-family:'DM Sans',sans-serif;
-    width:100%; box-sizing:border-box; transition:border-color .2s ease; outline:none;
-  }
-  .prof-field-input:focus { border-color:var(--gold); }
-  .prof-field-input::placeholder { color:var(--text-dim); }
-  .prof-save-btn {
-    background:linear-gradient(135deg,var(--gold),var(--gold-dim));
-    color:var(--ink); font-weight:700; font-size:.85rem;
-    border:none; border-radius:12px; padding:12px;
-    cursor:pointer; width:100%; margin-top:4px;
-    transition:opacity .2s,transform .1s; font-family:'DM Sans',sans-serif;
-  }
-  .prof-save-btn:hover { opacity:.9; transform:translateY(-1px); }
-  .prof-save-btn:active { transform:translateY(0); }
-  .prof-save-success {
-    display:none; text-align:center; font-size:.8rem;
-    color:var(--green); padding:6px; font-weight:600;
-  }
-
-  /* Account detail rows */
-  .stat-row {
-    display:flex; justify-content:space-between; align-items:center;
-    padding:9px 0; border-bottom:1px solid var(--border); font-size:.83rem;
-  }
-  .stat-row:last-child { border-bottom:none; }
-  .stat-key { color:var(--slate); }
-  .stat-val  { color:var(--text); font-weight:600; }
-
-  /* Danger zone */
-  .prof-danger-btn {
-    background:rgba(251,113,133,.1); border:1px solid rgba(251,113,133,.25);
-    color:var(--rose); font-weight:600; font-size:.83rem;
-    border-radius:12px; padding:11px; cursor:pointer;
-    width:100%; font-family:'DM Sans',sans-serif; transition:background .2s;
-  }
-  .prof-danger-btn:hover { background:rgba(251,113,133,.18); }
+<!-- ═══ FLINT PREMIUM UI ENHANCEMENTS ═══ -->
+<style id="flint-premium">
+  .txn-fp{transition:background .18s,transform .18s,border-left-color .18s;border-left:3px solid transparent;border-radius:10px;padding-left:6px;margin-left:-6px}
+  .txn-fp:hover{background:rgba(90,130,200,.06)!important;transform:translateX(2px);border-left-color:var(--gold)}
+  .hero-stat-card{animation:hscUp .5s ease both}
+  .hero-stat-card:nth-child(1){animation-delay:.05s}
+  .hero-stat-card:nth-child(2){animation-delay:.12s}
+  .hero-stat-card:nth-child(3){animation-delay:.19s}
+  .hero-stat-card:nth-child(4){animation-delay:.26s}
+  @keyframes hscUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  #flint-budget-bar{display:flex;flex-direction:column;gap:5px;margin:6px 0 8px}
+  #flint-budget-bar .bar-track{height:6px;background:rgba(90,130,200,.12);border-radius:99px;overflow:hidden}
+  #flint-budget-bar .bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--gold));transform-origin:left;transform:scaleX(0);transition:transform 1s cubic-bezier(.34,1.56,.64,1)}
+  #flint-budget-bar .bar-fill.danger{background:linear-gradient(90deg,var(--gold),var(--rose))}
+  #flint-budget-bar .bar-meta{display:flex;justify-content:space-between;font-size:10.5px;color:var(--slate)}
+  #flint-budget-bar .bar-meta .used{color:var(--text-soft);font-weight:600}
+  .add-txn-btn{position:relative;overflow:hidden}
+  .add-txn-btn::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:shimmer 3s infinite}
+  @keyframes shimmer{0%{left:-100%}50%{left:150%}100%{left:150%}}
+  .member-card.brandon{animation:bPulse 4s infinite ease-in-out}
+  .member-card.gina{animation:gPulse 4s 2s infinite ease-in-out}
+  @keyframes bPulse{0%,100%{box-shadow:0 0 0 1px rgba(74,159,212,.2)}50%{box-shadow:0 0 0 1px rgba(74,159,212,.5),0 4px 20px rgba(74,159,212,.1)}}
+  @keyframes gPulse{0%,100%{box-shadow:0 0 0 1px rgba(244,114,182,.2)}50%{box-shadow:0 0 0 1px rgba(244,114,182,.5),0 4px 20px rgba(244,114,182,.1)}}
+  .txn-reaction-btn{transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
+  .txn-reaction-btn:hover{transform:scale(1.25)}
+  .txn-reaction-btn:active{transform:scale(.92)}
+  .flint-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 20px;gap:12px;text-align:center}
+  .flint-empty-state .ei{font-size:46px;animation:floatIcon 3s ease-in-out infinite}
+  .flint-empty-state p{font-size:13.5px;line-height:1.6;max-width:210px;color:var(--text-soft)}
+  @keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  #flint-donut-wrap{display:flex;align-items:center;gap:24px;padding:16px 0 8px;flex-wrap:wrap;margin-bottom:8px}
+  .donut-seg{cursor:pointer;transition:stroke-width .2s,opacity .2s}
+  .donut-legend-item{display:flex;align-items:center;gap:10px;cursor:pointer;padding:5px 8px;border-radius:8px;transition:background .15s}
+  .donut-legend-item:hover{background:rgba(90,130,200,.08)}
+  /* Profile enhancements */
+  .prof-member-badge{display:inline-flex;align-items:center;gap:5px;background:var(--gold-glow);border:1px solid rgba(212,168,67,.3);color:var(--gold);font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:99px;margin-top:10px;letter-spacing:.05em;text-transform:uppercase}
+  .prof-edit-grid{display:flex;flex-direction:column;gap:10px;padding:4px 0}
+  .prof-field-group{display:flex;flex-direction:column;gap:5px}
+  .prof-field-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--slate)}
+  .prof-field-note{font-size:.65rem;color:var(--text-dim);font-weight:400;text-transform:none;margin-left:4px}
+  .prof-field-input{background:var(--ink-3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:.85rem;font-family:'DM Sans',sans-serif;width:100%;box-sizing:border-box;transition:border-color .2s;outline:none}
+  .prof-field-input:focus{border-color:var(--gold)}
+  .prof-field-input::placeholder{color:var(--text-dim)}
+  .prof-save-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:var(--ink);font-weight:700;font-size:.85rem;border:none;border-radius:12px;padding:12px;cursor:pointer;width:100%;margin-top:4px;transition:opacity .2s,transform .1s;font-family:'DM Sans',sans-serif}
+  .prof-save-btn:hover{opacity:.9;transform:translateY(-1px)}
+  .prof-save-btn:active{transform:translateY(0)}
+  .prof-save-success{display:none;text-align:center;font-size:.8rem;color:var(--green);padding:6px;font-weight:600}
+  .prof-detail-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:.83rem}
+  .prof-detail-row:last-child{border-bottom:none}
+  .prof-detail-key{color:var(--slate)}
+  .prof-detail-val{color:var(--text);font-weight:600}
+  .prof-danger-btn{background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.25);color:var(--rose);font-weight:600;font-size:.83rem;border-radius:12px;padding:11px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;transition:background .2s}
+  .prof-danger-btn:hover{background:rgba(251,113,133,.2)}
 </style>
 <script>
   window.__APP_SUPABASE_URL = 'https://hieqohmhrpjvhotutwls.supabase.co';
@@ -6033,305 +6007,157 @@ function dismissWelcome() {
   setTimeout(function(){ splash.classList.remove('show'); splash.style.opacity = ''; }, 500);
 }
 </script>
-    <!-- ═══ FLINT PREMIUM UI SCRIPT ═══ -->
+<!-- ═══ FLINT PREMIUM UI SCRIPT ═══ -->
 <script>
-(function() {
-  /* ── Helpers ── */
-  function animateCounter(el, target, duration) {
-    if (!el) return;
-    const start = performance.now();
-    const fmt = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-    const ease = t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-    (function tick(now) {
-      const p = Math.min((now - start) / duration, 1);
-      el.textContent = fmt(target * ease(p));
-      if (p < 1) requestAnimationFrame(tick);
-    })(start);
+(function(){
+  function animateCounter(el,target,dur){
+    if(!el||!target)return;
+    var t0=performance.now();
+    var fmt=function(v){return'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});};
+    var ease=function(t){return t===1?1:1-Math.pow(2,-10*t);};
+    (function tick(now){var p=Math.min((now-t0)/dur,1);el.textContent=fmt(target*ease(p));if(p<1)requestAnimationFrame(tick);})(t0);
   }
-
-  /* ── Budget progress bar ── */
-  function injectBudgetBar() {
-    if (document.getElementById('flint-budget-bar')) return;
-    const pillsEl = document.querySelector('.hero-balance-pills');
-    if (!pillsEl) return;
-    const income = parseFloat(document.getElementById('conf_income')?.value || 7400);
-    const spentEl = document.getElementById('heroTotalSpent');
-    const spent = parseFloat((spentEl?.textContent || '0').replace(/[$,]/g,'')) || 0;
-    const remaining = income - spent;
-    const pct = Math.min(spent / income * 100, 100);
-    const isDanger = pct > 75;
-    const bar = document.createElement('div');
-    bar.id = 'flint-budget-bar';
-    bar.innerHTML =
-      '<div class="bar-meta">' +
-        '<span class="used"><span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:5px;vertical-align:middle"></span>' +
-        pct.toFixed(0) + '% of $' + income.toLocaleString() + ' budget used</span>' +
-        '<span style="color:var(--green)">$' + remaining.toLocaleString() + ' remaining</span>' +
-      '</div>' +
-      '<div class="bar-track"><div class="bar-fill' + (isDanger ? ' danger' : '') + '" id="flint-bar-fill"></div></div>';
-    pillsEl.insertAdjacentElement('afterend', bar);
-    setTimeout(function() {
-      var f = document.getElementById('flint-bar-fill');
-      if (f) f.style.transform = 'scaleX(' + (pct / 100) + ')';
-    }, 400);
+  function injectBudgetBar(){
+    if(document.getElementById('flint-budget-bar'))return;
+    var pills=document.querySelector('.hero-balance-pills');
+    if(!pills)return;
+    var income=parseFloat((document.getElementById('conf_income')||{}).value||7400);
+    var spent=parseFloat(((document.getElementById('heroTotalSpent')||{}).textContent||'0').replace(/[$,]/g,''))||0;
+    var pct=Math.min(spent/income*100,100);
+    var rem=income-spent;
+    var bar=document.createElement('div');
+    bar.id='flint-budget-bar';
+    bar.innerHTML='<div class="bar-meta"><span class="used"><span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:5px;vertical-align:middle"></span>'+pct.toFixed(0)+'% of $'+income.toLocaleString()+' budget used</span><span style="color:var(--green)">$'+rem.toLocaleString()+' remaining</span></div><div class="bar-track"><div class="bar-fill'+(pct>75?' danger':'')+'" id="flint-bar-fill"></div></div>';
+    pills.insertAdjacentElement('afterend',bar);
+    setTimeout(function(){var f=document.getElementById('flint-bar-fill');if(f)f.style.transform='scaleX('+(pct/100)+')';},400);
   }
-
-  /* ── Counter animations ── */
-  function runCounters() {
-    var ids = ['balanceNum','heroTotalSpent','bSpend','gSpend'];
-    ids.forEach(function(id, i) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      var raw = parseFloat(el.textContent.replace(/[$,]/g,''));
-      if (!isNaN(raw) && raw > 0) setTimeout(function(){ animateCounter(el, raw, 1300); }, i * 150);
+  function runCounters(){
+    ['balanceNum','heroTotalSpent','bSpend','gSpend'].forEach(function(id,i){
+      var el=document.getElementById(id);
+      if(!el)return;
+      var v=parseFloat(el.textContent.replace(/[$,]/g,''));
+      if(!isNaN(v)&&v>0)setTimeout(function(){animateCounter(el,v,1300);},i*150);
     });
   }
-
-  /* ── Donut chart for Analytics ── */
-  function injectDonut() {
-    if (document.getElementById('flint-donut-wrap')) return;
-    var analyticsModal = document.getElementById('analyticsModal');
-    if (!analyticsModal || getComputedStyle(analyticsModal).display === 'none') return;
-    var colors = ['#f97316','#8b7fd4','#4a9fd4','#34d399','#f472b6','#fb7185','#d4a843','#5bb8f5','#a3e635'];
-    var categories = [
-      {label:'Car',amount:656.53,color:'#f97316'},
-      {label:'Misc',amount:576.50,color:'#8b7fd4'},
-      {label:'CreditCard',amount:352.00,color:'#4a9fd4'},
-      {label:'Groceries',amount:120.00,color:'#34d399'},
-      {label:'Dining',amount:89.52,color:'#f472b6'},
-      {label:'Beauty',amount:47.50,color:'#fb7185'},
-      {label:'Subscription',amount:24.00,color:'#d4a843'}
-    ];
-    var total = categories.reduce(function(s,c){return s+c.amount;},0);
-    var R=75,SW=26,C=2*Math.PI*R,offset=0;
-    var segs = categories.map(function(cat){
-      var dash=cat.amount/total*C;
-      var s='<circle class="donut-seg" cx="100" cy="100" r="'+R+'" fill="none" stroke="'+cat.color+
-        '" stroke-width="'+SW+'" stroke-dasharray="'+dash+' '+(C-dash)+'" stroke-dashoffset="'+(-offset)+
-        '" data-label="'+cat.label+'" data-amount="$'+cat.amount.toLocaleString()+
-        '" data-pct="'+(cat.amount/total*100).toFixed(1)+'%"/>';
-      offset+=dash; return s;
-    }).join('');
-    var legend = categories.map(function(cat){
-      return '<div class="donut-legend-item" data-label="'+cat.label+'">'+
-        '<span style="width:9px;height:9px;border-radius:50%;background:'+cat.color+';flex-shrink:0"></span>'+
-        '<span style="flex:1;font-size:12.5px;color:var(--text-soft)">'+cat.label+'</span>'+
-        '<span style="font-size:12.5px;font-weight:600;color:var(--text)">$'+cat.amount.toLocaleString()+'</span>'+
-        '<span style="font-size:11px;color:var(--slate);width:34px;text-align:right">'+(cat.amount/total*100).toFixed(0)+'%</span>'+
-        '</div>';
-    }).join('');
-    var html='<div id="flint-donut-wrap">'+
-      '<div style="position:relative;width:200px;height:200px;flex-shrink:0">'+
-        '<svg width="200" height="200" viewBox="0 0 200 200" style="transform:rotate(-90deg)">'+
-          '<circle cx="100" cy="100" r="'+R+'" fill="none" stroke="rgba(90,130,200,.1)" stroke-width="'+SW+'"/>'+segs+
-        '</svg>'+
-        '<div id="flint-donut-label" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none">'+
-          '<div style="font-size:10px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase">Total</div>'+
-          '<div style="font-size:19px;font-weight:700;color:var(--text)">$'+total.toLocaleString('en-US',{maximumFractionDigits:0})+'</div>'+
-        '</div></div>'+
-      '<div style="display:flex;flex-direction:column;gap:7px;flex:1;min-width:160px">'+legend+'</div></div>';
-    var secHeads=[].slice.call(analyticsModal.querySelectorAll('.sec-head,h3'));
-    var catHead=secHeads.find(function(h){return /category|spending/i.test(h.textContent);});
-    if(catHead) catHead.insertAdjacentHTML('afterend',html);
-    else analyticsModal.insertAdjacentHTML('beforeend',html);
-    analyticsModal.querySelectorAll('.donut-seg').forEach(function(seg){
+  function upgradeEmptyStates(){
+    [{id:'vaults',icon:'🏦',text:'Create your first savings goal and watch your money grow.'},{id:'challenges',icon:'🏆',text:'Start a spending challenge and build better habits.'},{id:'subManager',icon:'📱',text:'Track your subscriptions so nothing catches you off guard.'}].forEach(function(item){
+      var panel=document.getElementById(item.id);
+      if(!panel)return;
+      [].slice.call(panel.querySelectorAll('p,div')).filter(function(el){return el.children.length===0&&(el.textContent.includes('No vaults')||el.textContent.includes('No active')||el.textContent.includes('No subscriptions'));}).forEach(function(el){
+        if(!el.closest('.flint-empty-state')){var w=document.createElement('div');w.className='flint-empty-state';w.innerHTML='<div class="ei">'+item.icon+'</div><p>'+item.text+'</p>';el.replaceWith(w);}
+      });
+    });
+  }
+  function injectDonut(){
+    if(document.getElementById('flint-donut-wrap'))return;
+    var am=document.getElementById('analyticsModal');
+    if(!am||getComputedStyle(am).display==='none')return;
+    var cats=[{l:'Car',a:656.53,c:'#f97316'},{l:'Misc',a:576.50,c:'#8b7fd4'},{l:'CreditCard',a:352.00,c:'#4a9fd4'},{l:'Groceries',a:120.00,c:'#34d399'},{l:'Dining',a:89.52,c:'#f472b6'},{l:'Beauty',a:47.50,c:'#fb7185'},{l:'Subscription',a:24.00,c:'#d4a843'}];
+    var tot=cats.reduce(function(s,c){return s+c.a;},0),R=75,SW=26,C=2*Math.PI*R,off=0;
+    var segs=cats.map(function(cat){var d=cat.a/tot*C,s='<circle class="donut-seg" cx="100" cy="100" r="'+R+'" fill="none" stroke="'+cat.c+'" stroke-width="'+SW+'" stroke-dasharray="'+d+' '+(C-d)+'" stroke-dashoffset="'+(-off)+'" data-label="'+cat.l+'" data-amount="$'+cat.a.toLocaleString()+'" data-pct="'+(cat.a/tot*100).toFixed(1)+'%"/>';off+=d;return s;}).join('');
+    var leg=cats.map(function(c){return'<div class="donut-legend-item" data-label="'+c.l+'"><span style="width:9px;height:9px;border-radius:50%;background:'+c.c+';flex-shrink:0"></span><span style="flex:1;font-size:12.5px;color:var(--text-soft)">'+c.l+'</span><span style="font-size:12.5px;font-weight:600;color:var(--text)">$'+c.a.toLocaleString()+'</span><span style="font-size:11px;color:var(--slate);width:34px;text-align:right">'+(c.a/tot*100).toFixed(0)+'%</span></div>';}).join('');
+    var lbl='<div id="flint-donut-label" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none"><div style="font-size:10px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase">Total</div><div style="font-size:19px;font-weight:700;color:var(--text)">$'+tot.toLocaleString('en-US',{maximumFractionDigits:0})+'</div></div>';
+    var html='<div id="flint-donut-wrap"><div style="position:relative;width:200px;height:200px;flex-shrink:0"><svg width="200" height="200" viewBox="0 0 200 200" style="transform:rotate(-90deg)"><circle cx="100" cy="100" r="'+R+'" fill="none" stroke="rgba(90,130,200,.1)" stroke-width="'+SW+'"/>'+segs+'</svg>'+lbl+'</div><div style="display:flex;flex-direction:column;gap:7px;flex:1;min-width:160px">'+leg+'</div></div>';
+    var heads=[].slice.call(am.querySelectorAll('.sec-head,h3'));
+    var ch=heads.find(function(h){return/category|spending/i.test(h.textContent);});
+    if(ch)ch.insertAdjacentHTML('afterend',html);else am.insertAdjacentHTML('beforeend',html);
+    am.querySelectorAll('.donut-seg').forEach(function(seg){
       seg.addEventListener('mouseenter',function(){
-        document.getElementById('flint-donut-label').innerHTML=
-          '<div style="font-size:9px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase">'+seg.dataset.label+'</div>'+
-          '<div style="font-size:17px;font-weight:700;color:var(--text)">'+seg.dataset.amount+'</div>'+
-          '<div style="font-size:11px;color:var(--slate)">'+seg.dataset.pct+'</div>';
+        document.getElementById('flint-donut-label').innerHTML='<div style="font-size:9px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase">'+seg.dataset.label+'</div><div style="font-size:17px;font-weight:700;color:var(--text)">'+seg.dataset.amount+'</div><div style="font-size:11px;color:var(--slate)">'+seg.dataset.pct+'</div>';
         seg.setAttribute('stroke-width',SW+6);
-        analyticsModal.querySelectorAll('.donut-seg').forEach(function(s){if(s!==seg)s.style.opacity='.3';});
-        analyticsModal.querySelectorAll('.donut-legend-item').forEach(function(li){
-          li.style.background=li.dataset.label===seg.dataset.label?'rgba(90,130,200,.1)':'';
-        });
+        am.querySelectorAll('.donut-seg').forEach(function(s){if(s!==seg)s.style.opacity='.3';});
+        am.querySelectorAll('.donut-legend-item').forEach(function(li){li.style.background=li.dataset.label===seg.dataset.label?'rgba(90,130,200,.1)':'';});
       });
       seg.addEventListener('mouseleave',function(){
-        document.getElementById('flint-donut-label').innerHTML=
-          '<div style="font-size:10px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase">Total</div>'+
-          '<div style="font-size:19px;font-weight:700;color:var(--text)">$'+total.toLocaleString('en-US',{maximumFractionDigits:0})+'</div>';
+        document.getElementById('flint-donut-label').innerHTML='<div style="font-size:10px;color:var(--slate);letter-spacing:.06em;text-transform:uppercase">Total</div><div style="font-size:19px;font-weight:700;color:var(--text)">$'+tot.toLocaleString('en-US',{maximumFractionDigits:0})+'</div>';
         seg.setAttribute('stroke-width',SW);
-        analyticsModal.querySelectorAll('.donut-seg').forEach(function(s){s.style.opacity='1';});
-        analyticsModal.querySelectorAll('.donut-legend-item').forEach(function(li){li.style.background='';});
+        am.querySelectorAll('.donut-seg').forEach(function(s){s.style.opacity='1';});
+        am.querySelectorAll('.donut-legend-item').forEach(function(li){li.style.background='';});
       });
     });
   }
-
-  /* ── Empty state upgrades ── */
-  function upgradeEmptyStates() {
-    [{id:'vaults',icon:'🏦',text:'Create your first savings goal and watch your money grow.'},
-     {id:'challenges',icon:'🏆',text:'Start a spending challenge and build better habits.'},
-     {id:'subManager',icon:'📱',text:'Track your subscriptions so nothing catches you off guard.'}
-    ].forEach(function(item){
-      var panel=document.getElementById(item.id);
-      if(!panel) return;
-      [].slice.call(panel.querySelectorAll('p,div')).filter(function(el){
-        return el.children.length===0&&(el.textContent.includes('No vaults')||el.textContent.includes('No active')||el.textContent.includes('No subscriptions'));
-      }).forEach(function(el){
-        if(!el.closest('.flint-empty-state')){
-          var wrap=document.createElement('div');
-          wrap.className='flint-empty-state';
-          wrap.innerHTML='<div class="ei">'+item.icon+'</div><p>'+item.text+'</p>';
-          el.replaceWith(wrap);
-        }
-      });
-    });
-  }
-
-  /* ── Profile panel enhancement ── */
-  function enhanceProfile() {
+  function enhanceProfile(){
     var panel=document.getElementById('profileManager');
-    if(!panel||document.getElementById('flint-prof-edit')) return;
+    if(!panel||document.getElementById('flint-prof-edit'))return;
     var raw=localStorage.getItem('sb-hieqohmhrpjvhotutwls-auth-token');
     var user=raw?JSON.parse(raw).user:null;
-    var email=user&&user.email?user.email:'';
-    var name=user&&user.user_metadata&&user.user_metadata.display_name?user.user_metadata.display_name:'';
+    var email=(user&&user.email)||'';
+    var name=(user&&user.user_metadata&&user.user_metadata.display_name)||'';
     var created=user&&user.created_at?new Date(user.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'}):'';
-    var userId=user&&user.id?user.id.substring(0,8).toUpperCase():'';
-
-    /* Badge on hero card */
+    var uid=(user&&user.id)?user.id.substring(0,8).toUpperCase():'';
     var heroSince=panel.querySelector('.prof-hero-since');
     if(heroSince&&!panel.querySelector('.prof-member-badge')){
-      heroSince.insertAdjacentHTML('afterend','<div class="prof-member-badge">⚡ Member since '+created+'</div>');
+      heroSince.insertAdjacentHTML('afterend','<div class="prof-member-badge">&#x26A1; Member since '+created+'</div>');
     }
-
-    /* Remove old security section (password moved into edit form) */
-    var secHeads=[].slice.call(panel.querySelectorAll('.sec-head'));
-    var securityHead=secHeads.find(function(h){return h.textContent.trim()==='Security';});
-    if(securityHead){var next=securityHead.nextElementSibling;securityHead.remove();if(next)next.remove();}
-
-    /* Build Edit Profile section */
-    var editHTML=
-      '<div id="flint-prof-edit">'+
-      '<div class="sec-head" style="margin-top:16px">Edit Profile</div>'+
-      '<div class="card" style="padding:16px">'+
-        '<div class="prof-edit-grid">'+
-          '<div class="prof-field-group">'+
-            '<div class="prof-field-label">Display Name</div>'+
-            '<input class="prof-field-input" id="flint-edit-name" type="text" placeholder="Your name" value="'+name+'" autocomplete="off"/>'+
-          '</div>'+
-          '<div class="prof-field-group">'+
-            '<div class="prof-field-label">Email Address</div>'+
-            '<input class="prof-field-input" id="flint-edit-email" type="email" placeholder="your@email.com" value="'+email+'" autocomplete="off"/>'+
-          '</div>'+
-          '<div class="prof-field-group">'+
-            '<div class="prof-field-label">New Password <span style="color:var(--text-dim);font-weight:400;text-transform:none;font-size:.65rem">(leave blank to keep current)</span></div>'+
-            '<input class="prof-field-input" id="flint-edit-pass" type="password" placeholder="••••••••" autocomplete="new-password"/>'+
-          '</div>'+
-          '<button class="prof-save-btn" id="flint-save-profile">Save Changes</button>'+
-          '<div class="prof-save-success" id="flint-save-msg">✓ Profile updated successfully</div>'+
-        '</div>'+
-      '</div></div>';
-
-    /* Build Account Details section */
-    var detailsHTML=
-      '<div id="flint-prof-details">'+
-      '<div class="sec-head" style="margin-top:16px">Account Details</div>'+
-      '<div class="card" style="padding:4px 16px">'+
-        '<div class="stat-row"><span class="stat-key">User ID</span><span class="stat-val" style="font-family:monospace;font-size:.75rem;color:var(--slate)">#'+userId+'</span></div>'+
-        '<div class="stat-row"><span class="stat-key">Member Since</span><span class="stat-val">'+created+'</span></div>'+
-        '<div class="stat-row"><span class="stat-key">Account Type</span><span class="stat-val" style="color:var(--gold)">⚡ Flint Beta</span></div>'+
-        '<div class="stat-row"><span class="stat-key">Ledger Status</span><span class="stat-val" style="color:var(--green)">● Shared</span></div>'+
-      '</div></div>';
-
-    /* Build Danger Zone section */
-    var dangerHTML=
-      '<div id="flint-prof-danger">'+
-      '<div class="sec-head" style="margin-top:16px;color:var(--rose)">Danger Zone</div>'+
-      '<div class="card" style="padding:12px;display:flex;flex-direction:column;gap:8px">'+
-        '<button class="prof-danger-btn" id="flint-clear-btn">🗑️ Clear All My Transactions This Cycle</button>'+
-        '<button class="prof-danger-btn" id="flint-leave-btn">🔗 Leave Shared Ledger</button>'+
-      '</div></div>';
-
-    /* Insert before Account / Sign Out section */
-    var accountHead=secHeads.find(function(h){return h.textContent.trim()==='Account';});
-    if(accountHead){
-      accountHead.insertAdjacentHTML('beforebegin',editHTML+detailsHTML+dangerHTML);
-    } else {
-      panel.insertAdjacentHTML('beforeend',editHTML+detailsHTML+dangerHTML);
-    }
-
-    /* Save button handler */
-    var saveBtn=document.getElementById('flint-save-profile');
-    if(saveBtn){
-      saveBtn.addEventListener('click',function(){
-        var btn=document.getElementById('flint-save-profile');
-        var msg=document.getElementById('flint-save-msg');
-        var newName=(document.getElementById('flint-edit-name')||{}).value||'';
-        var newEmail=(document.getElementById('flint-edit-email')||{}).value||'';
-        var newPass=(document.getElementById('flint-edit-pass')||{}).value||'';
-        btn.textContent='Saving…'; btn.disabled=true;
-        var updates={};
-        if(newEmail&&newEmail!==email) updates.email=newEmail;
-        if(newPass&&newPass.length>=6) updates.password=newPass;
-        if(newName) updates.data={display_name:newName};
-        var doUpdate=Object.keys(updates).length>0;
-        var client=window.supabaseClient||window.supabase;
-        var finish=function(ok){
-          if(ok){
-            if(newName){
-              var hn=panel.querySelector('#profHeroName,.prof-hero-name');
-              if(hn) hn.textContent=newName;
-            }
-            if(document.getElementById('flint-edit-pass')) document.getElementById('flint-edit-pass').value='';
-            btn.textContent='✓ Saved!';
-            btn.style.background='linear-gradient(135deg,var(--green),#22c55e)';
-            msg.style.display='block';
-            setTimeout(function(){btn.textContent='Save Changes';btn.style.background='';btn.disabled=false;msg.style.display='none';},2500);
-          } else {
-            btn.textContent='Error — try again'; btn.style.background='rgba(251,113,133,.3)'; btn.disabled=false;
-            setTimeout(function(){btn.textContent='Save Changes';btn.style.background='';},2000);
-          }
-        };
-        if(doUpdate&&client&&client.auth){
-          client.auth.updateUser(updates).then(function(r){finish(!r.error);}).catch(function(){finish(false);});
-        } else { finish(true); }
-      });
-    }
-
-    /* Danger zone buttons */
-    var clearBtn=document.getElementById('flint-clear-btn');
-    if(clearBtn) clearBtn.addEventListener('click',function(){
-      if(typeof window.fpClearCycle==='function') window.fpClearCycle();
-      else window.openPanel('configManager');
-    });
-    var leaveBtn=document.getElementById('flint-leave-btn');
-    if(leaveBtn) leaveBtn.addEventListener('click',function(){
-      if(typeof window.leaveSharedLedger==='function') window.leaveSharedLedger();
-      else window.openPanel('shareManager');
-    });
+    var allSecHeads=[].slice.call(panel.querySelectorAll('.sec-head'));
+    var secHead=allSecHeads.find(function(h){return h.textContent.trim()==='Security';});
+    if(secHead){var nxt=secHead.nextElementSibling;secHead.remove();if(nxt)nxt.remove();}
+    var editHTML='<div id="flint-prof-edit"><div class="sec-head" style="margin-top:16px">Edit Profile</div><div class="card" style="padding:16px"><div class="prof-edit-grid">'+
+      '<div class="prof-field-group"><div class="prof-field-label">Display Name</div><input class="prof-field-input" id="flint-edit-name" type="text" placeholder="Your name" value="'+name+'" autocomplete="off"/></div>'+
+      '<div class="prof-field-group"><div class="prof-field-label">Email Address</div><input class="prof-field-input" id="flint-edit-email" type="email" placeholder="your@email.com" value="'+email+'" autocomplete="off"/></div>'+
+      '<div class="prof-field-group"><div class="prof-field-label">New Password<span class="prof-field-note">(leave blank to keep current)</span></div><input class="prof-field-input" id="flint-edit-pass" type="password" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autocomplete="new-password"/></div>'+
+      '<button class="prof-save-btn" id="flint-save-btn">Save Changes</button>'+
+      '<div class="prof-save-success" id="flint-save-msg">&#x2713; Profile updated successfully</div>'+
+    '</div></div></div>';
+    var detailsHTML='<div id="flint-prof-details"><div class="sec-head" style="margin-top:16px">Account Details</div><div class="card" style="padding:4px 16px">'+
+      '<div class="prof-detail-row"><span class="prof-detail-key">User ID</span><span class="prof-detail-val" style="font-family:monospace;font-size:.75rem;color:var(--slate)">#'+uid+'</span></div>'+
+      '<div class="prof-detail-row"><span class="prof-detail-key">Member Since</span><span class="prof-detail-val">'+created+'</span></div>'+
+      '<div class="prof-detail-row"><span class="prof-detail-key">Account Type</span><span class="prof-detail-val" style="color:var(--gold)">&#x26A1; Flint Beta</span></div>'+
+      '<div class="prof-detail-row"><span class="prof-detail-key">Ledger</span><span class="prof-detail-val" style="color:var(--green)">&#x25CF; Shared</span></div>'+
+    '</div></div>';
+    var dangerHTML='<div id="flint-prof-danger"><div class="sec-head" style="margin-top:16px;color:var(--rose)">Danger Zone</div><div class="card" style="padding:12px;display:flex;flex-direction:column;gap:8px">'+
+      '<button class="prof-danger-btn" id="flint-clear-btn">&#x1F5D1; Clear All My Transactions This Cycle</button>'+
+      '<button class="prof-danger-btn" id="flint-leave-btn">&#x1F517; Leave Shared Ledger</button>'+
+    '</div></div>';
+    allSecHeads=[].slice.call(panel.querySelectorAll('.sec-head'));
+    var acctHead=allSecHeads.find(function(h){return h.textContent.trim()==='Account';});
+    if(acctHead)acctHead.insertAdjacentHTML('beforebegin',editHTML+detailsHTML+dangerHTML);
+    else panel.insertAdjacentHTML('beforeend',editHTML+detailsHTML+dangerHTML);
+    var saveBtn=document.getElementById('flint-save-btn');
+    if(saveBtn){saveBtn.addEventListener('click',function(){
+      var btn=document.getElementById('flint-save-btn'),msg=document.getElementById('flint-save-msg');
+      var newName=document.getElementById('flint-edit-name').value.trim();
+      var newEmail=document.getElementById('flint-edit-email').value.trim();
+      var newPass=document.getElementById('flint-edit-pass').value;
+      btn.textContent='Saving\u2026';btn.disabled=true;
+      var updates={};
+      if(newEmail&&newEmail!==email)updates.email=newEmail;
+      if(newPass&&newPass.length>=6)updates.password=newPass;
+      if(newName)updates.data={display_name:newName};
+      var client=window.supabaseClient||window.supabase;
+      var finish=function(ok){
+        if(ok){var hn=panel.querySelector('#profHeroName,.prof-hero-name');if(hn&&newName)hn.textContent=newName;document.getElementById('flint-edit-pass').value='';btn.textContent='\u2713 Saved!';btn.style.background='linear-gradient(135deg,var(--green),#22c55e)';msg.style.display='block';setTimeout(function(){btn.textContent='Save Changes';btn.style.background='';btn.disabled=false;msg.style.display='none';},2500);}
+        else{btn.textContent='Error \u2014 try again';btn.style.background='rgba(251,113,133,.3)';btn.disabled=false;setTimeout(function(){btn.textContent='Save Changes';btn.style.background='';},2000);}
+      };
+      if(Object.keys(updates).length&&client&&client.auth)client.auth.updateUser(updates).then(function(r){finish(!r.error);}).catch(function(){finish(false);});
+      else finish(true);
+    });}
+    var clr=document.getElementById('flint-clear-btn');
+    if(clr)clr.addEventListener('click',function(){if(typeof window.fpClearCycle==='function')window.fpClearCycle();else window.openPanel('configManager');});
+    var lv=document.getElementById('flint-leave-btn');
+    if(lv)lv.addEventListener('click',function(){if(typeof window.leaveSharedLedger==='function')window.leaveSharedLedger();else window.openPanel('shareManager');});
   }
-
-  /* ── Patch buildAnalyticsPanel ── */
-  function patchAnalytics() {
-    if(!window.buildAnalyticsPanel||window._flintAnalPatched) return;
-    window._flintAnalPatched=true;
-    var orig=window.buildAnalyticsPanel;
-    window.buildAnalyticsPanel=function(){var r=orig.apply(this,arguments);setTimeout(injectDonut,100);return r;};
+  function patchAnalytics(){
+    if(!window.buildAnalyticsPanel||window._flintAP)return;
+    window._flintAP=true;
+    var o=window.buildAnalyticsPanel;
+    window.buildAnalyticsPanel=function(){var r=o.apply(this,arguments);setTimeout(injectDonut,100);return r;};
   }
-
-  /* ── Patch buildProfilePanel ── */
-  function patchProfile() {
-    if(!window.buildProfilePanel||window._flintProfPatched) return;
-    window._flintProfPatched=true;
-    var orig=window.buildProfilePanel;
-    window.buildProfilePanel=function(){var r=orig.apply(this,arguments);setTimeout(enhanceProfile,150);return r;};
+  function patchProfile(){
+    if(!window.buildProfilePanel||window._flintPP)return;
+    window._flintPP=true;
+    var o=window.buildProfilePanel;
+    window.buildProfilePanel=function(){var r=o.apply(this,arguments);setTimeout(enhanceProfile,200);return r;};
   }
-
-  /* ── Init ── */
-  function init() {
+  function init(){
     injectBudgetBar();
     runCounters();
     upgradeEmptyStates();
     patchAnalytics();
     patchProfile();
   }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',init);
-  } else {
-    setTimeout(init,2500);
-  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  else setTimeout(init,2500);
 })();
 </script>
 </body>
