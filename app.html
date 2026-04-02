@@ -8917,5 +8917,197 @@ function dismissWelcome() {
 })();
 </script>
 
+
+<style id="simplify-main-ui-css">
+  @media (min-width: 1024px){
+    body.logged-in .wrap{margin-right:32px !important;}
+    #marketPanel{display:none !important;}
+  }
+  #weeklyRecapCard,#budgetWarningCard,#anomalyCard{display:none !important;}
+  .hero-stat-card.hsc-fire,.hero-stat-card.hsc-save{display:none !important;}
+  .hero-stat-cards{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+  .flint-hero-support{display:none !important;}
+  .simplify-status-line{margin-top:12px;font-size:.82rem;line-height:1.55;color:var(--text-soft);max-width:56ch;}
+  .simplify-status-line b{color:var(--text);font-weight:700;}
+  .simplify-ai-mount{margin:0 0 16px;}
+  .simplify-ai-mount #aiTipPanel{margin:0 !important;background:linear-gradient(180deg, rgba(13,24,44,.92), rgba(9,18,34,.96));border:1px solid rgba(100,150,230,.14);border-radius:22px;padding:18px 18px 16px;box-shadow:0 16px 38px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.03);}
+  .simplify-ai-mount .side-panel-header{margin-bottom:10px !important;padding-bottom:10px !important;border-bottom:1px solid rgba(255,255,255,.06);}
+  .simplify-ai-mount .side-panel-header span{font-size:.82rem;font-weight:800;letter-spacing:.2px;color:var(--text);}
+  .simplify-ai-mount .side-panel-link{font-size:.68rem !important;}
+  .simplify-ai-mount #aiTipBody{padding:0 !important;min-height:auto !important;}
+  .simplify-ai-mount .ai-tip-content,.simplify-ai-mount .ai-tip-loading{background:rgba(255,255,255,.03) !important;border:1px solid rgba(255,255,255,.05) !important;border-radius:16px !important;padding:14px 15px !important;}
+  .simplify-lower-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:16px;align-items:start;margin-top:16px;}
+  .simplify-group{background:linear-gradient(180deg, rgba(13,24,44,.92), rgba(9,18,34,.96));border:1px solid rgba(100,150,230,.14);border-radius:22px;padding:18px;box-shadow:0 16px 38px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.03);}
+  .simplify-group-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;}
+  .simplify-group-kicker{font-size:.62rem;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:rgba(212,168,67,.9);margin-bottom:6px;}
+  .simplify-group-title{font-size:1rem;font-weight:800;color:var(--text);line-height:1.2;}
+  .simplify-group-copy{font-size:.76rem;color:var(--text-soft);line-height:1.55;max-width:34ch;}
+  #simplifyHouseholdShell .member-card,#simplifyDebtShell .flint-debt-card{box-shadow:none !important;}
+  #simplifyHouseholdShell .member-card{padding:14px 16px !important;border-radius:16px !important;}
+  #simplifyDebtShell .flint-debt-grid{gap:10px !important;margin:0 !important;}
+  #simplifyDebtShell .flint-debt-card{padding:16px !important;border-radius:16px !important;min-height:unset !important;}
+  #simplifyHouseholdShell .flint-member-grid{margin:0 0 12px !important;gap:10px !important;}
+  #simplifyHouseholdShell #needWantCard{margin:0 !important;padding:14px 16px !important;border-radius:16px !important;background:rgba(255,255,255,.025) !important;}
+  #simplifyHouseholdShell #needWantCard > div:first-child > div:first-child{font-size:.62rem !important;letter-spacing:1.3px !important;}
+  #simplifyHouseholdShell #needWantCard > div:nth-child(2) > div{padding:10px 8px !important;}
+  #addTxnBtn{margin-top:0 !important;margin-bottom:14px !important;}
+  .flint-history-shell{margin-top:0 !important;}
+  .flint-summary-grid{margin-bottom:16px !important;}
+  .flint-attention-copy{max-width:38ch;}
+  @media (max-width: 1023px){
+    .simplify-lower-grid{grid-template-columns:1fr;}
+    .simplify-ai-mount{margin-bottom:14px;}
+  }
+</style>
+<script id="simplify-main-ui-script">
+(function(){
+  function byId(id){return document.getElementById(id);}  
+  function esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]||c;});}
+  function ensureSimplifiedMain(){
+    var app = byId('app');
+    if(!app) return;
+
+    var hero = app.querySelector('.hero-stats-bar');
+    if(hero && !byId('simplifyStatusLine')){
+      var status = document.createElement('div');
+      status.id = 'simplifyStatusLine';
+      status.className = 'simplify-status-line';
+      var pills = hero.querySelector('.hero-balance-pills');
+      if(pills && pills.parentNode) pills.insertAdjacentElement('afterend', status);
+      else hero.appendChild(status);
+    }
+
+    var ai = byId('aiTipPanel');
+    if(ai){
+      var mount = byId('simplifyAiMount');
+      if(!mount){
+        mount = document.createElement('section');
+        mount.id = 'simplifyAiMount';
+        mount.className = 'simplify-ai-mount';
+        var summary = app.querySelector('.flint-summary-grid') || hero;
+        if(summary && summary.parentNode) summary.insertAdjacentElement('afterend', mount);
+      }
+      if(ai.parentElement !== mount) mount.appendChild(ai);
+    }
+
+    var historyList = byId('historyList');
+    var historyShell = historyList && historyList.parentElement;
+    if(historyShell){
+      var lower = byId('simplifyLowerGrid');
+      if(!lower){
+        lower = document.createElement('section');
+        lower.id = 'simplifyLowerGrid';
+        lower.className = 'simplify-lower-grid';
+        historyShell.insertAdjacentElement('afterend', lower);
+      }
+
+      var bSpend = byId('bSpend');
+      var gSpend = byId('gSpend');
+      var needWant = byId('needWantCard');
+      var memberGrid = bSpend && gSpend ? bSpend.closest('.member-card').parentElement : null;
+      if(memberGrid && needWant){
+        var household = byId('simplifyHouseholdShell');
+        if(!household){
+          household = document.createElement('section');
+          household.id = 'simplifyHouseholdShell';
+          household.className = 'simplify-group';
+          household.innerHTML = '<div class="simplify-group-head"><div><div class="simplify-group-kicker">Household breakdown</div><div class="simplify-group-title">Who spent what, and where your needs vs wants stand</div><div class="simplify-group-copy">Keep people and behavior together so the dashboard feels easier to scan and less fragmented.</div></div></div>';
+          lower.appendChild(household);
+        }
+        var head = household.querySelector('.simplify-group-head');
+        if(memberGrid.parentElement !== household) household.appendChild(memberGrid);
+        if(needWant.parentElement !== household) household.appendChild(needWant);
+        if(head) household.insertBefore(memberGrid, needWant);
+      }
+
+      var mortgageText = byId('mortgageBalText');
+      var carText = byId('carBalText');
+      var debtGrid = mortgageText && carText ? mortgageText.parentElement.parentElement : null;
+      if(debtGrid){
+        var debt = byId('simplifyDebtShell');
+        if(!debt){
+          debt = document.createElement('section');
+          debt.id = 'simplifyDebtShell';
+          debt.className = 'simplify-group';
+          debt.innerHTML = '<div class="simplify-group-head"><div><div class="simplify-group-kicker">Debt snapshot</div><div class="simplify-group-title">Keep long-term debt visible, but quieter than daily decisions</div><div class="simplify-group-copy">Mortgage and car progress stay accessible without competing with today's spend and immediate actions.</div></div></div>';
+          lower.appendChild(debt);
+        }
+        if(debtGrid.parentElement !== debt) debt.appendChild(debtGrid);
+      }
+    }
+  }
+
+  function updateSimplifiedMain(){
+    var status = byId('simplifyStatusLine');
+    if(status){
+      var totalCount = (typeof history !== 'undefined' && Array.isArray(history)) ? history.length : 0;
+      var remaining = byId('balanceNum') ? byId('balanceNum').textContent.trim() : '$0';
+      var spent = byId('heroTotalSpent') ? byId('heroTotalSpent').textContent.trim() : '$0';
+      var daysLeft = byId('heroDaysLeft') ? byId('heroDaysLeft').textContent.trim() : '0';
+      if(totalCount < 3){
+        status.innerHTML = '<b>Track a few more purchases.</b> You've logged ' + totalCount + ' this cycle so far, so the AI coach and trends will sharpen quickly as more data comes in.';
+      } else {
+        status.innerHTML = '<b>' + esc(remaining) + ' left</b> with ' + esc(daysLeft) + ' days remaining. You've logged ' + esc(spent) + ' so far this cycle.';
+      }
+    }
+
+    var ai = byId('aiTipPanel');
+    if(ai){
+      var label = ai.querySelector('.side-panel-header span');
+      if(label) label.textContent = 'AI coach summary';
+      var btn = ai.querySelector('.side-panel-link');
+      if(btn) btn.textContent = 'Refresh';
+    }
+
+    var count = byId('historyCount');
+    var visibleTx = document.querySelectorAll('#historyList .hist-item').length;
+    if(count && visibleTx){
+      count.textContent = visibleTx + ' transaction' + (visibleTx === 1 ? '' : 's');
+    }
+
+    var household = byId('simplifyHouseholdShell');
+    if(household){
+      var b = byId('bSpend') ? byId('bSpend').textContent.trim() : '$0';
+      var g = byId('gSpend') ? byId('gSpend').textContent.trim() : '$0';
+      var copy = household.querySelector('.simplify-group-copy');
+      if(copy) copy.textContent = 'Brandon has ' + b + ' logged and Gina has ' + g + '. Keep people and behavior together so this section reads as one household view.';
+    }
+
+    var debt = byId('simplifyDebtShell');
+    if(debt){
+      var m = byId('mortgageBalText') ? byId('mortgageBalText').textContent.trim() : '$0';
+      var c = byId('carBalText') ? byId('carBalText').textContent.trim() : '$0';
+      var copy2 = debt.querySelector('.simplify-group-copy');
+      if(copy2) copy2.textContent = 'Mortgage balance ' + m + ' and car balance ' + c + '. Keep debt visible, but secondary to today's decisions.';
+    }
+  }
+
+  function runSimplifyMain(){
+    ensureSimplifiedMain();
+    updateSimplifiedMain();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(runSimplifyMain, 120); });
+
+  if(typeof window.renderDashboard === 'function'){
+    var prevRenderDashboard = window.renderDashboard;
+    window.renderDashboard = function(){
+      var res = prevRenderDashboard.apply(this, arguments);
+      setTimeout(runSimplifyMain, 20);
+      return res;
+    };
+  }
+
+  if(typeof window.fetchAiTip === 'function'){
+    var prevFetchAiTip = window.fetchAiTip;
+    window.fetchAiTip = async function(){
+      var res = await prevFetchAiTip.apply(this, arguments);
+      setTimeout(updateSimplifiedMain, 50);
+      return res;
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
