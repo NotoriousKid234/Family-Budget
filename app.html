@@ -6550,36 +6550,235 @@ function dismissWelcome() {
   }
 })();
 </script>
-    <script id="flint-profile-script">
-    function flintSaveProfile(){
-      var btn=document.getElementById('flint-save-btn'),msg=document.getElementById('flint-save-msg');
-      var n=(document.getElementById('flint-edit-name')||{}).value||'';
-      var e=(document.getElementById('flint-edit-email')||{}).value||'';
-      var p=(document.getElementById('flint-edit-pass')||{}).value||'';
-      if(btn){btn.textContent='Saving…';btn.disabled=true;}
-      var u={};
-      if(n)u.data={display_name:n};
-      if(e)u.email=e;
-      if(p&&p.length>=6)u.password=p;
-      var c=window.supabaseClient||window.supabase;
-      var done=function(ok){
-        if(ok){if(btn){btn.textContent='✓ Saved!';btn.style.background='linear-gradient(135deg,var(--green),#22c55e)';}if(msg)msg.style.display='block';setTimeout(function(){if(btn){btn.textContent='Save Changes';btn.style.background='';btn.disabled=false;}if(msg)msg.style.display='none';},2500);}
-        else{if(btn){btn.textContent='Error — try again';btn.style.background='rgba(251,113,133,.3)';btn.disabled=false;}}
-      };
-      if(Object.keys(u).length&&c&&c.auth)c.auth.updateUser(u).then(function(r){done(!r.error);}).catch(function(){done(false);});
-      else done(true);
+   <script id="flint-profile-script">
+(function () {
+  const AUTH_STORAGE_KEY = 'sb-hieqohmhrpjvhotutwls-auth-token';
+
+  function getProfileClient() {
+    return window._sb || window.supabaseClient || window.supabase || null;
+  }
+
+  function getStoredAuth() {
+    try {
+      const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
     }
-    window.addEventListener('load',function(){
-      setInterval(function(){
-        var raw=localStorage.getItem('sb-hieqohmhrpjvhotutwls-auth-token'),u=raw?JSON.parse(raw).user:null;
-        if(!u)return;
-        var n=document.getElementById('flint-edit-name'),e=document.getElementById('flint-edit-email'),s=document.getElementById('flint-member-since');
-        if(n&&!n._f){n._f=1;if(u.user_metadata&&u.user_metadata.display_name)n.value=u.user_metadata.display_name;}
-        if(e&&!e._f){e._f=1;if(u.email)e.value=u.email;}
-        if(s&&s.textContent==='—'&&u.created_at)s.textContent=new Date(u.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-      },400);
-    });
-    </script>
+  }
+
+  function getStoredUser() {
+    const auth = getStoredAuth();
+    return auth && auth.user ? auth.user : null;
+  }
+
+  function writeStoredUserPatch(patch) {
+    try {
+      const auth = getStoredAuth();
+      if (!auth || !auth.user) return;
+      auth.user = Object.assign({}, auth.user, patch || {});
+      if (patch && patch.user_metadata) {
+        auth.user.user_metadata = Object.assign(
+          {},
+          auth.user.user_metadata || {},
+          patch.user_metadata
+        );
+      }
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth));
+    } catch (e) {}
+  }
+
+  function setSaveButtonState(state, text) {
+    const btn = document.getElementById('flint-save-btn');
+    const msg = document.getElementById('flint-save-msg');
+    if (!btn) return;
+
+    if (state === 'saving') {
+      btn.textContent = text || 'Saving…';
+      btn.disabled = true;
+      btn.style.background = '';
+      if (msg) msg.style.display = 'none';
+      return;
+    }
+
+    if (state === 'success') {
+      btn.textContent = text || '✓ Saved!';
+      btn.disabled = false;
+      btn.style.background = 'linear-gradient(135deg,var(--green),#22c55e)';
+      if (msg) msg.style.display = 'block';
+      setTimeout(function () {
+        const liveBtn = document.getElementById('flint-save-btn');
+        const liveMsg = document.getElementById('flint-save-msg');
+        if (liveBtn) {
+          liveBtn.textContent = 'Save Changes';
+          liveBtn.disabled = false;
+          liveBtn.style.background = '';
+        }
+        if (liveMsg) liveMsg.style.display = 'none';
+      }, 2200);
+      return;
+    }
+
+    if (state === 'error') {
+      btn.textContent = text || 'Error — try again';
+      btn.disabled = false;
+      btn.style.background = 'rgba(251,113,133,.18)';
+      setTimeout(function () {
+        const liveBtn = document.getElementById('flint-save-btn');
+        if (liveBtn) {
+          liveBtn.textContent = 'Save Changes';
+          liveBtn.disabled = false;
+          liveBtn.style.background = '';
+        }
+      }, 2200);
+      return;
+    }
+
+    btn.textContent = text || 'Save Changes';
+    btn.disabled = false;
+    btn.style.background = '';
+    if (msg) msg.style.display = 'none';
+  }
+
+  function hydrateProfileFields(force) {
+    const user = getStoredUser();
+    if (!user) return;
+
+    const nameInput = document.getElementById('flint-edit-name');
+    const emailInput = document.getElementById('flint-edit-email');
+    const sinceEl = document.getElementById('flint-member-since');
+    const heroName = document.getElementById('profHeroName');
+    const heroEmail = document.getElementById('profHeroEmail');
+
+    const displayName =
+      (user.user_metadata && user.user_metadata.display_name) || '';
+    const email = user.email || '';
+
+    if (nameInput && (force || !nameInput.value || !nameInput.dataset.hydrated)) {
+      nameInput.value = displayName;
+      nameInput.dataset.hydrated = '1';
+    }
+
+    if (emailInput && (force || !emailInput.value || !emailInput.dataset.hydrated)) {
+      emailInput.value = email;
+      emailInput.dataset.hydrated = '1';
+    }
+
+    if (heroName && displayName) heroName.textContent = displayName;
+    if (heroEmail && email) heroEmail.textContent = email;
+
+    if (sinceEl && user.created_at) {
+      sinceEl.textContent = new Date(user.created_at).toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric'
+      });
+    }
+  }
+
+  async function flintSaveProfile() {
+    const client = getProfileClient();
+    const nameInput = document.getElementById('flint-edit-name');
+    const emailInput = document.getElementById('flint-edit-email');
+    const passInput = document.getElementById('flint-edit-pass');
+
+    if (!nameInput || !emailInput || !passInput) {
+      if (typeof showToast === 'function') showToast('Profile form is not ready yet.', 'error');
+      return;
+    }
+
+    const newName = (nameInput.value || '').trim();
+    const newEmail = (emailInput.value || '').trim();
+    const newPass = passInput.value || '';
+
+    const currentUser = getStoredUser();
+    const currentName =
+      (currentUser && currentUser.user_metadata && currentUser.user_metadata.display_name) || '';
+    const currentEmail = (currentUser && currentUser.email) || '';
+
+    const updates = {};
+    if (newName && newName !== currentName) updates.data = { display_name: newName };
+    if (newEmail && newEmail !== currentEmail) updates.email = newEmail;
+
+    if (newPass) {
+      if (newPass.length < 6) {
+        if (typeof showToast === 'function') showToast('Password must be at least 6 characters.', 'warning');
+        return;
+      }
+      updates.password = newPass;
+    }
+
+    if (!Object.keys(updates).length) {
+      if (typeof showToast === 'function') showToast('No changes to save yet.', 'warning');
+      return;
+    }
+
+    if (!client || !client.auth) {
+      if (typeof showToast === 'function') showToast('Profile service unavailable. Refresh and try again.', 'error');
+      return;
+    }
+
+    try {
+      setSaveButtonState('saving');
+
+      const result = await client.auth.updateUser(updates);
+      if (result.error) throw result.error;
+
+      const savedUser = (result.data && result.data.user) ? result.data.user : null;
+
+      if (savedUser) {
+        writeStoredUserPatch({
+          email: savedUser.email,
+          user_metadata: savedUser.user_metadata || {}
+        });
+      } else {
+        const patch = {};
+        if (updates.email) patch.email = updates.email;
+        if (updates.data && updates.data.display_name) {
+          patch.user_metadata = { display_name: updates.data.display_name };
+        }
+        writeStoredUserPatch(patch);
+      }
+
+      if (updates.data && updates.data.display_name) {
+        window.currentDisplayName = updates.data.display_name.toUpperCase();
+      }
+
+      hydrateProfileFields(true);
+      passInput.value = '';
+
+      if (typeof loadIcon === 'function') loadIcon();
+      if (typeof renderNavBadges === 'function') renderNavBadges();
+      if (typeof showToast === 'function') showToast('Profile updated.', 'success');
+
+      setSaveButtonState('success');
+    } catch (e) {
+      if (typeof showToast === 'function') {
+        showToast((e && e.message) ? e.message : 'Could not save profile.', 'error');
+      }
+      setSaveButtonState('error');
+    }
+  }
+
+  window.flintSaveProfile = flintSaveProfile;
+
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('#flint-save-btn');
+    if (!btn) return;
+    e.preventDefault();
+    window.flintSaveProfile();
+  });
+
+  window.addEventListener('load', function () {
+    hydrateProfileFields(true);
+    setTimeout(function () { hydrateProfileFields(true); }, 500);
+    setTimeout(function () { hydrateProfileFields(true); }, 1500);
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) hydrateProfileFields(true);
+  });
+})();
+</script>
 
 <script id="flint-restore-ai-desktop-patch">
 (function(){
@@ -8878,23 +9077,45 @@ function dismissWelcome() {
       '<div class="fn-static-wrap"><div id="fnStaticPage"></div></div>';
   }
 
+  function getActiveFamilyNotesRoot(){
+    var overlayRoot = document.getElementById('fnOverlayPage');
+    var staticRoot = document.getElementById('fnStaticPage');
+    var flintPanel = document.getElementById('flintPanel');
+    var overlayVisible = !!(overlayRoot && overlayRoot.querySelector('#fnMessage') && flintPanel && flintPanel.offsetParent !== null && overlayRoot.offsetParent !== null);
+    if (overlayVisible) return overlayRoot;
+    var staticVisible = !!(staticRoot && staticRoot.querySelector('#fnMessage') && staticRoot.offsetParent !== null);
+    if (staticVisible) return staticRoot;
+    return overlayRoot || staticRoot || document;
+  }
+
+  function bindFamilyNotesCounters(){
+    ['fnStaticPage','fnOverlayPage'].forEach(function(rootId){
+      var root = document.getElementById(rootId);
+      if (!root) return;
+      var msg = root.querySelector('#fnMessage');
+      var count = root.querySelector('#fnCharCount');
+      if (msg && !msg.dataset.boundCounter) {
+        msg.dataset.boundCounter = '1';
+        msg.addEventListener('input', function(){ updateFamilyNoteCounter(root); });
+      }
+      if (msg && count) count.textContent = String((msg.value || '').length);
+    });
+  }
+
   function renderFamilyNotesViews(){
     mountFamilyNotesStaticIfNeeded();
     var staticRoot = document.getElementById('fnStaticPage');
     if (staticRoot) staticRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
     var overlayRoot = document.getElementById('fnOverlayPage');
     if (overlayRoot) overlayRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
-    var msg = document.getElementById('fnMessage');
-    if (msg && !msg.dataset.boundCounter) {
-      msg.dataset.boundCounter = '1';
-      msg.addEventListener('input', updateFamilyNoteCounter);
-    }
+    bindFamilyNotesCounters();
     updateFamilyNoteCounter();
   }
 
-  function updateFamilyNoteCounter(){
-    var msg = document.getElementById('fnMessage');
-    var count = document.getElementById('fnCharCount');
+  function updateFamilyNoteCounter(root){
+    root = root || getActiveFamilyNotesRoot();
+    var msg = root && root.querySelector ? root.querySelector('#fnMessage') : null;
+    var count = root && root.querySelector ? root.querySelector('#fnCharCount') : null;
     if (msg && count) count.textContent = String((msg.value || '').length);
   }
 
@@ -8925,10 +9146,11 @@ function dismissWelcome() {
   };
 
   window.sendFamilyNote = async function(){
-    var msgEl = document.getElementById('fnMessage');
-    var typeEl = document.getElementById('fnType');
-    var dueEl = document.getElementById('fnDue');
-    var pinEl = document.getElementById('fnPin');
+    var root = getActiveFamilyNotesRoot();
+    var msgEl = root && root.querySelector ? root.querySelector('#fnMessage') : null;
+    var typeEl = root && root.querySelector ? root.querySelector('#fnType') : null;
+    var dueEl = root && root.querySelector ? root.querySelector('#fnDue') : null;
+    var pinEl = root && root.querySelector ? root.querySelector('#fnPin') : null;
     var message = sanitizePlainString(msgEl && msgEl.value ? msgEl.value.trim() : '', FAMILY_NOTES_LIMIT);
     if (!message) return showToast('Write a note first.', 'error');
     if (message.length > FAMILY_NOTES_LIMIT) return showToast('Keep notes under ' + FAMILY_NOTES_LIMIT + ' characters.', 'error');
@@ -8947,6 +9169,7 @@ function dismissWelcome() {
     if (msgEl) msgEl.value = '';
     if (dueEl) dueEl.value = '';
     if (pinEl) pinEl.checked = false;
+    updateFamilyNoteCounter(root);
     notes = [res.data].concat(notes || []);
     renderFamilyNotesViews();
     renderNavBadges();
@@ -9982,8 +10205,9 @@ function dismissWelcome() {
     try { window.fpSaveConfig = fpSaveConfigPatched; } catch(e) {}
   }
   wire();
-  var _iv = setInterval(function(){ syncGlobals(); wire(); }, 400);
-  setTimeout(function(){ try{clearInterval(_iv);}catch(e){} }, 12000);
+  [150, 800, 2000].forEach(function(delay){
+    setTimeout(function(){ try { syncGlobals(); wire(); } catch(e) {} }, delay);
+  });
 })();
 </script>
 
@@ -10218,63 +10442,53 @@ function dismissWelcome() {
 </script>
 
 
-<style id="mobile-redundancy-fix">
-@media (max-width: 1023px) {
-  body.mobile-panel-open #mobileNav { display: none !important; }
-  .flint-history-quick { display: none !important; }
-  .flint-history-head { grid-template-columns: 1fr !important; }
-  .flint-history-head > * { width: 100%; }
-}
-</style>
-<script id="mobile-redundancy-fix-script">
+<script id="flint-desktop-flicker-fix-patch">
 (function(){
-  function syncMobilePanelState(){
-    try {
-      var hasPanel = !!document.getElementById('flintPanel');
-      document.body.classList.toggle('mobile-panel-open', window.innerWidth < 1024 && hasPanel);
-    } catch(e){}
+  try {
+    var style = document.createElement('style');
+    style.textContent = [
+      '.txn-reaction-row{backface-visibility:hidden;transform:translateZ(0);}',
+      '.nav-item-sub{backface-visibility:hidden;transform:translateZ(0);}',
+      '#historyList{contain:layout paint style;}'
+    ].join('');
+    document.head.appendChild(style);
+  } catch(e) {}
+
+  if (typeof window.renderHistory === 'function') {
+    var _origRenderHistoryFlicker = window.renderHistory;
+    window.renderHistory = function(){
+      try {
+        var list = document.getElementById('historyList');
+        var search = (document.getElementById('historySearch') || {}).value || '';
+        var reactions = localStorage.getItem('montoya_reactions') || '';
+        var myReactions = localStorage.getItem('montoya_my_reactions') || '';
+        var filters = Array.prototype.slice.call(document.querySelectorAll('.chip.active, .filter-chip.active, .hist-filter.active, [data-filter].active')).map(function(el){ return (el.textContent || '').trim(); }).join('|');
+        var hist = Array.isArray(window.history) ? window.history.map(function(t){ return [t.id, t.amount, t.note, t.category, t.member, t.intent, !!t.is_recurring].join('~'); }).join('||') : '';
+        var sig = [window.currentGroup || '', search, filters, reactions, myReactions, hist].join('###');
+        if (list && list.children.length && window.__flintLastHistoryRenderSig === sig) return;
+        window.__flintLastHistoryRenderSig = sig;
+      } catch(e) {}
+      return _origRenderHistoryFlicker.apply(this, arguments);
+    };
   }
 
-  var originalOpenPanel = window.openPanel;
-  if (typeof originalOpenPanel === 'function') {
-    window.openPanel = function(){
-      var result = originalOpenPanel.apply(this, arguments);
-      setTimeout(syncMobilePanelState, 0);
+  if (typeof window.renderNavBadges === 'function') {
+    var _origRenderNavBadgesFlicker = window.renderNavBadges;
+    window.renderNavBadges = function(){
+      var before = {};
+      Array.prototype.forEach.call(document.querySelectorAll('.nav-item-sub[id^="navSub-"]'), function(el){ before[el.id] = el.textContent; });
+      var result = _origRenderNavBadgesFlicker.apply(this, arguments);
+      Array.prototype.forEach.call(document.querySelectorAll('.nav-item-sub[id^="navSub-"]'), function(el){
+        var next = el.textContent;
+        if (before[el.id] === next) el.textContent = before[el.id];
+      });
       return result;
     };
   }
 
-  var originalClosePanel = window.closePanel;
-  if (typeof originalClosePanel === 'function') {
-    window.closePanel = function(){
-      var result = originalClosePanel.apply(this, arguments);
-      syncMobilePanelState();
-      return result;
-    };
-  }
-
-  var originalSwitchView = window.switchView;
-  if (typeof originalSwitchView === 'function') {
-    window.switchView = function(){
-      var result = originalSwitchView.apply(this, arguments);
-      if (window.innerWidth < 1024) document.body.classList.remove('mobile-panel-open');
-      return result;
-    };
-  }
-
-  var originalToggleMenu = window.toggleMenu;
-  if (typeof originalToggleMenu === 'function') {
-    window.toggleMenu = function(){
-      if (window.innerWidth < 1024) document.body.classList.remove('mobile-panel-open');
-      return originalToggleMenu.apply(this, arguments);
-    };
-  }
-
-  window.addEventListener('resize', syncMobilePanelState);
-  window.addEventListener('load', function(){
-    syncMobilePanelState();
-    if (window.innerWidth < 1024) {
-      document.body.classList.remove('mobile-panel-open');
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) {
+      try { delete window.__flintLastHistoryRenderSig; } catch(e) {}
     }
   });
 })();
