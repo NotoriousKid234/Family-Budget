@@ -3954,7 +3954,7 @@ async function addEntry() {
             showToast('$'+fmt(amt)+' synced to '+cat+' ✓', 'success');
             if(isRecurChecked){
                 const bd=new Date().getDate();
-                await _sb.from('recurring_expenses').insert([{name:payload.note||cat,amount:amt,category:cat,intent:currentType,member:payload.member,group_id:currentGroup,user_id:currentUser,billing_day:bd}]);
+                await _sb.from('recurring_expenses').insert([{name:payload.note||cat,amount:amt,category:cat,member:payload.member,group_id:currentGroup,user_id:currentUser,billing_day:bd}]);
                 showToast('Saved as recurring! Auto-logs on the '+bd+'th each month','success');
             }
         }
@@ -4072,7 +4072,6 @@ async function addSub() {
         amount: a,
         billing_day: d,
         category: selectedCat,
-        intent: 'Need',
         member: 'Split',
         group_id: currentGroup,
         user_id: currentUser
@@ -4100,7 +4099,7 @@ function fpAddSub(){
     if(!n){showToast('Enter a subscription name','error');return;}
     if(!(a>0)){showToast('Enter a valid monthly cost','error');return;}
     if(!(d>=1&&d<=31)){showToast('Enter a billing day from 1 to 31','error');return;}
-    _sb.from('recurring_expenses').insert([{name:n,amount:a,billing_day:d,category:c,intent:'Need',member:'Split',group_id:currentGroup,user_id:currentUser}]).then(function(res){
+    _sb.from('recurring_expenses').insert([{name:n,amount:a,billing_day:d,category:c,member:'Split',group_id:currentGroup,user_id:currentUser}]).then(function(res){
         if(res && res.error){ showToast('Could not add subscription: '+res.error.message,'error'); return; }
         showToast('Subscription added');
         fetchData().then(function(){ openPanel('subManager'); });
@@ -9508,6 +9507,228 @@ function dismissWelcome() {
 
   window.addEventListener('resize', function(){ adjustPanelFit(); applyCompactWatchlist(); });
   document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ adjustPanelFit(); applyCompactWatchlist(); }, 60); });
+})();
+</script>
+
+
+<script id="flint-ledger-membership-patch">
+(function(){
+  var _membersLoaded = false;
+  window.ledgerMembers = window.ledgerMembers || [];
+
+  function safeText(v){ return String(v == null ? '' : v).trim(); }
+  function titleCase(v){ v = safeText(v); return v ? v.charAt(0).toUpperCase() + v.slice(1).toLowerCase() : ''; }
+  function getSessionName(){
+    var raw = safeText(window.currentDisplayName);
+    if (raw && raw !== 'PARTNER' && raw !== 'USER') return titleCase(raw);
+    if (window.currentEmail && String(window.currentEmail).includes('@')) return titleCase(String(window.currentEmail).split('@')[0]);
+    return 'You';
+  }
+  function getMyLabel(){ return getSessionName(); }
+  function getPartnerRow(){
+    var rows = Array.isArray(window.ledgerMembers) ? window.ledgerMembers : [];
+    return rows.find(function(r){ return String(r.user_id || '') !== String(window.currentUser || ''); }) || null;
+  }
+  function getPartnerLabel(){
+    var row = getPartnerRow();
+    if (!row) return 'Partner';
+    var n = safeText(row.display_name);
+    return n ? titleCase(n) : 'Partner';
+  }
+  function hasPartner(){ return !!getPartnerRow(); }
+  async function syncMyDisplayNameToSettings(){
+    try {
+      if (!window._sb || !window.currentUser) return;
+      var label = getMyLabel();
+      await window._sb.from('app_settings').update({ display_name: label }).eq('user_id', window.currentUser);
+    } catch(e) { /* silent */ }
+  }
+  async function loadLedgerMembers(){
+    try {
+      if (!window._sb || !window.currentGroup) return [];
+      var res = await window._sb.from('app_settings').select('user_id,display_name,group_id').eq('group_id', window.currentGroup);
+      window.ledgerMembers = Array.isArray(res.data) ? res.data : [];
+      _membersLoaded = true;
+      return window.ledgerMembers;
+    } catch(e) {
+      window.ledgerMembers = [];
+      return [];
+    }
+  }
+
+  function relabelOptionSet(select){
+    if (!select) return;
+    var myLabel = getMyLabel();
+    var partnerLabel = getPartnerLabel();
+    var partnerExists = hasPartner();
+    Array.from(select.options || []).forEach(function(opt){
+      var val = String(opt.value || opt.text || '');
+      if (val === 'Brandon') opt.text = myLabel;
+      if (val === 'Gina') {
+        if (partnerExists) {
+          opt.text = partnerLabel;
+          opt.hidden = false;
+          opt.disabled = false;
+        } else {
+          opt.hidden = true;
+          opt.disabled = true;
+          if (select.value === 'Gina') select.value = select.querySelector('option[value="Split"]') ? 'Split' : (select.querySelector('option[value="Brandon"]') ? 'Brandon' : select.value);
+        }
+      }
+    });
+  }
+
+  function applyLedgerMemberUI(){
+    var myLabel = getMyLabel();
+    var partnerLabel = getPartnerLabel();
+    var partnerExists = hasPartner();
+
+    document.querySelectorAll('.member-name.brandon').forEach(function(el){ el.textContent = myLabel; });
+    document.querySelectorAll('.member-name.gina').forEach(function(el){ el.textContent = partnerLabel; });
+    document.querySelectorAll('#chip_Brandon span').forEach(function(el){ el.textContent = myLabel; });
+    document.querySelectorAll('#chip_Gina span').forEach(function(el){ el.textContent = partnerLabel; });
+    document.querySelectorAll('#fpBrandon').forEach(function(el){ el.textContent = myLabel; });
+    document.querySelectorAll('#fpGina').forEach(function(el){ el.textContent = partnerLabel; });
+    document.querySelectorAll('.insight-chip').forEach(function(el){
+      var t = safeText(el.textContent);
+      if (t.indexOf('Brandon vs Gina') >= 0) el.textContent = '👥 You vs Partner';
+    });
+    document.querySelectorAll('label, div, span').forEach(function(el){
+      var t = safeText(el.textContent);
+      if (t === 'Brandon') el.textContent = myLabel;
+      else if (t === 'Gina') el.textContent = partnerLabel;
+    });
+
+    var ginaCards = document.querySelectorAll('.member-card.gina, #chip_Gina, #fpGina');
+    ginaCards.forEach(function(el){ el.style.display = partnerExists ? '' : 'none'; });
+    document.querySelectorAll('.member-grid').forEach(function(grid){
+      grid.style.gridTemplateColumns = partnerExists ? '1fr 1fr' : '1fr';
+    });
+
+    ['memberSelect','scan_member','fp_scanMember','fp_chMember','pref_member'].forEach(function(id){ relabelOptionSet(document.getElementById(id)); });
+    document.querySelectorAll('select').forEach(relabelOptionSet);
+
+    var profileNav = Array.from(document.querySelectorAll('.nav-item-label')).find(function(el){ return safeText(el.textContent) === 'Profile'; });
+    if (profileNav) {
+      var sub = profileNav.parentElement && profileNav.parentElement.querySelector('.nav-item-sub');
+      if (sub) sub.textContent = partnerExists ? ('Partner · ' + partnerLabel) : 'No partner linked';
+    }
+    var sharedNav = Array.from(document.querySelectorAll('.nav-item-label')).find(function(el){ return safeText(el.textContent) === 'Shared Activity'; });
+    if (sharedNav) {
+      var sub2 = sharedNav.parentElement && sharedNav.parentElement.querySelector('.nav-item-sub');
+      if (sub2) sub2.textContent = partnerExists ? 'Who spent what' : 'Waiting for partner';
+    }
+  }
+
+  var _origFetchData = window.fetchData;
+  if (typeof _origFetchData === 'function') {
+    window.fetchData = async function(){
+      var res = await _origFetchData.apply(this, arguments);
+      await loadLedgerMembers();
+      applyLedgerMemberUI();
+      return res;
+    };
+  }
+
+  var _origLoadApp = window.loadApp;
+  if (typeof _origLoadApp === 'function') {
+    window.loadApp = async function(){
+      var res = await _origLoadApp.apply(this, arguments);
+      await syncMyDisplayNameToSettings();
+      await loadLedgerMembers();
+      applyLedgerMemberUI();
+      return res;
+    };
+  }
+
+  var _origOpenPanel = window.openPanel;
+  if (typeof _origOpenPanel === 'function') {
+    window.openPanel = function(){
+      var res = _origOpenPanel.apply(this, arguments);
+      setTimeout(applyLedgerMemberUI, 40);
+      setTimeout(applyLedgerMemberUI, 180);
+      return res;
+    };
+  }
+
+  var _origRenderHistory = window.renderHistory;
+  if (typeof _origRenderHistory === 'function') {
+    window.renderHistory = function(){
+      var res = _origRenderHistory.apply(this, arguments);
+      setTimeout(applyLedgerMemberUI, 0);
+      return res;
+    };
+  }
+
+  var _origBuildProfilePanel = window.buildProfilePanel;
+  if (typeof _origBuildProfilePanel === 'function') {
+    window.buildProfilePanel = function(){
+      var html = _origBuildProfilePanel.apply(this, arguments);
+      return html.replace(/Partner · [^<]*/g, hasPartner() ? ('Partner · ' + getPartnerLabel()) : 'No partner linked');
+    };
+  }
+
+  var _origAcceptJoin = window.acceptJoin;
+  if (typeof _origAcceptJoin === 'function') {
+    window.acceptJoin = async function(key){
+      var m = document.getElementById('joinConfirmModal');
+      if (m) m.style.display = 'none';
+      var payload = {
+        user_id: window.currentUser,
+        group_id: key,
+        budget: 7400,
+        want_cap: 0,
+        m_balance: 0,
+        c_balance: 0,
+        m_orig: 0,
+        c_orig: 0,
+        cycle_start_day: 1,
+        display_name: getMyLabel()
+      };
+      var res = await window._sb.from('app_settings').upsert(payload, { onConflict: 'user_id' });
+      if (res.error) { showToast('Error joining: ' + res.error.message, 'error'); return; }
+      localStorage.setItem('flint_group_' + window.currentUser, key);
+      showToast('Ledger joined! Loading...', 'success');
+      location.reload();
+    };
+  }
+
+  var _origFpJoinLedger = window.fpJoinLedger;
+  if (typeof _origFpJoinLedger === 'function') {
+    window.fpJoinLedger = function(){
+      var raw = (document.getElementById('fp_joinKey')?.value || '').trim();
+      if (!raw || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)) { showToast('Invalid key format — paste the full invite key.', 'error'); return; }
+      var k = raw.toLowerCase();
+      var lastAttempt = parseInt(sessionStorage.getItem('flint_last_join') || '0');
+      if (Date.now() - lastAttempt < 5000) { showToast('Please wait a moment before trying again.', 'warning'); return; }
+      sessionStorage.setItem('flint_last_join', Date.now().toString());
+      if (k === window.currentGroup) { showToast('You are already on this ledger!', 'warning'); return; }
+      window._sb.from('app_settings').select('user_id').eq('group_id', k).limit(1)
+        .then(function(resp){
+          if (resp.error || !resp.data || resp.data.length === 0) { showToast('Join key not found — check with your partner.', 'error'); return null; }
+          return window._sb.from('app_settings').upsert({
+            user_id: window.currentUser,
+            group_id: k,
+            budget: 7400, want_cap: 0,
+            m_balance: 0, c_balance: 0,
+            m_orig: 0, c_orig: 0,
+            cycle_start_day: 1,
+            display_name: getMyLabel()
+          }, { onConflict: 'user_id' });
+        })
+        .then(function(res){
+          if (!res) return;
+          if (res.error) { showToast('Error joining: ' + res.error.message, 'error'); return; }
+          localStorage.setItem('flint_group_' + window.currentUser, k);
+          showToast('Ledger joined! Loading...', 'success');
+          location.reload();
+        })
+        .catch(function(){ showToast('Something went wrong. Please try again.', 'error'); });
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(applyLedgerMemberUI, 600); });
+  window.addEventListener('load', function(){ setTimeout(applyLedgerMemberUI, 800); });
 })();
 </script>
 
