@@ -2868,19 +2868,19 @@
 <!-- ++ MOBILE BOTTOM NAV ++ -->
 <div id="mobileNav">
     <div class="mob-nav-inner">
-        <button class="mob-nav-btn" onclick="toggleMenu()">
+        <button class="mob-nav-btn" onclick="mobileOpenMenu()">
             <i class="fa-solid fa-bars"></i>
             <span>Menu</span>
         </button>
         <div class="mob-nav-divider"></div>
-        <button class="mob-nav-btn mob-home" onclick="switchView('app')">
+        <button class="mob-nav-btn mob-home" onclick="mobileGoHome()">
             <i class="fa-solid fa-house"></i>
             <span>Home</span>
         </button>
         <div class="mob-nav-divider"></div>
-        <button class="mob-nav-btn" onclick="goBack()">
-            <i class="fa-solid fa-arrow-left"></i>
-            <span>Back</span>
+        <button class="mob-nav-btn" onclick="mobileOpenProfile()">
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
         </button>
     </div>
 </div>
@@ -10243,6 +10243,68 @@ function dismissWelcome() {
   window.acceptJoin = function(key){ return joinByGroupId(key); };
   window.acceptJoinPatched = function(key){ return joinByGroupId(key); };
   window.fpJoinLedger = function(){ return joinByGroupId(document.getElementById('fp_joinKey')?.value || ''); };
+})();
+</script>
+
+
+<style id="mobile-nav-ux-fix">
+@media (max-width: 1023px) {
+  #sideMenu {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+  }
+  #sideMenu .nav-spacer { display: none !important; }
+  #sideMenu .nav-logout { margin-top: 10px !important; }
+  #mobileNav .mob-nav-btn { min-width: 0; }
+  #mobileNav .mob-nav-btn span { font-size: .58rem; }
+  #flintPanel {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
+  }
+  #flintPanel .flint-panel-head {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: linear-gradient(180deg, rgba(6,13,28,.98), rgba(6,13,28,.94));
+    backdrop-filter: blur(10px);
+  }
+}
+</style>
+<script id="mobile-nav-ux-fix-script">
+(function(){
+  function closeMobileMenu(){
+    var m = document.getElementById('sideMenu');
+    var o = document.getElementById('sideOverlay');
+    if(!m || !o) return;
+    m.classList.remove('open');
+    o.style.display = 'none';
+  }
+  window.mobileGoHome = function(){
+    closeMobileMenu();
+    if(typeof closePanel === 'function') closePanel();
+    if(typeof switchView === 'function') switchView('app', true);
+  };
+  window.mobileOpenMenu = function(){
+    var panel = document.getElementById('flintPanel');
+    if(panel && typeof closePanel === 'function'){
+      closePanel();
+    }
+    if(typeof toggleMenu === 'function') toggleMenu();
+  };
+  window.mobileOpenProfile = function(){
+    closeMobileMenu();
+    if(typeof openPanel === 'function') openPanel('profileManager');
+  };
+
+  if(typeof window.openPanel === 'function' && !window._mobileOpenPanelPatched){
+    window._mobileOpenPanelPatched = true;
+    var originalOpenPanel = window.openPanel;
+    window.openPanel = function(id){
+      closeMobileMenu();
+      return originalOpenPanel.apply(this, arguments);
+    };
+  }
 })();
 </script>
 
