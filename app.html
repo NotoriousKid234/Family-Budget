@@ -3074,7 +3074,7 @@ let celebratedMilestones={ car:false, mortgage:false };
         const joinKey = params.get('join');
         // Accept standard UUIDs (e.g. e2d6a54b-5dae-45e9-acfa-e767b32ede2e)
         // Reject anything that isn't a valid UUID-like string to prevent injection
-        if (joinKey && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(joinKey.trim())) {
+        if (joinKey && (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(joinKey.trim()) || /^grp_[0-9a-f]{1,8}_\d+$/i.test(joinKey.trim()))) {
             localStorage.setItem('flint_pending_join', joinKey.trim());
             // Clean URL immediately so key isn't visible in browser history
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -5516,13 +5516,19 @@ function normalizeLedgerJoinInput(raw) {
     const value = String(raw || '').trim();
     if (!value) return '';
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) return value.toLowerCase();
+    if (/^grp_[0-9a-f]{1,8}_\d+$/i.test(value)) return value;
     try {
         const url = new URL(value);
         const join = (url.searchParams.get('join') || '').trim();
         if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(join)) return join.toLowerCase();
+        if (/^grp_[0-9a-f]{1,8}_\d+$/i.test(join)) return join;
     } catch(e) {}
-    const m = value.match(/[?&]join=([0-9a-f-]{36})/i);
-    if (m && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(m[1])) return m[1].toLowerCase();
+    const m = value.match(/[?&]join=([^&]+)/i);
+    if (m) {
+        const v = decodeURIComponent(m[1]).trim();
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)) return v.toLowerCase();
+        if (/^grp_[0-9a-f]{1,8}_\d+$/i.test(v)) return v;
+    }
     return '';
 }
 
