@@ -7512,8 +7512,6 @@ function dismissWelcome() {
 (function(){
   var STORAGE_KEY = 'montoya_challenges';
   var DAY_MS = 86400000;
-  var BROKEN_RETENTION_DAYS = 30;
-  var BROKEN_RETENTION_MS = BROKEN_RETENTION_DAYS * DAY_MS;
 
   function esc(v){
     if (typeof escapeHtml === 'function') return escapeHtml(v == null ? '' : String(v));
@@ -7549,51 +7547,6 @@ function dismissWelcome() {
     window.challenges = list;
     return list;
   }
-
-  function ageLabel(ts){
-    if (!ts) return '';
-    var diff = Math.max(0, Date.now() - Number(ts));
-    var days = Math.floor(diff / DAY_MS);
-    if (days <= 0) return 'Today';
-    if (days === 1) return '1 day ago';
-    return days + ' days ago';
-  }
-  function reconcileChallengeStore(){
-    var list = readChallengeStore();
-    var changed = false;
-    var states = list.map(getChallengeState);
-    states.forEach(function(state){
-      var ch = state.challenge;
-      if (state.status === 'lost') {
-        if (!ch.brokenAt) { ch.brokenAt = Date.now(); changed = true; }
-        if (ch.wonAt) { ch.wonAt = null; changed = true; }
-      }
-      if (state.status === 'won' && !ch.wonAt) { ch.wonAt = Date.now(); changed = true; }
-      if (state.status === 'active' && ch.wonAt) { ch.wonAt = null; changed = true; }
-    });
-    var before = list.length;
-    list = list.filter(function(ch){
-      if (ch.archived) return true;
-      if (ch.brokenAt && (Date.now() - Number(ch.brokenAt)) > BROKEN_RETENTION_MS) return false;
-      return true;
-    });
-    if (list.length !== before) changed = true;
-    if (changed) writeChallengeStore(list);
-    return { list: list, states: list.map(getChallengeState) };
-  }
-  function archiveChallenge(id){
-    var list = readChallengeStore();
-    var changed = false;
-    list.forEach(function(ch){
-      if (ch.id === id) { ch.archived = true; ch.archivedAt = Date.now(); if (!ch.brokenAt) ch.brokenAt = Date.now(); changed = true; }
-    });
-    if (changed) writeChallengeStore(list);
-    return changed;
-  }
-  function deleteChallengeById(id){
-    var list = readChallengeStore().filter(function(ch){ return ch.id !== id; });
-    writeChallengeStore(list);
-  }
   function normalizeChallenge(ch){
     if (!ch || typeof ch !== 'object') return null;
     if (ch.mode) {
@@ -7608,10 +7561,7 @@ function dismissWelcome() {
         threshold: Number(ch.threshold || 0),
         durationDays: Math.max(1, parseInt(ch.durationDays || ch.days || 7, 10) || 7),
         startedAt: Number(ch.startedAt || ch.started || Date.now()),
-        archived: !!ch.archived,
-        brokenAt: ch.brokenAt ? Number(ch.brokenAt) : null,
-        wonAt: ch.wonAt ? Number(ch.wonAt) : null,
-        archivedAt: ch.archivedAt ? Number(ch.archivedAt) : null
+        archived: !!ch.archived
       };
     }
     if (ch.type) {
@@ -7635,10 +7585,7 @@ function dismissWelcome() {
         threshold: target,
         durationDays: 7,
         startedAt: Number(ch.startedAt || Date.now()),
-        archived: !!ch.archived,
-        brokenAt: ch.brokenAt ? Number(ch.brokenAt) : null,
-        wonAt: ch.wonAt ? Number(ch.wonAt) : null,
-        archivedAt: ch.archivedAt ? Number(ch.archivedAt) : null
+        archived: !!ch.archived
       };
     }
     if (typeof ch.days !== 'undefined') {
@@ -7653,10 +7600,7 @@ function dismissWelcome() {
         threshold: Number(ch.saveGoal || 0),
         durationDays: Math.max(1, parseInt(ch.days, 10) || 7),
         startedAt: Number(ch.started || Date.now()),
-        archived: !!ch.archived,
-        brokenAt: ch.brokenAt ? Number(ch.brokenAt) : null,
-        wonAt: ch.wonAt ? Number(ch.wonAt) : null,
-        archivedAt: ch.archivedAt ? Number(ch.archivedAt) : null
+        archived: !!ch.archived
       };
     }
     return null;
@@ -7823,28 +7767,17 @@ function dismissWelcome() {
     };
   }
   function summarizeChallenges(states){
-    var active = states.filter(function(s){ return s.status === 'active' && !s.challenge.archived; });
-    var won = states.filter(function(s){ return s.status === 'won' && !s.challenge.archived; });
-    var lost = states.filter(function(s){ return s.status === 'lost' && !s.challenge.archived; });
-    var archived = states.filter(function(s){ return s.challenge.archived; });
-    return {active: active, won: won, lost: lost, archived: archived};
+    var active = states.filter(function(s){ return s.status === 'active'; });
+    var won = states.filter(function(s){ return s.status === 'won'; });
+    var lost = states.filter(function(s){ return s.status === 'lost'; });
+    return {active: active, won: won, lost: lost};
   }
   function challengeStatHtml(state){
     var badgeClass = state.status === 'won' ? 'won' : state.status === 'lost' ? 'lost' : 'active';
-    var statusLabel = state.challenge.archived ? 'Archived' : (state.status === 'won' ? 'Won' : state.status === 'lost' ? 'Broken' : 'Active');
+    var statusLabel = state.status === 'won' ? 'Won' : state.status === 'lost' ? 'Broken' : 'Active';
     var metric = state.status === 'active'
       ? (state.challenge.mode === 'category_cap' || state.challenge.mode === 'wants_cap' || state.challenge.mode === 'total_cap' ? 'Allowance left: ' + currency(Math.max(0, state.allowanceLeft)) : 'Days left: ' + state.daysLeft)
       : (state.status === 'won' ? 'Completed cleanly' : 'Needs a reset');
-    var buttons = '';
-    if (state.status === 'lost' && !state.challenge.archived) {
-      buttons += '<button onclick="fpArchiveBrokenChallenge(' + "'" + esc(state.challenge.id) + "'" + ')" style="background:rgba(74,159,212,.1);color:#8fc8ff;border:1px solid rgba(74,159,212,.22);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:.72rem;font-weight:700;">Archive</button>';
-      buttons += '<button onclick="fpDeleteBrokenChallenge(' + "'" + esc(state.challenge.id) + "'" + ')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.22);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:.72rem;font-weight:700;">Delete</button>';
-    } else if (state.challenge.archived) {
-      buttons += '<button onclick="fpDeleteBrokenChallenge(' + "'" + esc(state.challenge.id) + "'" + ')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.22);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:.72rem;font-weight:700;">Delete</button>';
-    }
-    var metaLine = '';
-    if (state.status === 'lost') metaLine = '<div style="font-size:.68rem;color:#4a9fd4;margin-top:8px;">Broken ' + ageLabel(state.challenge.brokenAt) + (state.challenge.archived ? ' · archived' : ' · auto-removes after 30 days') + '</div>';
-    if (state.challenge.archived && state.challenge.archivedAt) metaLine = '<div style="font-size:.68rem;color:#4a9fd4;margin-top:8px;">Archived ' + ageLabel(state.challenge.archivedAt) + '</div>';
     return '<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:18px;padding:16px;">'
       + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">'
       + '<div><div style="font-size:.95rem;font-weight:700;color:#eef2ff;line-height:1.35;">' + esc(state.emoji + ' ' + (state.challenge.name || buildChallengeTitle(state.challenge))) + '</div>'
@@ -7860,8 +7793,6 @@ function dismissWelcome() {
       + '<div style="height:8px;background:rgba(255,255,255,.05);border-radius:999px;overflow:hidden;margin-bottom:10px;">'
       + '<div style="height:100%;width:' + clamp(state.progress,0,100) + '%;background:' + (state.status === 'lost' ? 'linear-gradient(90deg,#fb7185,#f43f5e)' : state.status === 'won' ? 'linear-gradient(90deg,#34d399,#10b981)' : 'linear-gradient(90deg,#4a9fd4,#d4a843)') + ';border-radius:999px;"></div></div>'
       + '<div style="font-size:.75rem;color:#8aaac8;line-height:1.55;">' + state.coach + '</div>'
-      + metaLine
-      + (buttons ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">' + buttons + '</div>' : '')
       + '</div>';
   }
   function deriveSuggestions(){
@@ -7936,9 +7867,8 @@ function dismissWelcome() {
       + '</div>';
   }
   function renderDesktopChallengesPanel(){
-    var reconciled = reconcileChallengeStore();
-    var store = reconciled.list;
-    var states = reconciled.states.sort(function(a,b){ return Number(b.challenge.startedAt || 0) - Number(a.challenge.startedAt || 0); });
+    var store = readChallengeStore();
+    var states = store.map(getChallengeState).sort(function(a,b){ return Number(b.challenge.startedAt || 0) - Number(a.challenge.startedAt || 0); });
     var summary = summarizeChallenges(states);
     var hero = document.getElementById('fp_chHero');
     var sugg = document.getElementById('fp_chSuggestions');
@@ -8154,19 +8084,9 @@ function dismissWelcome() {
   };
 
   window.fpRemoveChallenge = function(id){
-    deleteChallengeById(id);
+    var list = readChallengeStore().filter(function(ch){ return ch.id !== id; });
+    writeChallengeStore(list);
     if (typeof showToast === 'function') showToast('Challenge removed', 'info');
-    renderDesktopChallengesPanel();
-    window.renderChallenges();
-  };
-  window.fpArchiveBrokenChallenge = function(id){
-    if (archiveChallenge(id) && typeof showToast === 'function') showToast('Broken challenge archived', 'success');
-    renderDesktopChallengesPanel();
-    window.renderChallenges();
-  };
-  window.fpDeleteBrokenChallenge = function(id){
-    deleteChallengeById(id);
-    if (typeof showToast === 'function') showToast('Challenge deleted', 'info');
     renderDesktopChallengesPanel();
     window.renderChallenges();
   };
@@ -8179,8 +8099,6 @@ function dismissWelcome() {
     ch.id = uid();
     ch.startedAt = Date.now();
     ch.archived = false;
-    ch.archivedAt = null;
-    ch.brokenAt = null;
     ch.name = templates[idx].name || buildChallengeTitle(ch);
     var list = readChallengeStore();
     list.unshift(ch);
@@ -8963,23 +8881,45 @@ function dismissWelcome() {
       '<div class="fn-static-wrap"><div id="fnStaticPage"></div></div>';
   }
 
+  function getActiveFamilyNotesRoot(){
+    var overlayRoot = document.getElementById('fnOverlayPage');
+    var staticRoot = document.getElementById('fnStaticPage');
+    var flintPanel = document.getElementById('flintPanel');
+    var overlayVisible = !!(overlayRoot && overlayRoot.querySelector('#fnMessage') && flintPanel && flintPanel.offsetParent !== null && overlayRoot.offsetParent !== null);
+    if (overlayVisible) return overlayRoot;
+    var staticVisible = !!(staticRoot && staticRoot.querySelector('#fnMessage') && staticRoot.offsetParent !== null);
+    if (staticVisible) return staticRoot;
+    return overlayRoot || staticRoot || document;
+  }
+
+  function bindFamilyNotesCounters(){
+    ['fnStaticPage','fnOverlayPage'].forEach(function(rootId){
+      var root = document.getElementById(rootId);
+      if (!root) return;
+      var msg = root.querySelector('#fnMessage');
+      var count = root.querySelector('#fnCharCount');
+      if (msg && !msg.dataset.boundCounter) {
+        msg.dataset.boundCounter = '1';
+        msg.addEventListener('input', function(){ updateFamilyNoteCounter(root); });
+      }
+      if (msg && count) count.textContent = String((msg.value || '').length);
+    });
+  }
+
   function renderFamilyNotesViews(){
     mountFamilyNotesStaticIfNeeded();
     var staticRoot = document.getElementById('fnStaticPage');
     if (staticRoot) staticRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
     var overlayRoot = document.getElementById('fnOverlayPage');
     if (overlayRoot) overlayRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
-    var msg = document.getElementById('fnMessage');
-    if (msg && !msg.dataset.boundCounter) {
-      msg.dataset.boundCounter = '1';
-      msg.addEventListener('input', updateFamilyNoteCounter);
-    }
+    bindFamilyNotesCounters();
     updateFamilyNoteCounter();
   }
 
-  function updateFamilyNoteCounter(){
-    var msg = document.getElementById('fnMessage');
-    var count = document.getElementById('fnCharCount');
+  function updateFamilyNoteCounter(root){
+    root = root || getActiveFamilyNotesRoot();
+    var msg = root && root.querySelector ? root.querySelector('#fnMessage') : null;
+    var count = root && root.querySelector ? root.querySelector('#fnCharCount') : null;
     if (msg && count) count.textContent = String((msg.value || '').length);
   }
 
@@ -9010,10 +8950,11 @@ function dismissWelcome() {
   };
 
   window.sendFamilyNote = async function(){
-    var msgEl = document.getElementById('fnMessage');
-    var typeEl = document.getElementById('fnType');
-    var dueEl = document.getElementById('fnDue');
-    var pinEl = document.getElementById('fnPin');
+    var root = getActiveFamilyNotesRoot();
+    var msgEl = root && root.querySelector ? root.querySelector('#fnMessage') : null;
+    var typeEl = root && root.querySelector ? root.querySelector('#fnType') : null;
+    var dueEl = root && root.querySelector ? root.querySelector('#fnDue') : null;
+    var pinEl = root && root.querySelector ? root.querySelector('#fnPin') : null;
     var message = sanitizePlainString(msgEl && msgEl.value ? msgEl.value.trim() : '', FAMILY_NOTES_LIMIT);
     if (!message) return showToast('Write a note first.', 'error');
     if (message.length > FAMILY_NOTES_LIMIT) return showToast('Keep notes under ' + FAMILY_NOTES_LIMIT + ' characters.', 'error');
@@ -9032,6 +8973,7 @@ function dismissWelcome() {
     if (msgEl) msgEl.value = '';
     if (dueEl) dueEl.value = '';
     if (pinEl) pinEl.checked = false;
+    updateFamilyNoteCounter(root);
     notes = [res.data].concat(notes || []);
     renderFamilyNotesViews();
     renderNavBadges();
