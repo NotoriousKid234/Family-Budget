@@ -146,6 +146,9 @@
             transform: translateX(-110%);
             display: flex; flex-direction: column;
             box-shadow: 4px 0 32px rgba(0,0,0,.4);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
         }
         .side-menu.open { transform: translateX(0); }
 
@@ -5622,7 +5625,7 @@ function setTxnFilter(filter, el){
     renderDashboard();
 }
 function toggleNotif(){ const m=document.getElementById('notifModal'),o=document.getElementById('notifOverlay'),v=m.style.display==='block'; m.style.display=v?'none':'block'; o.style.display=v?'none':'block'; if(!v){ localStorage.setItem('montoya_notifs',Date.now().toString()); const pingEl=document.getElementById('ping'); if(pingEl){pingEl.style.display='none';pingEl.innerText='';} const bellBtn=document.getElementById('notifBellBtn'); if(bellBtn) delete bellBtn.dataset.rang; } }
-function toggleMenu(){ if(window.innerWidth>=1024)return; const m=document.getElementById('sideMenu'),o=document.getElementById('sideOverlay'); m.classList.toggle('open'); o.style.display=m.classList.contains('open')?'block':'none'; }
+function toggleMenu(){ if(window.innerWidth>=1024)return; var m=document.getElementById('sideMenu'),o=document.getElementById('sideOverlay'); m.classList.toggle('open'); var isOpen=m.classList.contains('open'); o.style.display=isOpen?'block':'none'; document.body.style.overflow=isOpen?'hidden':''; }
 function togglePassVis() {
     const f=document.getElementById('passwordField');
     const i=document.getElementById('passEyeIcon');
@@ -5699,6 +5702,7 @@ function switchView(id, isBack) {
 // ═══════════════════════════════════════════════════════════════════════
 
 function openPanel(id) {
+    var sm=document.getElementById('sideMenu'); if(sm&&sm.classList.contains('open')){sm.classList.remove('open');document.getElementById('sideOverlay').style.display='none';document.body.style.overflow='';}
     var old = document.getElementById('flintPanel');
     if(old) old.remove();
     document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
