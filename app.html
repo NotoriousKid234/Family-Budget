@@ -6287,7 +6287,7 @@ async function fpKickMember(userId) {
             const action = prompt('Remove this partner from your ledger?\\n\\nType "keep" to leave their transactions on this ledger.\\nType "move" to send their transactions with them.\\n\\nThen press OK.', 'keep');
             if (action === null) return;
             const shouldMove = action.trim().toLowerCase() === 'move';
-            const newGroup = 'grp_' + userId.substring(0,8) + '_' + Date.now();
+            const newGroup = crypto.randomUUID();
             try {
                 if (shouldMove) {
                     await _sb.from('transactions').update({ group_id: newGroup }).eq('group_id', currentGroup).eq('author_id', userId);
