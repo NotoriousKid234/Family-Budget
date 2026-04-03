@@ -9740,5 +9740,29 @@ function dismissWelcome() {
 })();
 </script>
 
+
+<script id="share-ledger-join-bugfix">
+(function(){
+  try {
+    window.fpJoinLedger = async function(){
+      try {
+        var raw = (document.getElementById('fp_joinKey')?.value || '').trim();
+        var key = (typeof normalizeLedgerJoinInput === 'function') ? normalizeLedgerJoinInput(raw) : raw;
+        if (!key) { showToast('Paste the full invite link or just the ledger key.', 'error'); return; }
+        if (typeof currentGroup !== 'undefined' && key === currentGroup) { showToast('You are already on this ledger!', 'warning'); return; }
+        if (typeof performLedgerJoin === 'function') {
+          await performLedgerJoin(key);
+        } else {
+          showToast('Join flow is unavailable right now. Please refresh and try again.', 'error');
+        }
+      } catch (e) {
+        console.error('fpJoinLedger bugfix failed', e);
+        showToast('Could not link ledger. Please try again.', 'error');
+      }
+    };
+  } catch (e) { console.error('share-ledger-join-bugfix init failed', e); }
+})();
+</script>
+
 </body>
 </html>
