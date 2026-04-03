@@ -9961,5 +9961,149 @@ function dismissWelcome() {
 })();
 </script>
 
+
+<script id="flint-join-rpc-patch">
+(function(){
+  function syncJoinGlobals(){
+    try {
+      if (typeof _sb !== 'undefined') window._sb = _sb;
+      if (typeof currentUser !== 'undefined') window.currentUser = currentUser;
+      if (typeof currentGroup !== 'undefined') window.currentGroup = currentGroup;
+      if (typeof currentEmail !== 'undefined') window.currentEmail = currentEmail;
+      if (typeof currentDisplayName !== 'undefined') window.currentDisplayName = currentDisplayName;
+    } catch (e) {}
+  }
+  function normalizeJoinInputRpc(raw){
+    var v = String(raw == null ? '' : raw).trim();
+    if (!v) return '';
+    try {
+      if (/^https?:\/\//i.test(v)) {
+        var u = new URL(v);
+        var qp = u.searchParams.get('join');
+        if (qp) return String(qp).trim();
+      }
+    } catch (e) {}
+    if (/^join=/i.test(v)) return v.replace(/^join=/i, '').trim();
+    return v;
+  }
+  function isUuidLike(v){
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||''));
+  }
+  async function resolveJoinKey(k){
+    syncJoinGlobals();
+    if (!window._sb) return { ok:false, reason:'service' };
+    if (!isUuidLike(k)) return { ok:false, reason:'format' };
+    try {
+      var res = await window._sb.rpc('resolve_ledger_join_key', { join_key: k });
+      if (res.error) {
+        var msg = String(res.error.message || '').toLowerCase();
+        if (msg.includes('does not exist') || msg.includes('schema cache')) {
+          return { ok:false, reason:'rpc_missing', error:res.error };
+        }
+        if (msg.includes('invalid input syntax')) {
+          return { ok:false, reason:'format', error:res.error };
+        }
+        return { ok:false, reason:'rpc_error', error:res.error };
+      }
+      var rows = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
+      if (!rows.length || !rows[0] || !rows[0].group_id) return { ok:false, reason:'not_found' };
+      return { ok:true, group_id:String(rows[0].group_id) };
+    } catch (e) {
+      return { ok:false, reason:'rpc_error', error:e };
+    }
+  }
+  async function joinLedgerViaRpc(raw){
+    syncJoinGlobals();
+    var k = normalizeJoinInputRpc(raw || (document.getElementById('joinKey')?.value || document.getElementById('fp_joinKey')?.value || ''));
+    if (!k) { showToast('Paste the full invite link or just the ledger key.', 'error'); return; }
+    if (!window._sb) { showToast('Ledger service is not ready yet. Refresh and try again.', 'error'); return; }
+    if (!window.currentUser) { showToast('Please sign in again before joining a ledger.', 'error'); return; }
+    if (window.__flintJoinBusy) { showToast('Joining ledger… please wait.', 'info'); return; }
+    if (k === window.currentGroup) { showToast('You are already on this ledger!', 'warning'); return; }
+    window.__flintJoinBusy = true;
+    try {
+      var resolved = await resolveJoinKey(k);
+      if (!resolved.ok) {
+        if (resolved.reason === 'format') {
+          showToast('Paste the full invite link or just the ledger key.', 'error');
+        } else if (resolved.reason === 'rpc_missing') {
+          showToast('Join lookup is not enabled yet. Run the SQL RPC patch first.', 'error');
+        } else if (resolved.reason === 'not_found') {
+          showToast('Join key not found — check with your partner.', 'error');
+        } else {
+          showToast('Could not verify that ledger key. Please try again.', 'error');
+        }
+        return;
+      }
+      var payload;
+      if (typeof appSettingsPayload === 'function') {
+        payload = appSettingsPayload({
+          user_id: window.currentUser,
+          group_id: resolved.group_id,
+          budget: (typeof config !== 'undefined' && config && config.budget) ? config.budget : 3000,
+          m_balance: (typeof config !== 'undefined' && config && config.m_balance) ? config.m_balance : 0,
+          c_balance: (typeof config !== 'undefined' && config && config.c_balance) ? config.c_balance : 0,
+          m_orig: (typeof config !== 'undefined' && config && config.m_orig) ? config.m_orig : 0,
+          c_orig: (typeof config !== 'undefined' && config && config.c_orig) ? config.c_orig : 0,
+          display_name: window.currentDisplayName || window.currentEmail || 'PARTNER'
+        });
+      } else {
+        payload = {
+          user_id: window.currentUser,
+          group_id: resolved.group_id,
+          budget: 3000,
+          m_balance: 0,
+          c_balance: 0,
+          m_orig: 0,
+          c_orig: 0,
+          display_name: window.currentDisplayName || window.currentEmail || 'PARTNER'
+        };
+      }
+      var write = await window._sb.from('app_settings').upsert(payload, { onConflict:'user_id' });
+      if (write.error) {
+        showToast('Error joining: ' + write.error.message, 'error');
+        return;
+      }
+      try { localStorage.setItem('flint_group_' + window.currentUser, resolved.group_id); } catch (e) {}
+      try { localStorage.removeItem('flint_pending_join'); } catch (e) {}
+      window.currentGroup = resolved.group_id;
+      if (typeof currentGroup !== 'undefined') currentGroup = resolved.group_id;
+      showToast('Ledger joined! Loading...', 'success');
+      setTimeout(function(){ location.reload(); }, 350);
+    } finally {
+      setTimeout(function(){ window.__flintJoinBusy = false; }, 700);
+    }
+  }
+  async function checkPendingJoinRpc(){
+    syncJoinGlobals();
+    var pendingKey = null;
+    try { pendingKey = localStorage.getItem('flint_pending_join'); } catch (e) {}
+    if (!pendingKey) return;
+    pendingKey = normalizeJoinInputRpc(pendingKey);
+    if (!pendingKey) return;
+    if (pendingKey === window.currentGroup) {
+      try { localStorage.removeItem('flint_pending_join'); } catch (e) {}
+      return;
+    }
+    var resolved = await resolveJoinKey(pendingKey);
+    if (!resolved.ok) {
+      if (resolved.reason !== 'rpc_missing') {
+        try { localStorage.removeItem('flint_pending_join'); } catch (e) {}
+      }
+      return;
+    }
+    if (typeof showJoinConfirmModal === 'function') {
+      showJoinConfirmModal(resolved.group_id, 'a shared');
+    }
+  }
+  window.joinLedger = function(raw){ return joinLedgerViaRpc(raw); };
+  window.joinLedgerPatched = function(raw){ return joinLedgerViaRpc(raw); };
+  window.acceptJoin = function(key){ return joinLedgerViaRpc(key); };
+  window.acceptJoinPatched = function(key){ return joinLedgerViaRpc(key); };
+  window.fpJoinLedger = function(){ return joinLedgerViaRpc(document.getElementById('fp_joinKey')?.value || ''); };
+  window.checkPendingJoin = function(){ return checkPendingJoinRpc(); };
+})();
+</script>
+
 </body>
 </html>
