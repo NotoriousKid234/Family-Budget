@@ -10218,688 +10218,157 @@ function dismissWelcome() {
 </script>
 
 
-<style id="flint-schema-layout-patch">
-  #flintPanel.flint-panel-overlay{left:240px !important;right:0 !important;bottom:0 !important;top:0 !important;}
-  #flintPanel .flint-panel-shell,
-  #flintPanel .flint-panel-compact,
-  #flintPanel .flint-panel-wide,
-  #flintPanel .flint-panel-full{
-    width:calc(100vw - 240px) !important;
-    max-width:none !important;
-    padding:24px 28px 88px !important;
-    margin:0 !important;
-    box-sizing:border-box !important;
-  }
-  #flintPanel .flint-panel-body{width:100% !important;}
-  @media (max-width:1023px){
-    #flintPanel.flint-panel-overlay{left:0 !important;}
-    #flintPanel .flint-panel-shell,
-    #flintPanel .flint-panel-compact,
-    #flintPanel .flint-panel-wide,
-    #flintPanel .flint-panel-full{width:100% !important;padding:18px 14px 96px !important;}
-  }
-</style>
-
-<script id="flint-schema-upgrade-patch">
+<script id="flint-bills-challenges-fix">
 (function(){
-  const SUB_CATS = ['Streaming','Music','Software','Fitness','News','Gaming','Other','Subscription'];
-  const BILL_DEFAULT_CAT = 'Utilities';
-  window.flintLedgerMembers = window.flintLedgerMembers || [];
-  window.flintObligations = window.flintObligations || [];
-
-  function esc(v){ return (typeof escapeHtml === 'function') ? escapeHtml(String(v == null ? '' : v)) : String(v == null ? '' : v); }
-  function txt(v, max){ return (typeof sanitizePlainString === 'function') ? sanitizePlainString(v, max || 120) : String(v == null ? '' : v).slice(0, max || 120); }
-  function num(v){ return (typeof safeNumber === 'function') ? safeNumber(v) : (Number(v)||0); }
-  function sid(v){ return (typeof safeIdValue === 'function') ? safeIdValue(v) : String(v||''); }
-  function clampDay(v){ var d = parseInt(v, 10); if (!Number.isFinite(d)) d = 1; return Math.max(1, Math.min(31, d)); }
-  function titleCase(s){ return String(s||'').toLowerCase().replace(/\b\w/g, function(m){ return m.toUpperCase(); }); }
-  function normalizeName(raw, email){
-    var base = txt(raw || '', 80).trim();
-    if (!base && email) base = String(email).split('@')[0];
-    if (!base && typeof currentDisplayName !== 'undefined' && currentDisplayName) base = String(currentDisplayName);
-    if (!base) base = 'Partner';
-    if (/^[A-Z0-9 ._-]+$/.test(base)) return titleCase(base.replace(/_/g,' '));
-    return base;
+  function safeNum(v){ var n = Number(v); return Number.isFinite(n) ? n : 0; }
+  function dueBadge(days){
+    if(days <= 0) return ['due-urgent','TODAY!'];
+    if(days === 1) return ['due-urgent','Tomorrow'];
+    if(days <= 3) return ['due-urgent', days + ' days'];
+    if(days <= 7) return ['due-soon', days + ' days'];
+    return ['due-ok', days + 'd away'];
   }
-  function sanitizeMemberRow(r){
-    return {
-      group_id: sid(r && r.group_id),
-      user_id: sid(r && r.user_id),
-      display_name: normalizeName(r && r.display_name, r && r.email),
-      role: (r && r.role === 'owner') ? 'owner' : 'member',
-      is_active: !(r && r.is_active === false),
-      joined_at: r && r.joined_at || null,
-      updated_at: r && r.updated_at || null
-    };
+  function recurringToBillRows(){
+    var rows = Array.isArray(window.recurring) ? window.recurring : [];
+    return rows
+      .filter(function(r){ return r && r.id && safeNum(r.billing_day) >= 1; })
+      .map(function(r){
+        return {
+          source: 'recurring',
+          id: String(r.id),
+          name: sanitizePlainString(r.name || r.note || r.category || 'Recurring item', 80),
+          amount: safeNum(r.amount),
+          day: Math.max(1, Math.min(31, parseInt(r.billing_day, 10) || 1)),
+          icon: sanitizePlainString(r.icon || (SUBSCRIPTION_CATEGORIES.indexOf((r.category||'')) >= 0 ? '🔁' : '💳'), 8) || '💳',
+          category: sanitizePlainString(r.category || '', 40),
+          kind: SUBSCRIPTION_CATEGORIES.indexOf((r.category||'')) >= 0 ? 'subscription' : 'bill'
+        };
+      });
   }
-  function sanitizeObligationRow(o){
-    var kind = (o && o.kind === 'subscription') ? 'subscription' : 'bill';
-    return {
-      id: sid(o && o.id),
-      group_id: sid(o && o.group_id),
-      created_by_user_id: sid(o && (o.created_by_user_id || o.user_id)),
-      kind: kind,
-      name: txt(o && o.name, 120),
-      amount: num(o && o.amount),
-      category: txt(o && o.category, 40) || (kind === 'subscription' ? 'Subscription' : BILL_DEFAULT_CAT),
-      member: txt(o && o.member, 40) || 'Split',
-      due_day: clampDay(o && (o.due_day || o.billing_day)),
-      emoji: txt(o && o.emoji, 8) || (kind === 'subscription' ? '📺' : '💳'),
-      active: !(o && o.active === false),
-      counts_after_due: !(o && o.counts_after_due === false),
-      created_at: o && o.created_at || null,
-      updated_at: o && o.updated_at || null
-    };
-  }
-  function visibleMembers(){
-    var rows = (window.flintLedgerMembers || []).filter(function(m){ return m && m.user_id && m.is_active !== false; });
-    var seen = {};
-    rows = rows.filter(function(r){ if (seen[r.user_id]) return false; seen[r.user_id]=1; return true; });
-    if (!rows.length && typeof currentUser !== 'undefined' && currentUser) {
-      rows = [{ user_id: currentUser, display_name: normalizeName(typeof currentDisplayName !== 'undefined' ? currentDisplayName : '', typeof currentEmail !== 'undefined' ? currentEmail : ''), role:'owner', is_active:true }];
-    }
-    rows.sort(function(a,b){
-      if (a.user_id === currentUser) return -1;
-      if (b.user_id === currentUser) return 1;
-      return (a.display_name||'').localeCompare(b.display_name||'');
-    });
-    return rows;
-  }
-  function memberNameByUser(userId, fallback){
-    var member = visibleMembers().find(function(m){ return m.user_id === userId; });
-    if (member) return member.display_name;
-    return normalizeName(fallback || 'Partner');
-  }
-  function getPartnerName(){
-    var rows = visibleMembers().filter(function(m){ return m.user_id !== currentUser; });
-    return rows[0] ? rows[0].display_name : 'Partner';
-  }
-  function sanitizeMemberValue(v){ return txt(v, 40) || 'Split'; }
-
-  if (typeof sanitizeTransactionRow === 'function') {
-    window.sanitizeTransactionRow = function(t){
+  function manualBillRows(){
+    var rows = Array.isArray(window.billReminders) ? window.billReminders : [];
+    return rows.map(function(b, i){
       return {
-        id: sid(t && t.id),
-        user_id: sid(t && t.user_id),
-        group_id: sid(t && t.group_id),
-        amount: num(t && t.amount),
-        member: sanitizeMemberValue(t && t.member),
-        category: txt(t && t.category, 40) || 'Misc',
-        note: txt(t && t.note, 240),
-        intent: (t && t.intent === 'Want') ? 'Want' : 'Need',
-        created_at: t && t.created_at || new Date(0).toISOString(),
-        is_recurring: !!(t && (t.is_recurring === true || t.is_recurring === 'true' || t.is_recurring === 1 || t.is_recurring === '1')),
-        obligation_id: sid(t && t.obligation_id)
+        source: 'manual',
+        index: i,
+        name: sanitizePlainString(b.name, 80),
+        amount: safeNum(b.amount),
+        day: Math.max(1, Math.min(31, parseInt(b.day, 10) || 1)),
+        icon: sanitizePlainString(b.icon || '💳', 8) || '💳',
+        category: 'Bill',
+        kind: 'bill'
       };
-    };
-  }
-  if (typeof sanitizeRecurringRow === 'function') {
-    window.sanitizeRecurringRow = function(r){
-      return {
-        id: sid(r && r.id),
-        user_id: sid(r && r.user_id),
-        group_id: sid(r && r.group_id),
-        name: txt(r && r.name, 120),
-        category: txt(r && r.category, 40) || BILL_DEFAULT_CAT,
-        intent: (r && r.intent === 'Want' ? 'Want' : 'Need'),
-        member: sanitizeMemberValue(r && r.member),
-        amount: num(r && r.amount),
-        billing_day: clampDay(r && r.billing_day)
-      };
-    };
-  }
-
-  function dueDateInCurrentCycle(ob){
-    if (!ob || !currentViewDate || typeof cycleDates !== 'function') return null;
-    var bounds = cycleDates(currentViewDate);
-    var start = bounds.start, end = bounds.end;
-    var cursor = new Date(start.getFullYear(), start.getMonth(), 1);
-    while (cursor < end) {
-      var y = cursor.getFullYear();
-      var m = cursor.getMonth();
-      var last = new Date(y, m + 1, 0).getDate();
-      var dt = new Date(y, m, Math.min(clampDay(ob.due_day), last), 12, 0, 0, 0);
-      if (dt >= start && dt < end) return dt;
-      cursor.setMonth(cursor.getMonth() + 1);
-    }
-    return null;
-  }
-  function obligationDuePassed(ob){
-    var dt = dueDateInCurrentCycle(ob);
-    return !!(dt && dt.getTime() <= Date.now());
-  }
-  function txMatchesObligation(tx, ob){
-    if (!tx || !ob) return false;
-    if (tx.obligation_id && ob.id && tx.obligation_id === ob.id) return true;
-    var due = dueDateInCurrentCycle(ob);
-    if (!due) return false;
-    var bounds = cycleDates(currentViewDate);
-    var txDate = new Date(tx.created_at);
-    if (!(txDate >= due && txDate < bounds.end)) return false;
-    var sameUser = (ob.created_by_user_id && tx.user_id === ob.created_by_user_id) || ob.member === 'Split';
-    if (!sameUser) return false;
-    var note = txt(tx.note || '', 120).trim().toLowerCase();
-    var obName = txt(ob.name || '', 120).trim().toLowerCase();
-    var cat = txt(tx.category || '', 40).trim().toLowerCase();
-    var obCat = txt(ob.category || '', 40).trim().toLowerCase();
-    var sameDesc = !!obName && (note === obName || cat === obCat);
-    var sameAmt = Math.abs(num(tx.amount) - num(ob.amount)) < 0.01;
-    return sameAmt && sameDesc;
-  }
-  function unrealizedDueTotal(){
-    return (window.flintObligations || []).filter(function(ob){
-      return ob.group_id === currentGroup && ob.active && ob.counts_after_due && obligationDuePassed(ob) && !history.some(function(tx){ return txMatchesObligation(tx, ob); });
-    }).reduce(function(sum, ob){ return sum + num(ob.amount); }, 0);
-  }
-  function effectiveSpent(){
-    return (history || []).reduce(function(s,t){ return s + num(t.amount); }, 0) + unrealizedDueTotal();
-  }
-  function computeMemberStats(){
-    var rows = visibleMembers().slice(0,2);
-    var stats = {};
-    rows.forEach(function(r){ stats[r.user_id] = { id:r.user_id, name:r.display_name, amount:0, count:0 }; });
-    if (!rows.length && currentUser) stats[currentUser] = { id:currentUser, name:normalizeName(currentDisplayName, currentEmail), amount:0, count:0 };
-    (history || []).forEach(function(tx){
-      if (['Mortgage','Car','Utilities'].indexOf(tx.category) >= 0) return;
-      if (tx.member === 'Split') {
-        var activeRows = rows.length ? rows : [{ id: currentUser, name: normalizeName(currentDisplayName, currentEmail) }];
-        var share = num(tx.amount) / Math.max(1, activeRows.length);
-        activeRows.forEach(function(r){
-          if (!stats[r.id]) stats[r.id] = { id:r.id, name:r.name, amount:0, count:0 };
-          stats[r.id].amount += share; stats[r.id].count += 1;
-        });
-        return;
-      }
-      var uid = tx.user_id && stats[tx.user_id] ? tx.user_id : null;
-      if (!uid) {
-        var byName = Object.keys(stats).find(function(id){ return stats[id].name.toLowerCase() === String(tx.member||'').toLowerCase(); });
-        uid = byName || currentUser;
-      }
-      if (!stats[uid]) stats[uid] = { id: uid, name: memberNameByUser(uid, tx.member), amount:0, count:0 };
-      stats[uid].amount += num(tx.amount); stats[uid].count += 1;
     });
-    return rows.map(function(r){ return stats[r.user_id] || { id:r.user_id, name:r.display_name, amount:0, count:0 }; });
   }
-
-  async function ensureMyLedgerMember(){
-    if (!_sb || !currentGroup || !currentUser) return;
-    try {
-      await _sb.from('ledger_members').upsert([{ group_id: currentGroup, user_id: currentUser, display_name: normalizeName(currentDisplayName, currentEmail), role: 'member', is_active: true }], { onConflict: 'group_id,user_id' });
-    } catch (e) { console.warn('ensureMyLedgerMember', e); }
+  function mergedBillRows(){
+    var merged = manualBillRows().concat(recurringToBillRows());
+    var seen = new Set();
+    return merged.filter(function(item){
+      var key = [item.source, item.id || item.index, item.name, item.day, item.amount].join('|');
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    }).sort(function(a,b){ return daysUntil(a.day) - daysUntil(b.day); });
   }
-  async function loadSchemaUpgradeData(){
-    if (!_sb || !currentGroup || !currentUser) return;
-    try {
-      await ensureMyLedgerMember();
-      var res = await Promise.all([
-        _sb.from('ledger_members').select('group_id,user_id,display_name,role,is_active,joined_at,updated_at').eq('group_id', currentGroup),
-        _sb.from('recurring_obligations').select('*').eq('group_id', currentGroup).eq('active', true).order('due_day', { ascending: true })
-      ]);
-      window.flintLedgerMembers = ((res[0].data || []).map(sanitizeMemberRow)).filter(function(r){ return r.user_id; });
-      window.flintObligations = ((res[1].data || []).map(sanitizeObligationRow)).filter(function(r){ return r.id; });
-    } catch (e) {
-      console.warn('schema upgrade data load failed', e);
-    }
+  async function deleteRecurringExpense(id){
+    var safeId = safeIdValue(id);
+    if(!safeId) return showToast('Invalid recurring item id', 'error');
+    if(!window._sb) return showToast('Ledger service not ready', 'error');
+    if(!window.confirm('Delete this recurring item?')) return;
+    var res = await window._sb.from('recurring_expenses').delete().eq('id', safeId);
+    if(res && res.error){ showToast(res.error.message || 'Could not delete recurring item', 'error'); return; }
+    fetchData();
   }
+  window.deleteRecurringExpense = deleteRecurringExpense;
 
-  function applyHomeMemberNames(){
-    var stats = computeMemberStats();
-    var cards = Array.from(document.querySelectorAll('.member-grid .member-card'));
-    cards.forEach(function(card, idx){
-      var nameEl = card.querySelector('.member-name');
-      var amtEl = card.querySelector('.member-amt');
-      if (!stats[idx]) { card.style.display = 'none'; return; }
-      card.style.display = '';
-      if (nameEl) nameEl.textContent = stats[idx].name;
-      if (amtEl) amtEl.textContent = '$' + fmt(stats[idx].amount);
-      card.onclick = function(){ if (typeof openMemberView === 'function') openMemberView(stats[idx].name); };
-    });
-    var feedCards = document.querySelectorAll('#familyFeed .card > div > div');
-    if (feedCards && feedCards.length >= 2) {
-      var label1 = feedCards[0].querySelector('div');
-      var label2 = feedCards[1].querySelector('div');
-      if (stats[0] && label1) label1.textContent = stats[0].name;
-      if (stats[1] && label2) label2.textContent = stats[1].name;
-      if (!stats[1]) feedCards[1].style.display = 'none'; else feedCards[1].style.display = '';
-    }
-  }
-  function applyBudgetUi(){
-    var spent = effectiveSpent();
-    var budget = num(config && config.budget);
-    var remaining = budget - spent;
-    var balanceNum = document.getElementById('balanceNum'); if (balanceNum) balanceNum.textContent = '$' + fmt(remaining);
-    var heroSpent = document.getElementById('heroTotalSpent'); if (heroSpent) heroSpent.textContent = '$' + fmt(spent);
-    var cycleStart = config.cycle_start_day || 16;
-    var now = new Date();
-    var nextCycle = new Date(now.getFullYear(), now.getMonth(), cycleStart);
-    if (nextCycle <= now) nextCycle.setMonth(nextCycle.getMonth() + 1);
-    var daysLeft = Math.max(1, Math.ceil((nextCycle - now) / 86400000));
-    var paceEl = document.getElementById('paceChip'); if (paceEl) paceEl.textContent = 'Pace: $' + (remaining / daysLeft).toFixed(2) + '/day';
-    var safeEl = document.getElementById('safeChip'); if (safeEl) safeEl.textContent = 'Remaining: $' + fmt(remaining);
-    var pct = budget > 0 ? Math.max(0, Math.round((spent / budget) * 100)) : 0;
-    var barFill = document.getElementById('flint-bar-fill'); if (barFill) barFill.style.transform = 'scaleX(' + Math.min(1, spent / Math.max(1, budget)) + ')';
-    var bar = document.getElementById('flint-budget-bar');
-    if (bar) {
-      var meta = bar.querySelector('.bar-meta');
-      if (meta) meta.innerHTML = '<span class="used"><span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:5px;vertical-align:middle"></span>' + pct + '% of $' + budget.toLocaleString() + ' budget used</span><span style="color:' + (remaining >= 0 ? 'var(--green)' : 'var(--rose)') + '">$' + Math.abs(remaining).toLocaleString(undefined,{maximumFractionDigits:0}) + ' ' + (remaining >= 0 ? 'remaining' : 'over') + '</span>';
-    }
-  }
-
-  function obligationRows(kind){
-    return (window.flintObligations || []).filter(function(ob){ return ob.group_id === currentGroup && ob.active && ob.kind === kind; }).sort(function(a,b){ return a.due_day - b.due_day; });
-  }
-  window.getSubscriptionItems = function(){ return obligationRows('subscription'); };
-  function getBillRows(){ return obligationRows('bill'); }
-
-  window.renderSubSummary = function(){
-    var subs = getSubscriptionItems();
-    var total = subs.reduce(function(s,sub){ return s + num(sub.amount); }, 0);
-    var totalEl = document.getElementById('subTotalDisplay'); if (totalEl) totalEl.textContent = '$' + total.toFixed(2) + '/mo';
-    var countEl = document.getElementById('subCountDisplay'); if (countEl) countEl.textContent = String(subs.length);
-    var yearlyEl = document.getElementById('subYearlyDisplay'); if (yearlyEl) yearlyEl.textContent = '$' + (total * 12).toFixed(0);
-    var dailyEl = document.getElementById('subDailyDisplay'); if (dailyEl) dailyEl.textContent = '$' + (total / 30).toFixed(2);
-  };
-
-  window.renderSubs = function(){
-    var list = document.getElementById('subList'); if (!list) return;
-    list.innerHTML = '';
-    var subs = getSubscriptionItems();
-    if (!subs.length) {
-      list.innerHTML = '<div class="card" style="text-align:center;color:var(--text-soft);padding:22px;">No subscriptions yet. Add your first one below.</div>';
-      return;
-    }
-    subs.forEach(function(s){
-      var div = document.createElement('div');
-      div.className = 'hist-item';
-      div.innerHTML = '<div><span class="hist-note">' + esc(s.name) + '</span><span class="hist-date">' + esc(s.category || 'Subscription') + ' · billed day ' + clampDay(s.due_day) + '</span></div>' +
-        '<div class="hist-right"><div class="hist-amt" style="color:var(--gold);">$' + num(s.amount).toFixed(2) + '</div><div class="hist-actions"><button class="act-btn act-del" onclick="deleteSub(\'' + esc(s.id) + '\')"><i class="fa-solid fa-trash-can"></i></button></div></div>';
-      list.appendChild(div);
-    });
-  };
-
+  var _origRenderBills = window.renderBills;
   window.renderBills = function(){
     var all = document.getElementById('billsList');
     var upcoming = document.getElementById('upcomingBills');
-    if (all) all.innerHTML = '';
-    if (upcoming) upcoming.innerHTML = '';
-    var bills = getBillRows();
-    if (!bills.length) {
-      if (all) all.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:.85rem;">No bills yet. Add one below.</div>';
-      if (upcoming) upcoming.innerHTML = '<div style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:10px;">No bills added yet.</div>';
+    var navSub = document.getElementById('navSub-bills');
+    var subNav = document.getElementById('navSub-subManager');
+    if (navSub) {
+      var cnt = mergedBillRows().length;
+      navSub.innerText = cnt ? (cnt + ' recurring') : 'No bills added';
+    }
+    if (subNav) {
+      var subsCnt = recurringToBillRows().filter(function(r){ return r.kind === 'subscription'; }).length;
+      subNav.innerText = subsCnt ? (subsCnt + ' subscriptions') : 'No subscriptions';
+    }
+    if(!all || !upcoming){
+      if (typeof _origRenderBills === 'function') return _origRenderBills();
       return;
     }
-    bills.forEach(function(b){
-      var days = daysUntil(b.due_day);
-      var cls = 'due-ok', label = days + 'd away';
-      if (days <= 3) { cls = 'due-urgent'; label = days === 0 ? 'TODAY!' : days === 1 ? 'Tomorrow' : days + ' days'; }
-      else if (days <= 7) { cls = 'due-soon'; label = days + ' days'; }
-      if (upcoming && days <= 7) {
-        var d = document.createElement('div'); d.className = 'bill-item';
-        d.innerHTML = '<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">' + esc(b.emoji || '💳') + '</div><div><div class="bill-name">' + esc(b.name) + '</div><div class="bill-due">Day ' + clampDay(b.due_day) + ' of each cycle</div></div></div><div class="bill-right"><div class="bill-amt">$' + num(b.amount).toFixed(2) + '</div><div class="bill-countdown ' + cls + '">' + label + '</div></div>';
+    all.innerHTML=''; upcoming.innerHTML='';
+    var sorted = mergedBillRows();
+    if(!sorted.length){
+      upcoming.innerHTML='<div style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:10px;">No bills added yet.</div>';
+      all.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:.85rem;">No bills yet. Add one below.</div>';
+      return;
+    }
+    sorted.forEach(function(b){
+      var days = daysUntil(b.day);
+      var badge = dueBadge(days), cls = badge[0], label = badge[1];
+      var kindTag = b.kind === 'subscription' ? '<span class="hist-date" style="margin-left:6px;">Subscription</span>' : '';
+      var deleteBtn = b.source === 'manual'
+        ? '<button class="act-btn act-del" onclick="deleteBill(' + Number(b.index) + ')"><i class="fa-solid fa-trash-can"></i></button>'
+        : '<button class="act-btn act-del" onclick="deleteRecurringExpense(\'' + safeIdValue(b.id) + '\')"><i class="fa-solid fa-trash-can"></i></button>';
+      if(days <= 7){
+        var d = document.createElement('div'); d.className='bill-item';
+        d.innerHTML='<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">' + escapeHtml(b.icon) + '</div><div><div class="bill-name">' + escapeHtml(b.name) + kindTag + '</div><div class="bill-due">Day ' + b.day + ' of each cycle</div></div></div><div class="bill-right"><div class="bill-amt">$' + safeNum(b.amount).toFixed(2) + '</div><div class="bill-countdown ' + cls + '">' + label + '</div></div>';
         upcoming.appendChild(d);
       }
-      if (all) {
-        var div = document.createElement('div'); div.className = 'bill-item';
-        div.innerHTML = '<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">' + esc(b.emoji || '💳') + '</div><div><div class="bill-name">' + esc(b.name) + '</div><div class="bill-due">Due day ' + clampDay(b.due_day) + '</div></div></div><div class="bill-right"><div class="bill-amt">$' + num(b.amount).toFixed(2) + '</div><div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;"><span class="bill-countdown ' + cls + '">' + label + '</span><button class="act-btn act-del" onclick="deleteBill(\'' + esc(b.id) + '\')"><i class="fa-solid fa-trash-can"></i></button></div></div>';
-        all.appendChild(div);
-      }
+      var div = document.createElement('div'); div.className='bill-item';
+      div.innerHTML='<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">' + escapeHtml(b.icon) + '</div><div><div class="bill-name">' + escapeHtml(b.name) + kindTag + '</div><div class="bill-due">Due day ' + b.day + '</div></div></div><div class="bill-right"><div class="bill-amt">$' + safeNum(b.amount).toFixed(2) + '</div><div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;align-items:center;"><span class="bill-countdown ' + cls + '">' + label + '</span>' + deleteBtn + '</div></div>';
+      all.appendChild(div);
     });
   };
 
-  window.deleteBill = async function(id){
-    var safeId = sid(id); if (!safeId) return showToast('Invalid bill id', 'error');
-    if (!confirm('Delete bill?')) return;
-    var res = await _sb.from('recurring_obligations').delete().eq('id', safeId);
-    if (res && res.error) return showToast('Could not delete bill: ' + res.error.message, 'error');
-    showToast('Bill deleted', 'success');
-    fetchData();
-  };
-  window.deleteSub = async function(id){
-    var safeId = sid(id); if (!safeId) return showToast('Invalid subscription id', 'error');
-    if (!confirm('Delete subscription?')) return;
-    var res = await _sb.from('recurring_obligations').delete().eq('id', safeId);
-    if (res && res.error) return showToast('Could not delete subscription: ' + res.error.message, 'error');
-    showToast('Subscription deleted', 'success');
-    fetchData();
-  };
-
-  async function saveObligation(kind, vals){
-    if (!_sb || !currentUser || !currentGroup) return showToast('Not logged in. Refresh the page.', 'error');
-    var payload = {
-      group_id: currentGroup,
-      created_by_user_id: currentUser,
-      kind: kind,
-      name: txt(vals.name, 120),
-      amount: num(vals.amount),
-      category: txt(vals.category, 40) || (kind === 'subscription' ? 'Subscription' : BILL_DEFAULT_CAT),
-      member: txt(vals.member, 40) || 'Split',
-      due_day: clampDay(vals.due_day),
-      emoji: txt(vals.emoji, 8) || (kind === 'subscription' ? '📺' : '💳'),
-      active: true,
-      counts_after_due: true
+  var _origFetchData = window.fetchData;
+  if (typeof _origFetchData === 'function') {
+    window.fetchData = async function(){
+      var res = await _origFetchData.apply(this, arguments);
+      try { window.renderBills(); } catch(e) {}
+      return res;
     };
-    var res = await _sb.from('recurring_obligations').insert([payload]);
-    if (res && res.error) throw res.error;
   }
 
-  window.addBill = async function(){
-    var n = txt(document.getElementById('billName') && document.getElementById('billName').value, 80);
-    var a = parseFloat(document.getElementById('billAmt') && document.getElementById('billAmt').value);
-    var d = parseInt(document.getElementById('billDay') && document.getElementById('billDay').value, 10);
-    var ic = txt(document.getElementById('billIcon') && document.getElementById('billIcon').value, 8) || '💳';
-    if (!n || !(a > 0) || !(d >= 1 && d <= 31)) return showToast('Fill in all bill fields', 'error');
-    try {
-      await saveObligation('bill', { name:n, amount:a, due_day:d, emoji:ic, category:BILL_DEFAULT_CAT, member:'Split' });
-      document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('billDay').value=''; document.getElementById('billIcon').value='';
-      showToast('Bill added!', 'success');
-      fetchData();
-    } catch (e) { showToast('Could not add bill: ' + e.message, 'error'); }
-  };
-  window.fpAddBill = async function(){
-    var n = txt(document.getElementById('fp_bn') && document.getElementById('fp_bn').value, 80);
-    var a = parseFloat(document.getElementById('fp_ba') && document.getElementById('fp_ba').value);
-    var d = parseInt(document.getElementById('fp_bd') && document.getElementById('fp_bd').value, 10);
-    var ic = txt(document.getElementById('fp_bi') && document.getElementById('fp_bi').value, 8) || '💳';
-    if (!n || !(a > 0) || !(d >= 1 && d <= 31)) return showToast('Fill in all bill fields', 'error');
-    try {
-      await saveObligation('bill', { name:n, amount:a, due_day:d, emoji:ic, category:BILL_DEFAULT_CAT, member:'Split' });
-      showToast('Bill added!', 'success');
-      fetchData().then(function(){ openPanel('bills'); });
-    } catch (e) { showToast('Could not add bill: ' + e.message, 'error'); }
-  };
-  window.addSub = async function(){
-    var nameEl = document.getElementById('subName');
-    var amtEl = document.getElementById('subAmt');
-    var dayEl = document.getElementById('subDay');
-    var catEl = document.getElementById('subCat');
-    var n = txt(nameEl && nameEl.value, 120);
-    var a = parseFloat(amtEl && amtEl.value);
-    var d = parseInt(dayEl && dayEl.value, 10);
-    var c = txt(catEl && catEl.value, 40) || 'Streaming';
-    if(!n) return showToast('Enter a subscription name', 'error');
-    if(!(a > 0)) return showToast('Enter a valid monthly cost', 'error');
-    if(!(d >= 1 && d <= 31)) return showToast('Enter a billing day from 1 to 31', 'error');
-    try {
-      await saveObligation('subscription', { name:n, amount:a, due_day:d, category:c, member:'Split', emoji:'📺' });
-      if(nameEl) nameEl.value=''; if(amtEl) amtEl.value=''; if(dayEl) dayEl.value=''; if(catEl) catEl.value='Streaming';
-      showToast('Subscription added', 'success');
-      fetchData();
-    } catch (e) { showToast('Could not add subscription: ' + e.message, 'error'); }
-  };
-  window.fpAddSub = async function(){
-    var nameEl=document.getElementById('fp_subName');
-    var amtEl=document.getElementById('fp_subAmt');
-    var dayEl=document.getElementById('fp_subDay');
-    var catEl=document.getElementById('fp_subCat');
-    var n=txt(nameEl && nameEl.value,120);
-    var a=parseFloat(amtEl && amtEl.value);
-    var d=parseInt(dayEl && dayEl.value,10);
-    var c=txt(catEl && catEl.value,40) || 'Streaming';
-    if(!n) return showToast('Enter a subscription name','error');
-    if(!(a>0)) return showToast('Enter a valid monthly cost','error');
-    if(!(d>=1&&d<=31)) return showToast('Enter a billing day from 1 to 31','error');
-    try {
-      await saveObligation('subscription', { name:n, amount:a, due_day:d, category:c, member:'Split', emoji:'📺' });
-      showToast('Subscription added', 'success');
-      fetchData().then(function(){ openPanel('subManager'); });
-    } catch (e) { showToast('Could not add subscription: ' + e.message, 'error'); }
-  };
-
-  window.checkAutoSync = async function(){ return; };
-
-  window.addEntry = async function(){
-    if (window._isSubmitting) return;
-    window._isSubmitting = true;
-    var syncBtn = document.getElementById('syncBtn');
-    if(syncBtn){ syncBtn.disabled=true; syncBtn.style.opacity='0.6'; syncBtn.innerText='Syncing…'; }
-    var amt = parseFloat(document.getElementById('amount').value);
-    if(!amt || isNaN(amt)) { showToast('Enter a valid amount', 'error'); window._isSubmitting=false; if(syncBtn){syncBtn.disabled=false;syncBtn.style.opacity='1';syncBtn.innerText='Sync Transaction';} return; }
-    if(!currentGroup || !currentUser) { showToast('Not logged in. Refresh the page.', 'error'); window._isSubmitting=false; if(syncBtn){syncBtn.disabled=false;syncBtn.style.opacity='1';syncBtn.innerText='Sync Transaction';} return; }
-    var cat = document.getElementById('category').value;
-    var isRecurChecked = document.getElementById('isRecur') ? document.getElementById('isRecur').checked : false;
-    if(currentType==='Want' && config.want_cap>0) {
-      var wantSpent = 0; (history||[]).forEach(function(i){ if(i.intent==='Want') wantSpent += num(i.amount); });
-      if(wantSpent+amt > config.want_cap) {
-        var over = fmt(wantSpent + amt - config.want_cap);
-        if(!confirm('⚠️ This Want puts you $' + over + ' over your Want budget. Add anyway?')) { window._isSubmitting=false; if(syncBtn){syncBtn.disabled=false;syncBtn.style.opacity='1';syncBtn.innerText='Sync Transaction';} return; }
-      }
-    }
-    if(cat==='Mortgage' && !editingId) config.m_balance -= amt;
-    if(cat==='Car' && !editingId) config.c_balance -= amt;
-    var payload = {
-      amount: amt,
-      member: document.getElementById('memberSelect').value,
-      category: cat,
-      note: txt(document.getElementById('noteInput').value, 240),
-      intent: currentType,
-      user_id: currentUser,
-      group_id: currentGroup,
-      is_recurring: isRecurChecked
+  function escJsSingle(v){ return String(v || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+  var _origChallengeStatHtml = typeof challengeStatHtml === 'function' ? challengeStatHtml : null;
+  if (_origChallengeStatHtml) {
+    challengeStatHtml = function(state){
+      var html = _origChallengeStatHtml(state);
+      if (!state || !state.challenge || !state.challenge.id) return html;
+      var id = escJsSingle(state.challenge.id);
+      var deleteRow = '<div style="display:flex;justify-content:flex-end;margin-top:10px;"><button onclick="fpRemoveChallenge(\'' + id + '\')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.22);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:.74rem;font-weight:700;">Delete</button></div>';
+      return html.replace(/<\/div>\s*$/, deleteRow + '</div>');
     };
-    try {
-      var insertedId = null;
-      if (editingId) {
-        await _sb.from('transactions').update(payload).eq('id', editingId);
-        insertedId = editingId;
-        editingId = null;
-        document.getElementById('syncBtn').innerText='Sync Transaction';
-        document.getElementById('recurRow').style.display='flex';
-        showToast('Transaction updated! ✓');
-      } else {
-        var ins = await _sb.from('transactions').insert([payload]).select('id').single();
-        if (ins.error) { showToast('Error saving: ' + ins.error.message, 'error'); return; }
-        insertedId = ins.data && ins.data.id;
-        showToast('$' + fmt(amt) + ' synced to ' + cat + ' ✓', 'success');
-        if (isRecurChecked) {
-          var kind = SUB_CATS.indexOf(cat) >= 0 || cat === 'Subscription' ? 'subscription' : 'bill';
-          var day = new Date().getDate();
-          var obRes = await _sb.from('recurring_obligations').insert([{
-            group_id: currentGroup,
-            created_by_user_id: currentUser,
-            kind: kind,
-            name: payload.note || cat,
-            amount: amt,
-            category: kind === 'subscription' ? (SUB_CATS.indexOf(cat) >= 0 ? cat : 'Subscription') : cat,
-            member: payload.member,
-            due_day: day,
-            emoji: kind === 'subscription' ? '📺' : '💳',
-            active: true,
-            counts_after_due: true
-          }]).select('id').single();
-          if (obRes.data && obRes.data.id && insertedId) {
-            await _sb.from('transactions').update({ obligation_id: obRes.data.id, is_recurring: true }).eq('id', insertedId);
-          }
-          showToast((kind === 'subscription' ? 'Subscription' : 'Bill') + ' saved for day ' + day + ' each month', 'success');
-        }
-      }
-      await _sb.from('app_settings').update({ m_balance: config.m_balance, c_balance: config.c_balance }).eq('group_id', currentGroup);
-      document.getElementById('amount').value=''; document.getElementById('noteInput').value='';
-      var recurEl = document.getElementById('isRecur'); if (recurEl) recurEl.checked = false;
-      if (typeof closeSheet === 'function') closeSheet();
-      if (typeof selectMember === 'function') selectMember('Brandon');
-      if (typeof setType === 'function') setType('Need');
-      await fetchData();
-    } catch(e) { showToast('Network error. Check connection.', 'error'); console.error('addEntry error:', e); }
-    finally { window._isSubmitting=false; if(syncBtn){syncBtn.disabled=false;syncBtn.style.opacity='1';syncBtn.innerText=editingId?'Update Transaction':'Sync Transaction';} }
-  };
-
-  const _origRenderNavBadges = window.renderNavBadges;
-  window.renderNavBadges = function(){
-    if (typeof _origRenderNavBadges === 'function') _origRenderNavBadges();
-    function setSub(id, text){ var el=document.getElementById('navSub-' + id); if (el) el.textContent = text; }
-    try {
-      var spent = effectiveSpent();
-      var pct = config.budget > 0 ? Math.round((spent / config.budget) * 100) : 0;
-      var rem = config.budget - spent;
-      setSub('analyticsModal', pct + '% used · $' + Math.abs(rem).toLocaleString(undefined,{maximumFractionDigits:0}) + (rem >= 0 ? ' left' : ' over'));
-    } catch(e){}
-    try {
-      var bills = getBillRows();
-      if (bills.length) {
-        var sorted = bills.slice().sort(function(a,b){ return daysUntil(a.due_day) - daysUntil(b.due_day); });
-        var next = sorted[0];
-        var d = daysUntil(next.due_day);
-        var label = d === 0 ? 'today' : d === 1 ? 'tomorrow' : 'in ' + d + 'd';
-        setSub('bills', (next.emoji || '💳') + ' ' + next.name + ' ' + label);
-      } else setSub('bills', 'No bills added');
-    } catch(e){}
-    try {
-      var subs = getSubscriptionItems();
-      var total = subs.reduce(function(s,r){ return s + num(r.amount); }, 0);
-      setSub('subManager', subs.length ? (subs.length + ' active · $' + total.toFixed(0) + '/mo') : 'No subscriptions');
-    } catch(e){}
-    try {
-      setSub('profileManager', normalizeName(currentDisplayName, currentEmail) + ' · ' + (currentEmail ? currentEmail.split('@')[0] : ''));
-    } catch(e){}
-    try {
-      setSub('familyFeed', visibleMembers().length > 1 ? ('With ' + getPartnerName()) : 'Solo ledger');
-    } catch(e){}
-  };
-
-  window.loadLedgerMembers = async function(){
-    var area = document.getElementById('ledgerMembersArea');
-    if (!area) return;
-    try {
-      await loadSchemaUpgradeData();
-      var rows = visibleMembers();
-      if (!rows.length) { area.innerHTML = '<div style="font-size:.8rem;color:var(--text-dim);text-align:center;padding:12px;">No members found.</div>'; return; }
-      var isOwner = rows[0] && rows[0].user_id === currentUser;
-      area.innerHTML = rows.map(function(row){
-        var isMe = row.user_id === currentUser;
-        var badge = isMe ? '<span style="font-size:.55rem;font-weight:800;background:rgba(212,168,67,.2);color:#d4a843;border:1px solid rgba(212,168,67,.3);border-radius:100px;padding:2px 7px;margin-left:6px;">YOU</span>' : '<span style="font-size:.55rem;font-weight:800;background:rgba(200,216,240,.1);color:#c8d8f0;border:1px solid rgba(200,216,240,.2);border-radius:100px;padding:2px 7px;margin-left:6px;">PARTNER</span>';
-        var removeBtn = (!isMe && isOwner) ? '<button onclick="fpKickMember(\'' + esc(row.user_id) + '\')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.25);border-radius:8px;padding:4px 10px;font-size:.68rem;font-weight:700;cursor:pointer;margin-left:auto;">Remove</button>' : '';
-        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.07);"><div style="display:flex;align-items:center;gap:10px;"><i class="fa fa-user-circle" style="color:var(--text-dim);font-size:1.1rem;"></i><span style="font-size:.85rem;font-weight:600;">' + esc(row.display_name) + '</span>' + badge + '</div>' + removeBtn + '</div>';
-      }).join('');
-    } catch(e) {
-      area.innerHTML = '<div style="font-size:.8rem;color:var(--rose);text-align:center;padding:12px;">Could not load members.</div>';
-    }
-  };
-
-  window.fpKickMember = async function(userId){
-    var safeUser = sid(userId);
-    if (!safeUser || safeUser === currentUser) return;
-    if (!confirm('Remove this partner from your ledger? Their future activity will move to a new private ledger and they will disappear from your shared views.')) return;
-    try {
-      var res = await _sb.rpc('remove_ledger_member', { p_target_user: safeUser });
-      if (res.error) throw res.error;
-      showToast('Partner removed from your ledger.', 'success');
-      await fetchData();
-      if (document.getElementById('ledgerMembersArea')) loadLedgerMembers();
-    } catch (e) {
-      showToast('Could not remove partner: ' + e.message, 'error');
-    }
-  };
-
-  function normalizeJoinInput(raw){
-    var s = txt(raw || '', 240).trim();
-    if (!s) return '';
-    var m = s.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
-    return m ? m[0] : '';
   }
-  window.performLedgerJoin = async function(k){
-    var joinKey = normalizeJoinInput(k);
-    if (!joinKey) return showToast('Paste the full invite link or just the ledger key.', 'error');
-    try {
-      var res = await _sb.rpc('join_ledger_by_key', { p_join_key: joinKey, p_display_name: normalizeName(currentDisplayName, currentEmail) });
-      if (res.error) throw res.error;
-      localStorage.setItem('flint_group_' + currentUser, joinKey);
-      try { localStorage.removeItem('flint_pending_join'); } catch(e){}
-      showToast('Ledger linked successfully!', 'success');
-      setTimeout(function(){ location.reload(); }, 600);
-    } catch (e) {
-      showToast(e.message || 'Could not join ledger.', 'error');
-    }
-  };
-  window.fpJoinLedger = async function(){
-    var raw = document.getElementById('fp_joinKey') && document.getElementById('fp_joinKey').value;
-    await window.performLedgerJoin(raw);
-  };
 
-  window.buildFamilyFeedPanel = function(){
-    var stats = computeMemberStats();
-    var cards = stats.length ? stats : [{ name: normalizeName(currentDisplayName, currentEmail), amount:0, count:0 }];
-    var palette = ['#60a5fa', '#34d399'];
-    var backgrounds = ['rgba(96,165,250,.06)', 'rgba(52,211,153,.06)'];
-    var borders = ['rgba(96,165,250,.15)', 'rgba(52,211,153,.15)'];
-    var combined = [].concat(history || []).sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
-    var h = '<div style="display:grid;grid-template-columns:repeat(' + Math.max(1, cards.length) + ', minmax(0,1fr));gap:10px;margin-bottom:16px;">';
-    cards.forEach(function(card, idx){
-      h += '<div style="background:' + backgrounds[Math.min(idx,1)] + ';border:1px solid ' + borders[Math.min(idx,1)] + ';border-radius:14px;padding:16px;text-align:center;">' +
-        '<div style="width:36px;height:36px;border-radius:10px;background:' + palette[Math.min(idx,1)] + '22;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-weight:700;color:' + palette[Math.min(idx,1)] + ';">' + esc(card.name.charAt(0).toUpperCase()) + '</div>' +
-        '<div style="font-size:.78rem;font-weight:600;color:#eef2ff;">' + esc(card.name) + '</div>' +
-        '<div style="font-size:1.1rem;font-weight:700;color:' + palette[Math.min(idx,1)] + ';font-family:DM Mono,monospace;">$' + fmt(card.amount) + '</div>' +
-        '<div style="font-size:.68rem;color:#8899bb;">' + card.count + ' transactions</div></div>';
-    });
-    h += '</div>';
-    h += '<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:16px 0 10px;">Activity Feed</div>';
-    if(!combined.length){ h += '<div style="text-align:center;color:#8899bb;padding:30px;font-size:.85rem;">No transactions this cycle.</div>'; return h; }
-    combined.slice(0,25).forEach(function(t){
-      var who = memberNameByUser(t.user_id, t.member || 'Partner');
-      var idx = cards.findIndex(function(c){ return c.name === who; }); if (idx < 0) idx = who === cards[1]?.name ? 1 : 0;
-      var avColor = palette[Math.min(Math.max(idx,0),1)] || '#a78bfa';
-      var d = new Date(t.created_at);
-      var ts = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' + d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-      h += '<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:14px 16px;margin-bottom:8px;">';
-      h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="width:30px;height:30px;border-radius:8px;background:' + avColor + '22;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:' + avColor + ';">' + esc(who[0]) + '</div><div><div style="font-size:.82rem;font-weight:600;color:' + avColor + ';">' + esc(who) + '</div><div style="font-size:.65rem;color:#4a5a7a;">' + esc(ts) + '</div></div><div style="margin-left:auto;font-size:.68rem;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.06);color:#8899bb;">' + esc(t.category) + '</div></div>';
-      h += '<div style="font-size:.85rem;color:#eef2ff;">' + esc(t.note || t.category) + ' <span style="font-weight:700;color:#fb7185;float:right;">-$' + num(t.amount).toFixed(2) + '</span></div></div>';
-    });
-    return h;
-  };
+  if (typeof mobileChallengeCard === 'function') {
+    var _origMobileChallengeCard = mobileChallengeCard;
+    mobileChallengeCard = function(state){
+      var html = _origMobileChallengeCard(state);
+      if (!state || !state.challenge || !state.challenge.id) return html;
+      var id = escJsSingle(state.challenge.id);
+      var deleteRow = '<div style="display:flex;justify-content:flex-end;margin-top:10px;"><button onclick="fpRemoveChallenge(\'' + id + '\')" class="act-btn act-del" style="display:inline-flex;align-items:center;gap:6px;"><i class="fa-solid fa-trash-can"></i><span>Delete</span></button></div>';
+      return html.replace(/<\/div>\s*$/, deleteRow + '</div>');
+    };
+  }
 
-  window.renderFamilyFeed = function(){
-    var list = document.getElementById('feedList'); if (!list) return;
-    list.innerHTML = '';
-    var stats = computeMemberStats();
-    var combined = [].concat(history || []).sort(function(a,b){ return new Date(b.created_at) - new Date(a.created_at); });
-    combined.forEach(function(item){
-      var who = memberNameByUser(item.user_id, item.member || 'Partner');
-      var safeItemId = sid(item.id);
-      var safeFeedCategory = esc(txt(item.category, 40));
-      var safeFeedNote = esc(txt(item.note || item.category, 120));
-      var d = new Date(item.created_at);
-      var timeStr = d.toLocaleDateString('en-US', {month:'short',day:'numeric'}) + ' · ' + d.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
-      var div = document.createElement('div'); div.className = 'feed-item';
-      div.innerHTML = '<div class="feed-top"><div class="feed-avatar">' + esc(who[0]) + '</div><div><div class="feed-name">' + esc(who) + '</div><div class="feed-time">' + esc(timeStr) + '</div></div><div style="margin-left:auto;"><span class="cat-badge" style="background:' + ((CAT_COLORS[item.category]||'#64748b')) + '22;color:' + (CAT_COLORS[item.category]||'#94a3b8') + '">' + safeFeedCategory + '</span></div></div><div class="feed-body">' + safeFeedNote + ' <span class="feed-amt">-$' + num(item.amount).toFixed(2) + '</span></div>';
-      list.appendChild(div);
-    });
-    if (!combined.length) list.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:.85rem;">No transactions this cycle yet.</div>';
-    var bSpend = document.getElementById('feedBSpend'); if (bSpend) bSpend.textContent = '$' + fmt(stats[0] ? stats[0].amount : 0);
-    var bCount = document.getElementById('feedBCount'); if (bCount) bCount.textContent = (stats[0] ? stats[0].count : 0) + ' transactions';
-    var gSpend = document.getElementById('feedGSpend'); if (gSpend) gSpend.textContent = '$' + fmt(stats[1] ? stats[1].amount : 0);
-    var gCount = document.getElementById('feedGCount'); if (gCount) gCount.textContent = (stats[1] ? stats[1].count : 0) + ' transactions';
-    try {
-      var cards = document.querySelectorAll('#familyFeed .card > div > div');
-      if (cards[0]) { var lab1 = cards[0].querySelector('div'); if (lab1) lab1.textContent = stats[0] ? stats[0].name : normalizeName(currentDisplayName, currentEmail); }
-      if (cards[1]) {
-        if (stats[1]) { cards[1].style.display = ''; var lab2 = cards[1].querySelector('div'); if (lab2) lab2.textContent = stats[1].name; }
-        else cards[1].style.display = 'none';
+  var _origRenderChallenges = window.renderChallenges;
+  if (typeof _origRenderChallenges === 'function') {
+    window.renderChallenges = function(){
+      var res = _origRenderChallenges.apply(this, arguments);
+      var navSub = document.getElementById('navSub-challenges');
+      if (navSub && (!navSub.innerText || navSub.innerText === '—')) {
+        try {
+          var count = (typeof readChallengeStore === 'function' ? readChallengeStore() : []).length;
+          navSub.innerText = count ? (count + ' active') : 'No active challenge';
+        } catch(e) {}
       }
-    } catch (e) {}
-  };
-
-  const _origFetchData = window.fetchData;
-  window.fetchData = async function(){
-    if (typeof _origFetchData === 'function') await _origFetchData();
-    await loadSchemaUpgradeData();
-    applyBudgetUi();
-    applyHomeMemberNames();
-    renderBills();
-    renderSubs();
-    renderSubSummary();
-    renderFamilyFeed();
-    renderNavBadges();
-    if (document.getElementById('ledgerMembersArea')) loadLedgerMembers();
-  };
-  const _origRenderDashboard = window.renderDashboard;
-  window.renderDashboard = function(){
-    if (typeof _origRenderDashboard === 'function') _origRenderDashboard();
-    applyBudgetUi();
-    applyHomeMemberNames();
-  };
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(function(){ if (document.body.classList.contains('logged-in') && typeof fetchData === 'function') fetchData(); }, 700);
-  });
+      return res;
+    };
+  }
 })();
 </script>
 
