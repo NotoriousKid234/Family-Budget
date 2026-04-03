@@ -8878,23 +8878,50 @@ function dismissWelcome() {
       '<div class="fn-static-wrap"><div id="fnStaticPage"></div></div>';
   }
 
+  function getActiveFamilyNotesRoot(){
+    var active = document.activeElement;
+    if (active && active.closest) {
+      var activeShell = active.closest('.fn-shell');
+      if (activeShell) return activeShell;
+    }
+    var overlayRoot = document.getElementById('fnOverlayPage');
+    if (overlayRoot && overlayRoot.offsetParent !== null) {
+      var overlayShell = overlayRoot.querySelector('.fn-shell');
+      if (overlayShell) return overlayShell;
+    }
+    var staticRoot = document.getElementById('fnStaticPage');
+    if (staticRoot) {
+      var staticShell = staticRoot.querySelector('.fn-shell');
+      if (staticShell) return staticShell;
+    }
+    return document;
+  }
+
+  function bindFamilyNoteCounters(){
+    var inputs = document.querySelectorAll('#fnStaticPage #fnMessage, #fnOverlayPage #fnMessage');
+    inputs.forEach(function(msg){
+      if (!msg.dataset.boundCounter) {
+        msg.dataset.boundCounter = '1';
+        msg.addEventListener('input', updateFamilyNoteCounter);
+      }
+      updateFamilyNoteCounter({ target: msg });
+    });
+  }
+
   function renderFamilyNotesViews(){
     mountFamilyNotesStaticIfNeeded();
     var staticRoot = document.getElementById('fnStaticPage');
     if (staticRoot) staticRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
     var overlayRoot = document.getElementById('fnOverlayPage');
     if (overlayRoot) overlayRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
-    var msg = document.getElementById('fnMessage');
-    if (msg && !msg.dataset.boundCounter) {
-      msg.dataset.boundCounter = '1';
-      msg.addEventListener('input', updateFamilyNoteCounter);
-    }
-    updateFamilyNoteCounter();
+    bindFamilyNoteCounters();
   }
 
-  function updateFamilyNoteCounter(){
-    var msg = document.getElementById('fnMessage');
-    var count = document.getElementById('fnCharCount');
+  function updateFamilyNoteCounter(evt){
+    var msg = evt && evt.target ? evt.target : null;
+    var root = msg && msg.closest ? msg.closest('.fn-shell') : getActiveFamilyNotesRoot();
+    if (!msg && root && root.querySelector) msg = root.querySelector('#fnMessage');
+    var count = root && root.querySelector ? root.querySelector('#fnCharCount') : null;
     if (msg && count) count.textContent = String((msg.value || '').length);
   }
 
@@ -8925,10 +8952,11 @@ function dismissWelcome() {
   };
 
   window.sendFamilyNote = async function(){
-    var msgEl = document.getElementById('fnMessage');
-    var typeEl = document.getElementById('fnType');
-    var dueEl = document.getElementById('fnDue');
-    var pinEl = document.getElementById('fnPin');
+    var root = getActiveFamilyNotesRoot();
+    var msgEl = root && root.querySelector ? root.querySelector('#fnMessage') : document.getElementById('fnMessage');
+    var typeEl = root && root.querySelector ? root.querySelector('#fnType') : document.getElementById('fnType');
+    var dueEl = root && root.querySelector ? root.querySelector('#fnDue') : document.getElementById('fnDue');
+    var pinEl = root && root.querySelector ? root.querySelector('#fnPin') : document.getElementById('fnPin');
     var message = sanitizePlainString(msgEl && msgEl.value ? msgEl.value.trim() : '', FAMILY_NOTES_LIMIT);
     if (!message) return showToast('Write a note first.', 'error');
     if (message.length > FAMILY_NOTES_LIMIT) return showToast('Keep notes under ' + FAMILY_NOTES_LIMIT + ' characters.', 'error');
@@ -8947,6 +8975,7 @@ function dismissWelcome() {
     if (msgEl) msgEl.value = '';
     if (dueEl) dueEl.value = '';
     if (pinEl) pinEl.checked = false;
+    updateFamilyNoteCounter({ target: msgEl });
     notes = [res.data].concat(notes || []);
     renderFamilyNotesViews();
     renderNavBadges();
@@ -10214,170 +10243,6 @@ function dismissWelcome() {
   window.acceptJoin = function(key){ return joinByGroupId(key); };
   window.acceptJoinPatched = function(key){ return joinByGroupId(key); };
   window.fpJoinLedger = function(){ return joinByGroupId(document.getElementById('fp_joinKey')?.value || ''); };
-})();
-</script>
-
-
-<style id="mobile-nav-ux-fix">
-@media (max-width: 1023px) {
-  body.logged-in { overflow-y: auto !important; }
-  #sideMenu.side-menu {
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior: contain !important;
-    padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
-  }
-  #sideMenu .nav-spacer { flex: 0 0 12px !important; }
-  #sideMenu .nav-logout { margin-bottom: calc(18px + env(safe-area-inset-bottom)) !important; }
-
-  #flintPanel.flint-panel-overlay {
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    top: 0 !important;
-    z-index: 7800 !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-  #flintPanel .flint-panel-shell,
-  #flintPanel .flint-panel-compact,
-  #flintPanel .flint-panel-wide,
-  #flintPanel .flint-panel-full {
-    width: 100% !important;
-    max-width: none !important;
-    padding: 16px 14px calc(96px + env(safe-area-inset-bottom)) !important;
-  }
-  #flintPanel .flint-panel-head {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 5 !important;
-    margin-bottom: 14px !important;
-    padding: 6px 0 12px !important;
-    background: linear-gradient(180deg, rgba(6,13,28,.98) 0%, rgba(6,13,28,.93) 74%, rgba(6,13,28,0) 100%) !important;
-    backdrop-filter: blur(10px) !important;
-  }
-  .mobile-panel-actions {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .mobile-panel-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    border: 1px solid rgba(255,255,255,.08);
-    background: rgba(255,255,255,.06);
-    color: var(--text-soft);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .mobile-panel-btn:active { color: var(--gold); border-color: rgba(212,168,67,.25); }
-}
-</style>
-<script id="mobile-nav-ux-fix-script">
-(function(){
-  function isMobile(){ return window.innerWidth < 1024; }
-
-  window.mobileMenuHome = function(){
-    var p = document.getElementById('flintPanel');
-    if (p) p.remove();
-    var menu = document.getElementById('sideMenu');
-    var overlay = document.getElementById('sideOverlay');
-    if (menu) menu.classList.remove('open');
-    if (overlay) overlay.style.display = 'none';
-    if (typeof switchView === 'function') switchView('app', true);
-    document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
-    window.scrollTo(0,0);
-  };
-
-  window.mobileMenuBack = function(){
-    var menu = document.getElementById('sideMenu');
-    var overlay = document.getElementById('sideOverlay');
-    if (menu && menu.classList.contains('open')) {
-      menu.classList.remove('open');
-      if (overlay) overlay.style.display = 'none';
-      return;
-    }
-    var p = document.getElementById('flintPanel');
-    if (p) {
-      if (typeof closePanel === 'function') closePanel();
-      else p.remove();
-      return;
-    }
-    if (typeof goBack === 'function') goBack();
-    else if (typeof switchView === 'function') switchView('app', true);
-  };
-
-  window.mobileMenuToggle = function(){
-    var p = document.getElementById('flintPanel');
-    if (p && isMobile()) p.remove();
-    if (typeof toggleMenu === 'function') toggleMenu();
-  };
-
-  function wireMobileNav(){
-    var nav = document.getElementById('mobileNav');
-    if (!nav) return;
-    var btns = nav.querySelectorAll('.mob-nav-btn');
-    if (btns[0]) btns[0].setAttribute('onclick', 'mobileMenuToggle()');
-    if (btns[1]) btns[1].setAttribute('onclick', 'mobileMenuHome()');
-    if (btns[2]) btns[2].setAttribute('onclick', 'mobileMenuBack()');
-  }
-
-  function enhanceMobilePanelHeader(){
-    if (!isMobile()) return;
-    var panel = document.getElementById('flintPanel');
-    if (!panel) return;
-    var head = panel.querySelector('.flint-panel-head');
-    if (!head || head.querySelector('.mobile-panel-actions')) return;
-    var actions = document.createElement('div');
-    actions.className = 'mobile-panel-actions';
-    actions.innerHTML = '' +
-      '<button class="mobile-panel-btn" type="button" aria-label="Go to home" onclick="mobileMenuHome()"><i class="fa-solid fa-house"></i></button>' +
-      '<button class="mobile-panel-btn" type="button" aria-label="Open menu" onclick="mobileMenuToggle()"><i class="fa-solid fa-bars"></i></button>';
-    head.appendChild(actions);
-  }
-
-  function patchPanelBuilder(){
-    if (typeof window._buildAndShowPanel !== 'function' || window._buildAndShowPanel.__mobilePatched) return;
-    var orig = window._buildAndShowPanel;
-    window._buildAndShowPanel = function(){
-      var res = orig.apply(this, arguments);
-      setTimeout(function(){
-        wireMobileNav();
-        enhanceMobilePanelHeader();
-      }, 0);
-      return res;
-    };
-    window._buildAndShowPanel.__mobilePatched = true;
-  }
-
-  function patchClosePanel(){
-    if (typeof window.closePanel !== 'function' || window.closePanel.__mobilePatched) return;
-    var orig = window.closePanel;
-    window.closePanel = function(){
-      var res = orig.apply(this, arguments);
-      wireMobileNav();
-      return res;
-    };
-    window.closePanel.__mobilePatched = true;
-  }
-
-  function init(){
-    wireMobileNav();
-    patchPanelBuilder();
-    patchClosePanel();
-    enhanceMobilePanelHeader();
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once:true });
-  } else {
-    init();
-  }
 })();
 </script>
 
