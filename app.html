@@ -6226,8 +6226,9 @@ async function loadLedgerMembers() {
     try {
         const { data, error } = await _sb
             .from('app_settings')
-            .select('user_id, group_id')
-            .eq('group_id', currentGroup);
+            .select('user_id, group_id, created_at')
+                .eq('group_id', currentGroup)
+                .order('created_at', { ascending: true });
         if (error || !data || data.length === 0) {
             area.innerHTML = '<div style="font-size:.8rem;color:var(--text-dim);text-align:center;padding:12px;">No members found.</div>';
             return;
@@ -6237,15 +6238,18 @@ async function loadLedgerMembers() {
             const isMe = row.user_id === currentUser;
             // Only show partial email for privacy — never expose full user IDs in UI
             const displayName = isMe ? (currentEmail || 'You') : 'Partner';
+                const isOwner = data[0].user_id === currentUser;
+                const removeBtn = (!isMe && isOwner) ? '<button onclick="fpKickMember(\'' + row.user_id + '\')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.25);border-radius:8px;padding:4px 10px;font-size:.68rem;font-weight:700;cursor:pointer;margin-left:auto;">Remove</button>' : '';
             const badge = isMe
                 ? '<span style="font-size:.55rem;font-weight:800;background:rgba(212,168,67,.2);color:#d4a843;border:1px solid rgba(212,168,67,.3);border-radius:100px;padding:2px 7px;margin-left:6px;">YOU</span>'
                 : '<span style="font-size:.55rem;font-weight:800;background:rgba(200,216,240,.1);color:#c8d8f0;border:1px solid rgba(200,216,240,.2);border-radius:100px;padding:2px 7px;margin-left:6px;">PARTNER</span>';
             html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.07);">
                 <div style="display:flex;align-items:center;gap:10px;">
                     <i class="fa fa-user-circle" style="color:var(--text-dim);font-size:1.1rem;"></i>
-                    <span style="font-size:.85rem;font-weight:600;">${displayName}</span>${badge}
-                </div>
-            </div>`;
+                <span style="font-size:.85rem;font-weight:600;">${displayName}</span>${badge}
+                    </div>
+                    ${removeBtn}
+                </div>`;
         });
         area.innerHTML = html;
     } catch(e) {
@@ -6278,7 +6282,23 @@ function fpCopyInviteLink() {
             .catch(() => showToast('Could not load ledger key.', 'error'));
     }
 }
-
+async function fpKickMember(userId) {
+            if (!userId || userId === currentUser) return;
+            const action = prompt('Remove this partner from your ledger?\\n\\nType "keep" to leave their transactions on this ledger.\\nType "move" to send their transactions with them.\\n\\nThen press OK.', 'keep');
+            if (action === null) return;
+            const shouldMove = action.trim().toLowerCase() === 'move';
+            const newGroup = 'grp_' + userId.substring(0,8) + '_' + Date.now();
+            try {
+                if (shouldMove) {
+                    await _sb.from('transactions').update({ group_id: newGroup }).eq('group_id', currentGroup).eq('author_id', userId);
+                }
+                await _sb.from('app_settings').update({ group_id: newGroup }).eq('user_id', userId);
+                showToast('Partner removed from your ledger.', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } catch(e) {
+                showToast('Error removing partner: ' + e.message, 'error');
+            }
+        }
 async function fpLeaveLedger() {
     if (!confirm('Leave this ledger? A new private ledger will be created for you. Your partner will keep the shared ledger.')) return;
     var newGroup = 'grp_' + currentUser.substring(0,8) + '_' + Date.now();
