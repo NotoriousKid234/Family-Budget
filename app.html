@@ -10218,156 +10218,165 @@ function dismissWelcome() {
 </script>
 
 
-<script id="flint-bills-challenges-fix">
-(function(){
-  function safeNum(v){ var n = Number(v); return Number.isFinite(n) ? n : 0; }
-  function dueBadge(days){
-    if(days <= 0) return ['due-urgent','TODAY!'];
-    if(days === 1) return ['due-urgent','Tomorrow'];
-    if(days <= 3) return ['due-urgent', days + ' days'];
-    if(days <= 7) return ['due-soon', days + ' days'];
-    return ['due-ok', days + 'd away'];
+<style id="mobile-nav-ux-fix">
+@media (max-width: 1023px) {
+  body.logged-in { overflow-y: auto !important; }
+  #sideMenu.side-menu {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
   }
-  function recurringToBillRows(){
-    var rows = Array.isArray(window.recurring) ? window.recurring : [];
-    return rows
-      .filter(function(r){ return r && r.id && safeNum(r.billing_day) >= 1; })
-      .map(function(r){
-        return {
-          source: 'recurring',
-          id: String(r.id),
-          name: sanitizePlainString(r.name || r.note || r.category || 'Recurring item', 80),
-          amount: safeNum(r.amount),
-          day: Math.max(1, Math.min(31, parseInt(r.billing_day, 10) || 1)),
-          icon: sanitizePlainString(r.icon || (SUBSCRIPTION_CATEGORIES.indexOf((r.category||'')) >= 0 ? '🔁' : '💳'), 8) || '💳',
-          category: sanitizePlainString(r.category || '', 40),
-          kind: SUBSCRIPTION_CATEGORIES.indexOf((r.category||'')) >= 0 ? 'subscription' : 'bill'
-        };
-      });
-  }
-  function manualBillRows(){
-    var rows = Array.isArray(window.billReminders) ? window.billReminders : [];
-    return rows.map(function(b, i){
-      return {
-        source: 'manual',
-        index: i,
-        name: sanitizePlainString(b.name, 80),
-        amount: safeNum(b.amount),
-        day: Math.max(1, Math.min(31, parseInt(b.day, 10) || 1)),
-        icon: sanitizePlainString(b.icon || '💳', 8) || '💳',
-        category: 'Bill',
-        kind: 'bill'
-      };
-    });
-  }
-  function mergedBillRows(){
-    var merged = manualBillRows().concat(recurringToBillRows());
-    var seen = new Set();
-    return merged.filter(function(item){
-      var key = [item.source, item.id || item.index, item.name, item.day, item.amount].join('|');
-      if (seen.has(key)) return false;
-      seen.add(key); return true;
-    }).sort(function(a,b){ return daysUntil(a.day) - daysUntil(b.day); });
-  }
-  async function deleteRecurringExpense(id){
-    var safeId = safeIdValue(id);
-    if(!safeId) return showToast('Invalid recurring item id', 'error');
-    if(!window._sb) return showToast('Ledger service not ready', 'error');
-    if(!window.confirm('Delete this recurring item?')) return;
-    var res = await window._sb.from('recurring_expenses').delete().eq('id', safeId);
-    if(res && res.error){ showToast(res.error.message || 'Could not delete recurring item', 'error'); return; }
-    fetchData();
-  }
-  window.deleteRecurringExpense = deleteRecurringExpense;
+  #sideMenu .nav-spacer { flex: 0 0 12px !important; }
+  #sideMenu .nav-logout { margin-bottom: calc(18px + env(safe-area-inset-bottom)) !important; }
 
-  var _origRenderBills = window.renderBills;
-  window.renderBills = function(){
-    var all = document.getElementById('billsList');
-    var upcoming = document.getElementById('upcomingBills');
-    var navSub = document.getElementById('navSub-bills');
-    var subNav = document.getElementById('navSub-subManager');
-    if (navSub) {
-      var cnt = mergedBillRows().length;
-      navSub.innerText = cnt ? (cnt + ' recurring') : 'No bills added';
-    }
-    if (subNav) {
-      var subsCnt = recurringToBillRows().filter(function(r){ return r.kind === 'subscription'; }).length;
-      subNav.innerText = subsCnt ? (subsCnt + ' subscriptions') : 'No subscriptions';
-    }
-    if(!all || !upcoming){
-      if (typeof _origRenderBills === 'function') return _origRenderBills();
-      return;
-    }
-    all.innerHTML=''; upcoming.innerHTML='';
-    var sorted = mergedBillRows();
-    if(!sorted.length){
-      upcoming.innerHTML='<div style="color:var(--text-dim);font-size:.82rem;text-align:center;padding:10px;">No bills added yet.</div>';
-      all.innerHTML='<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:.85rem;">No bills yet. Add one below.</div>';
-      return;
-    }
-    sorted.forEach(function(b){
-      var days = daysUntil(b.day);
-      var badge = dueBadge(days), cls = badge[0], label = badge[1];
-      var kindTag = b.kind === 'subscription' ? '<span class="hist-date" style="margin-left:6px;">Subscription</span>' : '';
-      var deleteBtn = b.source === 'manual'
-        ? '<button class="act-btn act-del" onclick="deleteBill(' + Number(b.index) + ')"><i class="fa-solid fa-trash-can"></i></button>'
-        : '<button class="act-btn act-del" onclick="deleteRecurringExpense(\'' + safeIdValue(b.id) + '\')"><i class="fa-solid fa-trash-can"></i></button>';
-      if(days <= 7){
-        var d = document.createElement('div'); d.className='bill-item';
-        d.innerHTML='<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">' + escapeHtml(b.icon) + '</div><div><div class="bill-name">' + escapeHtml(b.name) + kindTag + '</div><div class="bill-due">Day ' + b.day + ' of each cycle</div></div></div><div class="bill-right"><div class="bill-amt">$' + safeNum(b.amount).toFixed(2) + '</div><div class="bill-countdown ' + cls + '">' + label + '</div></div>';
-        upcoming.appendChild(d);
-      }
-      var div = document.createElement('div'); div.className='bill-item';
-      div.innerHTML='<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">' + escapeHtml(b.icon) + '</div><div><div class="bill-name">' + escapeHtml(b.name) + kindTag + '</div><div class="bill-due">Due day ' + b.day + '</div></div></div><div class="bill-right"><div class="bill-amt">$' + safeNum(b.amount).toFixed(2) + '</div><div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;align-items:center;"><span class="bill-countdown ' + cls + '">' + label + '</span>' + deleteBtn + '</div></div>';
-      all.appendChild(div);
-    });
+  #flintPanel.flint-panel-overlay {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: 0 !important;
+    z-index: 7800 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  #flintPanel .flint-panel-shell,
+  #flintPanel .flint-panel-compact,
+  #flintPanel .flint-panel-wide,
+  #flintPanel .flint-panel-full {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 16px 14px calc(96px + env(safe-area-inset-bottom)) !important;
+  }
+  #flintPanel .flint-panel-head {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 5 !important;
+    margin-bottom: 14px !important;
+    padding: 6px 0 12px !important;
+    background: linear-gradient(180deg, rgba(6,13,28,.98) 0%, rgba(6,13,28,.93) 74%, rgba(6,13,28,0) 100%) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+  .mobile-panel-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mobile-panel-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.06);
+    color: var(--text-soft);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-panel-btn:active { color: var(--gold); border-color: rgba(212,168,67,.25); }
+}
+</style>
+<script id="mobile-nav-ux-fix-script">
+(function(){
+  function isMobile(){ return window.innerWidth < 1024; }
+
+  window.mobileMenuHome = function(){
+    var p = document.getElementById('flintPanel');
+    if (p) p.remove();
+    var menu = document.getElementById('sideMenu');
+    var overlay = document.getElementById('sideOverlay');
+    if (menu) menu.classList.remove('open');
+    if (overlay) overlay.style.display = 'none';
+    if (typeof switchView === 'function') switchView('app', true);
+    document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
+    window.scrollTo(0,0);
   };
 
-  var _origFetchData = window.fetchData;
-  if (typeof _origFetchData === 'function') {
-    window.fetchData = async function(){
-      var res = await _origFetchData.apply(this, arguments);
-      try { window.renderBills(); } catch(e) {}
+  window.mobileMenuBack = function(){
+    var menu = document.getElementById('sideMenu');
+    var overlay = document.getElementById('sideOverlay');
+    if (menu && menu.classList.contains('open')) {
+      menu.classList.remove('open');
+      if (overlay) overlay.style.display = 'none';
+      return;
+    }
+    var p = document.getElementById('flintPanel');
+    if (p) {
+      if (typeof closePanel === 'function') closePanel();
+      else p.remove();
+      return;
+    }
+    if (typeof goBack === 'function') goBack();
+    else if (typeof switchView === 'function') switchView('app', true);
+  };
+
+  window.mobileMenuToggle = function(){
+    var p = document.getElementById('flintPanel');
+    if (p && isMobile()) p.remove();
+    if (typeof toggleMenu === 'function') toggleMenu();
+  };
+
+  function wireMobileNav(){
+    var nav = document.getElementById('mobileNav');
+    if (!nav) return;
+    var btns = nav.querySelectorAll('.mob-nav-btn');
+    if (btns[0]) btns[0].setAttribute('onclick', 'mobileMenuToggle()');
+    if (btns[1]) btns[1].setAttribute('onclick', 'mobileMenuHome()');
+    if (btns[2]) btns[2].setAttribute('onclick', 'mobileMenuBack()');
+  }
+
+  function enhanceMobilePanelHeader(){
+    if (!isMobile()) return;
+    var panel = document.getElementById('flintPanel');
+    if (!panel) return;
+    var head = panel.querySelector('.flint-panel-head');
+    if (!head || head.querySelector('.mobile-panel-actions')) return;
+    var actions = document.createElement('div');
+    actions.className = 'mobile-panel-actions';
+    actions.innerHTML = '' +
+      '<button class="mobile-panel-btn" type="button" aria-label="Go to home" onclick="mobileMenuHome()"><i class="fa-solid fa-house"></i></button>' +
+      '<button class="mobile-panel-btn" type="button" aria-label="Open menu" onclick="mobileMenuToggle()"><i class="fa-solid fa-bars"></i></button>';
+    head.appendChild(actions);
+  }
+
+  function patchPanelBuilder(){
+    if (typeof window._buildAndShowPanel !== 'function' || window._buildAndShowPanel.__mobilePatched) return;
+    var orig = window._buildAndShowPanel;
+    window._buildAndShowPanel = function(){
+      var res = orig.apply(this, arguments);
+      setTimeout(function(){
+        wireMobileNav();
+        enhanceMobilePanelHeader();
+      }, 0);
       return res;
     };
+    window._buildAndShowPanel.__mobilePatched = true;
   }
 
-  function escJsSingle(v){ return String(v || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
-  var _origChallengeStatHtml = typeof challengeStatHtml === 'function' ? challengeStatHtml : null;
-  if (_origChallengeStatHtml) {
-    challengeStatHtml = function(state){
-      var html = _origChallengeStatHtml(state);
-      if (!state || !state.challenge || !state.challenge.id) return html;
-      var id = escJsSingle(state.challenge.id);
-      var deleteRow = '<div style="display:flex;justify-content:flex-end;margin-top:10px;"><button onclick="fpRemoveChallenge(\'' + id + '\')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.22);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:.74rem;font-weight:700;">Delete</button></div>';
-      return html.replace(/<\/div>\s*$/, deleteRow + '</div>');
-    };
-  }
-
-  if (typeof mobileChallengeCard === 'function') {
-    var _origMobileChallengeCard = mobileChallengeCard;
-    mobileChallengeCard = function(state){
-      var html = _origMobileChallengeCard(state);
-      if (!state || !state.challenge || !state.challenge.id) return html;
-      var id = escJsSingle(state.challenge.id);
-      var deleteRow = '<div style="display:flex;justify-content:flex-end;margin-top:10px;"><button onclick="fpRemoveChallenge(\'' + id + '\')" class="act-btn act-del" style="display:inline-flex;align-items:center;gap:6px;"><i class="fa-solid fa-trash-can"></i><span>Delete</span></button></div>';
-      return html.replace(/<\/div>\s*$/, deleteRow + '</div>');
-    };
-  }
-
-  var _origRenderChallenges = window.renderChallenges;
-  if (typeof _origRenderChallenges === 'function') {
-    window.renderChallenges = function(){
-      var res = _origRenderChallenges.apply(this, arguments);
-      var navSub = document.getElementById('navSub-challenges');
-      if (navSub && (!navSub.innerText || navSub.innerText === '—')) {
-        try {
-          var count = (typeof readChallengeStore === 'function' ? readChallengeStore() : []).length;
-          navSub.innerText = count ? (count + ' active') : 'No active challenge';
-        } catch(e) {}
-      }
+  function patchClosePanel(){
+    if (typeof window.closePanel !== 'function' || window.closePanel.__mobilePatched) return;
+    var orig = window.closePanel;
+    window.closePanel = function(){
+      var res = orig.apply(this, arguments);
+      wireMobileNav();
       return res;
     };
+    window.closePanel.__mobilePatched = true;
+  }
+
+  function init(){
+    wireMobileNav();
+    patchPanelBuilder();
+    patchClosePanel();
+    enhanceMobilePanelHeader();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once:true });
+  } else {
+    init();
   }
 })();
 </script>
