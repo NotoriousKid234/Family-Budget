@@ -2868,19 +2868,19 @@
 <!-- ++ MOBILE BOTTOM NAV ++ -->
 <div id="mobileNav">
     <div class="mob-nav-inner">
-        <button class="mob-nav-btn" onclick="mobileOpenMenu()">
+        <button class="mob-nav-btn" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
             <span>Menu</span>
         </button>
         <div class="mob-nav-divider"></div>
-        <button class="mob-nav-btn mob-home" onclick="mobileGoHome()">
+        <button class="mob-nav-btn mob-home" onclick="switchView('app')">
             <i class="fa-solid fa-house"></i>
             <span>Home</span>
         </button>
         <div class="mob-nav-divider"></div>
-        <button class="mob-nav-btn" onclick="mobileOpenProfile()">
-            <i class="fa-solid fa-user"></i>
-            <span>Profile</span>
+        <button class="mob-nav-btn" onclick="goBack()">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back</span>
         </button>
     </div>
 </div>
@@ -6570,14 +6570,17 @@ function dismissWelcome() {
       else done(true);
     }
     window.addEventListener('load',function(){
-      setInterval(function(){
+      function hydrateProfileFields(){
         var raw=localStorage.getItem('sb-hieqohmhrpjvhotutwls-auth-token'),u=raw?JSON.parse(raw).user:null;
         if(!u)return;
         var n=document.getElementById('flint-edit-name'),e=document.getElementById('flint-edit-email'),s=document.getElementById('flint-member-since');
         if(n&&!n._f){n._f=1;if(u.user_metadata&&u.user_metadata.display_name)n.value=u.user_metadata.display_name;}
         if(e&&!e._f){e._f=1;if(u.email)e.value=u.email;}
         if(s&&s.textContent==='—'&&u.created_at)s.textContent=new Date(u.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-      },400);
+      }
+      hydrateProfileFields();
+      setTimeout(hydrateProfileFields, 750);
+      setTimeout(hydrateProfileFields, 2000);
     });
     </script>
 
@@ -8878,50 +8881,23 @@ function dismissWelcome() {
       '<div class="fn-static-wrap"><div id="fnStaticPage"></div></div>';
   }
 
-  function getActiveFamilyNotesRoot(){
-    var active = document.activeElement;
-    if (active && active.closest) {
-      var activeShell = active.closest('.fn-shell');
-      if (activeShell) return activeShell;
-    }
-    var overlayRoot = document.getElementById('fnOverlayPage');
-    if (overlayRoot && overlayRoot.offsetParent !== null) {
-      var overlayShell = overlayRoot.querySelector('.fn-shell');
-      if (overlayShell) return overlayShell;
-    }
-    var staticRoot = document.getElementById('fnStaticPage');
-    if (staticRoot) {
-      var staticShell = staticRoot.querySelector('.fn-shell');
-      if (staticShell) return staticShell;
-    }
-    return document;
-  }
-
-  function bindFamilyNoteCounters(){
-    var inputs = document.querySelectorAll('#fnStaticPage #fnMessage, #fnOverlayPage #fnMessage');
-    inputs.forEach(function(msg){
-      if (!msg.dataset.boundCounter) {
-        msg.dataset.boundCounter = '1';
-        msg.addEventListener('input', updateFamilyNoteCounter);
-      }
-      updateFamilyNoteCounter({ target: msg });
-    });
-  }
-
   function renderFamilyNotesViews(){
     mountFamilyNotesStaticIfNeeded();
     var staticRoot = document.getElementById('fnStaticPage');
     if (staticRoot) staticRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
     var overlayRoot = document.getElementById('fnOverlayPage');
     if (overlayRoot) overlayRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
-    bindFamilyNoteCounters();
+    var msg = document.getElementById('fnMessage');
+    if (msg && !msg.dataset.boundCounter) {
+      msg.dataset.boundCounter = '1';
+      msg.addEventListener('input', updateFamilyNoteCounter);
+    }
+    updateFamilyNoteCounter();
   }
 
-  function updateFamilyNoteCounter(evt){
-    var msg = evt && evt.target ? evt.target : null;
-    var root = msg && msg.closest ? msg.closest('.fn-shell') : getActiveFamilyNotesRoot();
-    if (!msg && root && root.querySelector) msg = root.querySelector('#fnMessage');
-    var count = root && root.querySelector ? root.querySelector('#fnCharCount') : null;
+  function updateFamilyNoteCounter(){
+    var msg = document.getElementById('fnMessage');
+    var count = document.getElementById('fnCharCount');
     if (msg && count) count.textContent = String((msg.value || '').length);
   }
 
@@ -8952,11 +8928,10 @@ function dismissWelcome() {
   };
 
   window.sendFamilyNote = async function(){
-    var root = getActiveFamilyNotesRoot();
-    var msgEl = root && root.querySelector ? root.querySelector('#fnMessage') : document.getElementById('fnMessage');
-    var typeEl = root && root.querySelector ? root.querySelector('#fnType') : document.getElementById('fnType');
-    var dueEl = root && root.querySelector ? root.querySelector('#fnDue') : document.getElementById('fnDue');
-    var pinEl = root && root.querySelector ? root.querySelector('#fnPin') : document.getElementById('fnPin');
+    var msgEl = document.getElementById('fnMessage');
+    var typeEl = document.getElementById('fnType');
+    var dueEl = document.getElementById('fnDue');
+    var pinEl = document.getElementById('fnPin');
     var message = sanitizePlainString(msgEl && msgEl.value ? msgEl.value.trim() : '', FAMILY_NOTES_LIMIT);
     if (!message) return showToast('Write a note first.', 'error');
     if (message.length > FAMILY_NOTES_LIMIT) return showToast('Keep notes under ' + FAMILY_NOTES_LIMIT + ' characters.', 'error');
@@ -8975,7 +8950,6 @@ function dismissWelcome() {
     if (msgEl) msgEl.value = '';
     if (dueEl) dueEl.value = '';
     if (pinEl) pinEl.checked = false;
-    updateFamilyNoteCounter({ target: msgEl });
     notes = [res.data].concat(notes || []);
     renderFamilyNotesViews();
     renderNavBadges();
@@ -10011,8 +9985,9 @@ function dismissWelcome() {
     try { window.fpSaveConfig = fpSaveConfigPatched; } catch(e) {}
   }
   wire();
-  var _iv = setInterval(function(){ syncGlobals(); wire(); }, 400);
-  setTimeout(function(){ try{clearInterval(_iv);}catch(e){} }, 12000);
+  [150, 800, 2000].forEach(function(delay){
+    setTimeout(function(){ try { syncGlobals(); wire(); } catch(e) {} }, delay);
+  });
 })();
 </script>
 
@@ -10247,125 +10222,54 @@ function dismissWelcome() {
 </script>
 
 
-<style id="mobile-nav-ux-fix">
-@media (max-width: 1023px) {
-  #sideMenu {
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior: contain;
-    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
-  }
-  #sideMenu .nav-spacer { display: none !important; }
-  #sideMenu .nav-logout { margin-top: 10px !important; }
-  #mobileNav .mob-nav-btn { min-width: 0; }
-  #mobileNav .mob-nav-btn span { font-size: .58rem; }
-  #flintPanel {
-    padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
-  }
-  #flintPanel .flint-panel-head {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    background: linear-gradient(180deg, rgba(6,13,28,.98), rgba(6,13,28,.94));
-    backdrop-filter: blur(10px);
-  }
-}
-</style>
-<script id="mobile-nav-ux-fix-script">
+<script id="flint-desktop-flicker-fix-patch">
 (function(){
-  function closeMobileMenu(){
-    var m = document.getElementById('sideMenu');
-    var o = document.getElementById('sideOverlay');
-    if(!m || !o) return;
-    m.classList.remove('open');
-    o.style.display = 'none';
-  }
-  window.mobileGoHome = function(){
-    closeMobileMenu();
-    if(typeof closePanel === 'function') closePanel();
-    if(typeof switchView === 'function') switchView('app', true);
-  };
-  window.mobileOpenMenu = function(){
-    var panel = document.getElementById('flintPanel');
-    if(panel && typeof closePanel === 'function'){
-      closePanel();
-    }
-    if(typeof toggleMenu === 'function') toggleMenu();
-  };
-  window.mobileOpenProfile = function(){
-    closeMobileMenu();
-    if(typeof openPanel === 'function') openPanel('profileManager');
-  };
+  try {
+    var style = document.createElement('style');
+    style.textContent = [
+      '.txn-reaction-row{backface-visibility:hidden;transform:translateZ(0);}',
+      '.nav-item-sub{backface-visibility:hidden;transform:translateZ(0);}',
+      '#historyList{contain:layout paint style;}'
+    ].join('');
+    document.head.appendChild(style);
+  } catch(e) {}
 
-  if(typeof window.openPanel === 'function' && !window._mobileOpenPanelPatched){
-    window._mobileOpenPanelPatched = true;
-    var originalOpenPanel = window.openPanel;
-    window.openPanel = function(id){
-      closeMobileMenu();
-      return originalOpenPanel.apply(this, arguments);
+  if (typeof window.renderHistory === 'function') {
+    var _origRenderHistoryFlicker = window.renderHistory;
+    window.renderHistory = function(){
+      try {
+        var list = document.getElementById('historyList');
+        var search = (document.getElementById('historySearch') || {}).value || '';
+        var reactions = localStorage.getItem('montoya_reactions') || '';
+        var myReactions = localStorage.getItem('montoya_my_reactions') || '';
+        var filters = Array.prototype.slice.call(document.querySelectorAll('.chip.active, .filter-chip.active, .hist-filter.active, [data-filter].active')).map(function(el){ return (el.textContent || '').trim(); }).join('|');
+        var hist = Array.isArray(window.history) ? window.history.map(function(t){ return [t.id, t.amount, t.note, t.category, t.member, t.intent, !!t.is_recurring].join('~'); }).join('||') : '';
+        var sig = [window.currentGroup || '', search, filters, reactions, myReactions, hist].join('###');
+        if (list && list.children.length && window.__flintLastHistoryRenderSig === sig) return;
+        window.__flintLastHistoryRenderSig = sig;
+      } catch(e) {}
+      return _origRenderHistoryFlicker.apply(this, arguments);
     };
   }
-})();
-</script>
 
-
-<script id="flint-desktop-ai-coach-nav-patch-v2">
-(function(){
-  window.openAiCoachFromDashboard = function(){
-    try {
-      if (window.innerWidth < 1024) {
-        if (typeof switchView === 'function') switchView('aiInsights');
-      } else {
-        if (typeof openPanel === 'function') openPanel('aiInsights');
-      }
-    } catch(e) {
-      console.error('AI coach dashboard nav failed', e);
-    }
-  };
-
-  function addDesktopDashboardButton(){
-    if (window.innerWidth < 1024) return;
-    var panel = document.getElementById('flintPanel');
-    if (!panel) return;
-    var title = panel.querySelector('.flint-panel-title');
-    if (!title || (title.textContent || '').trim().toUpperCase() !== 'AI INSIGHTS') return;
-    var head = panel.querySelector('.flint-panel-head');
-    if (!head) return;
-    if (head.querySelector('.flint-panel-home')) return;
-
-    var spacer = document.createElement('div');
-    spacer.style.flex = '1';
-    if (!head.querySelector('.flint-panel-spacer')) {
-      spacer.className = 'flint-panel-spacer';
-      head.appendChild(spacer);
-    }
-
-    var homeBtn = document.createElement('button');
-    homeBtn.className = 'flint-panel-home';
-    homeBtn.type = 'button';
-    homeBtn.innerHTML = '<i class="fa-solid fa-house"></i><span>Dashboard</span>';
-    homeBtn.style.cssText = 'display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(212,168,67,.22);background:rgba(255,255,255,.04);color:var(--text-soft);padding:9px 14px;border-radius:12px;font:600 .76rem "DM Sans",sans-serif;cursor:pointer;';
-    homeBtn.onmouseenter = function(){ homeBtn.style.background = 'rgba(255,255,255,.08)'; homeBtn.style.color='var(--text)'; };
-    homeBtn.onmouseleave = function(){ homeBtn.style.background = 'rgba(255,255,255,.04)'; homeBtn.style.color='var(--text-soft)'; };
-    homeBtn.onclick = function(){ if (typeof closePanel === 'function') closePanel(); };
-    head.appendChild(homeBtn);
-  }
-
-  var originalBuild = window._buildAndShowPanel;
-  if (typeof originalBuild === 'function' && !originalBuild._desktopAiCoachWrapped) {
-    var wrapped = function(id){
-      var out = originalBuild.apply(this, arguments);
-      addDesktopDashboardButton();
-      return out;
+  if (typeof window.renderNavBadges === 'function') {
+    var _origRenderNavBadgesFlicker = window.renderNavBadges;
+    window.renderNavBadges = function(){
+      var before = {};
+      Array.prototype.forEach.call(document.querySelectorAll('.nav-item-sub[id^="navSub-"]'), function(el){ before[el.id] = el.textContent; });
+      var result = _origRenderNavBadgesFlicker.apply(this, arguments);
+      Array.prototype.forEach.call(document.querySelectorAll('.nav-item-sub[id^="navSub-"]'), function(el){
+        var next = el.textContent;
+        if (before[el.id] === next) el.textContent = before[el.id];
+      });
+      return result;
     };
-    wrapped._desktopAiCoachWrapped = true;
-    window._buildAndShowPanel = wrapped;
   }
 
-  var observer = new MutationObserver(function(){ addDesktopDashboardButton(); });
-  window.addEventListener('load', function(){
-    observer.observe(document.body, { childList:true, subtree:true });
-    addDesktopDashboardButton();
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) {
+      try { delete window.__flintLastHistoryRenderSig; } catch(e) {}
+    }
   });
 })();
 </script>
