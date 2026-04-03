@@ -8878,55 +8878,24 @@ function dismissWelcome() {
       '<div class="fn-static-wrap"><div id="fnStaticPage"></div></div>';
   }
 
-  function isVisibleFamilyNotesRoot(el){
-    return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
-  }
-
-  function getActiveFamilyNotesRoot(){
-    var overlayRoot = document.getElementById('fnOverlayPage');
-    var staticRoot = document.getElementById('fnStaticPage');
-    if (isVisibleFamilyNotesRoot(overlayRoot)) return overlayRoot;
-    if (isVisibleFamilyNotesRoot(staticRoot)) return staticRoot;
-    return overlayRoot || staticRoot || document;
-  }
-
-  function bindFamilyNotesCounter(root){
-    if (!root || !root.querySelector) return;
-    var msg = root.querySelector('#fnMessage');
-    if (msg && !msg.dataset.boundCounter) {
-      msg.dataset.boundCounter = '1';
-      msg.addEventListener('input', function(){ updateFamilyNoteCounter(root); });
-    }
-  }
-
   function renderFamilyNotesViews(){
     mountFamilyNotesStaticIfNeeded();
     var staticRoot = document.getElementById('fnStaticPage');
     if (staticRoot) staticRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
     var overlayRoot = document.getElementById('fnOverlayPage');
     if (overlayRoot) overlayRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
-    bindFamilyNotesCounter(staticRoot);
-    bindFamilyNotesCounter(overlayRoot);
+    var msg = document.getElementById('fnMessage');
+    if (msg && !msg.dataset.boundCounter) {
+      msg.dataset.boundCounter = '1';
+      msg.addEventListener('input', updateFamilyNoteCounter);
+    }
     updateFamilyNoteCounter();
   }
 
-  function updateFamilyNoteCounter(root){
-    var roots = [];
-    if (root) {
-      roots = [root];
-    } else {
-      var staticRoot = document.getElementById('fnStaticPage');
-      var overlayRoot = document.getElementById('fnOverlayPage');
-      if (staticRoot) roots.push(staticRoot);
-      if (overlayRoot) roots.push(overlayRoot);
-      if (!roots.length) roots = [document];
-    }
-    roots.forEach(function(targetRoot){
-      if (!targetRoot || !targetRoot.querySelector) return;
-      var msg = targetRoot.querySelector('#fnMessage');
-      var count = targetRoot.querySelector('#fnCharCount');
-      if (msg && count) count.textContent = String((msg.value || '').length);
-    });
+  function updateFamilyNoteCounter(){
+    var msg = document.getElementById('fnMessage');
+    var count = document.getElementById('fnCharCount');
+    if (msg && count) count.textContent = String((msg.value || '').length);
   }
 
   function handleFamilyNotesDbError(error){
@@ -8956,11 +8925,10 @@ function dismissWelcome() {
   };
 
   window.sendFamilyNote = async function(){
-    var root = getActiveFamilyNotesRoot();
-    var msgEl = root && root.querySelector ? root.querySelector('#fnMessage') : document.getElementById('fnMessage');
-    var typeEl = root && root.querySelector ? root.querySelector('#fnType') : document.getElementById('fnType');
-    var dueEl = root && root.querySelector ? root.querySelector('#fnDue') : document.getElementById('fnDue');
-    var pinEl = root && root.querySelector ? root.querySelector('#fnPin') : document.getElementById('fnPin');
+    var msgEl = document.getElementById('fnMessage');
+    var typeEl = document.getElementById('fnType');
+    var dueEl = document.getElementById('fnDue');
+    var pinEl = document.getElementById('fnPin');
     var message = sanitizePlainString(msgEl && msgEl.value ? msgEl.value.trim() : '', FAMILY_NOTES_LIMIT);
     if (!message) return showToast('Write a note first.', 'error');
     if (message.length > FAMILY_NOTES_LIMIT) return showToast('Keep notes under ' + FAMILY_NOTES_LIMIT + ' characters.', 'error');
@@ -8979,7 +8947,6 @@ function dismissWelcome() {
     if (msgEl) msgEl.value = '';
     if (dueEl) dueEl.value = '';
     if (pinEl) pinEl.checked = false;
-    updateFamilyNoteCounter(root);
     notes = [res.data].concat(notes || []);
     renderFamilyNotesViews();
     renderNavBadges();
@@ -10247,6 +10214,67 @@ function dismissWelcome() {
   window.acceptJoin = function(key){ return joinByGroupId(key); };
   window.acceptJoinPatched = function(key){ return joinByGroupId(key); };
   window.fpJoinLedger = function(){ return joinByGroupId(document.getElementById('fp_joinKey')?.value || ''); };
+})();
+</script>
+
+
+
+<style id="flint-panel-fill-page-patch">
+  @media (min-width: 1024px) {
+    #flintPanel.flint-panel-overlay {
+      left: 240px !important;
+      right: 0 !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      padding: 0 !important;
+    }
+    .flint-panel-shell {
+      width: calc(100vw - 240px) !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 24px 28px 88px !important;
+      box-sizing: border-box !important;
+    }
+    .flint-panel-compact,
+    .flint-panel-wide,
+    .flint-panel-full {
+      width: 100% !important;
+      max-width: none !important;
+    }
+    .flint-panel-body {
+      width: 100% !important;
+      max-width: none !important;
+    }
+    #flintPanelContent {
+      width: 100% !important;
+      max-width: none !important;
+    }
+    #flintPanelContent > * {
+      width: 100%;
+      max-width: none !important;
+    }
+    .fn-shell,
+    .flint-panel-body .wrap,
+    .flint-panel-body .card,
+    .flint-panel-body .input-card {
+      max-width: none !important;
+    }
+  }
+</style>
+<script id="flint-panel-fill-page-script">
+(function(){
+  var original = window._buildAndShowPanel;
+  if (typeof original !== 'function') return;
+  window._buildAndShowPanel = function(id){
+    original(id);
+    var panel = document.getElementById('flintPanel');
+    if (!panel) return;
+    panel.classList.add('flint-panel-overlay');
+    var shell = panel.querySelector('.flint-panel-shell');
+    if (!shell) return;
+    shell.classList.remove('flint-panel-compact','flint-panel-wide','flint-panel-full');
+    shell.classList.add('flint-panel-full');
+  };
 })();
 </script>
 
