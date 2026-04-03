@@ -1655,12 +1655,16 @@
   }
   .flint-panel-back:hover { color:#eef2ff; border-color:rgba(212,168,67,.28); background:rgba(255,255,255,.08); }
   .flint-panel-title {
+    flex:1;
     font-size:.82rem;
     font-weight:700;
     letter-spacing:2px;
     text-transform:uppercase;
     color:#eef2ff;
   }
+  .flint-panel-head-actions{display:flex;align-items:center;gap:10px;margin-left:auto;}
+  .flint-panel-home-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(100,150,230,.14);border-radius:12px;color:#8aaac8;padding:9px 12px;cursor:pointer;font:700 .72rem 'DM Sans',sans-serif;letter-spacing:.3px;}
+  .flint-panel-home-btn:hover{color:#eef2ff;border-color:rgba(212,168,67,.24);background:rgba(255,255,255,.06);}
   .flint-panel-body { width:100%; }
   .flint-panel-compact { width:min(980px, calc(100vw - 240px - 64px)); }
   .flint-panel-wide { width:min(1180px, calc(100vw - 240px - 64px)); }
@@ -1683,6 +1687,7 @@
       background:none;
       backdrop-filter:none;
     }
+    .flint-panel-home-btn{display:none !important;}
   }
 </style>
 
@@ -2868,19 +2873,19 @@
 <!-- ++ MOBILE BOTTOM NAV ++ -->
 <div id="mobileNav">
     <div class="mob-nav-inner">
-        <button class="mob-nav-btn" onclick="mobileOpenMenu()">
+        <button class="mob-nav-btn" onclick="toggleMenu()">
             <i class="fa-solid fa-bars"></i>
             <span>Menu</span>
         </button>
         <div class="mob-nav-divider"></div>
-        <button class="mob-nav-btn mob-home" onclick="mobileGoHome()">
+        <button class="mob-nav-btn mob-home" onclick="switchView('app')">
             <i class="fa-solid fa-house"></i>
             <span>Home</span>
         </button>
         <div class="mob-nav-divider"></div>
-        <button class="mob-nav-btn" onclick="mobileOpenProfile()">
-            <i class="fa-solid fa-user"></i>
-            <span>Profile</span>
+        <button class="mob-nav-btn" onclick="goBack()">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back</span>
         </button>
     </div>
 </div>
@@ -5694,6 +5699,20 @@ function switchView(id, isBack) {
     if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
 }
 
+function openAiCoachFromDashboard(){
+    if(window.innerWidth >= 1024 && typeof openPanel === 'function'){
+        openPanel('aiInsights');
+    } else {
+        switchView('aiInsights');
+    }
+}
+
+function returnToDashboardFromPanel(){
+    try { closePanel(); } catch(e) {}
+    try { switchView('app', true); } catch(e) {}
+    window.scrollTo(0,0);
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // ── FLINT PANEL OVERLAY SYSTEM (completely independent of switchView) ──
 // ═══════════════════════════════════════════════════════════════════════
@@ -5745,10 +5764,12 @@ function _buildAndShowPanel(id) {
     var panelSize = 'compact';
     if (['networth','vaults','bills','subManager','challenges','familyFeed','shareManager'].indexOf(id) >= 0) panelSize = 'wide';
     if (['analyticsModal','aiInsights','notesManager','profileManager','configManager'].indexOf(id) >= 0) panelSize = 'full';
+    var dashAction = window.innerWidth >= 1024 ? '<button type="button" onclick="returnToDashboardFromPanel()" class="flint-panel-home-btn"><i class="fa-solid fa-house"></i><span>Dashboard</span></button>' : '';
     panel.innerHTML = '<div class="flint-panel-shell flint-panel-' + panelSize + '">' +
         '<div class="flint-panel-head">' +
             '<div onclick="closePanel()" class="flint-panel-back"><i class="fa-solid fa-arrow-left"></i></div>' +
             '<div class="flint-panel-title">' + title + '</div>' +
+            '<div class="flint-panel-head-actions">' + dashAction + '</div>' +
         '</div>' +
         '<div id="flintPanelContent" class="flint-panel-body">' + content + '</div>' +
     '</div>';
@@ -8878,50 +8899,23 @@ function dismissWelcome() {
       '<div class="fn-static-wrap"><div id="fnStaticPage"></div></div>';
   }
 
-  function getActiveFamilyNotesRoot(){
-    var active = document.activeElement;
-    if (active && active.closest) {
-      var activeShell = active.closest('.fn-shell');
-      if (activeShell) return activeShell;
-    }
-    var overlayRoot = document.getElementById('fnOverlayPage');
-    if (overlayRoot && overlayRoot.offsetParent !== null) {
-      var overlayShell = overlayRoot.querySelector('.fn-shell');
-      if (overlayShell) return overlayShell;
-    }
-    var staticRoot = document.getElementById('fnStaticPage');
-    if (staticRoot) {
-      var staticShell = staticRoot.querySelector('.fn-shell');
-      if (staticShell) return staticShell;
-    }
-    return document;
-  }
-
-  function bindFamilyNoteCounters(){
-    var inputs = document.querySelectorAll('#fnStaticPage #fnMessage, #fnOverlayPage #fnMessage');
-    inputs.forEach(function(msg){
-      if (!msg.dataset.boundCounter) {
-        msg.dataset.boundCounter = '1';
-        msg.addEventListener('input', updateFamilyNoteCounter);
-      }
-      updateFamilyNoteCounter({ target: msg });
-    });
-  }
-
   function renderFamilyNotesViews(){
     mountFamilyNotesStaticIfNeeded();
     var staticRoot = document.getElementById('fnStaticPage');
     if (staticRoot) staticRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
     var overlayRoot = document.getElementById('fnOverlayPage');
     if (overlayRoot) overlayRoot.innerHTML = buildFamilyNotesWorkspaceHtml();
-    bindFamilyNoteCounters();
+    var msg = document.getElementById('fnMessage');
+    if (msg && !msg.dataset.boundCounter) {
+      msg.dataset.boundCounter = '1';
+      msg.addEventListener('input', updateFamilyNoteCounter);
+    }
+    updateFamilyNoteCounter();
   }
 
-  function updateFamilyNoteCounter(evt){
-    var msg = evt && evt.target ? evt.target : null;
-    var root = msg && msg.closest ? msg.closest('.fn-shell') : getActiveFamilyNotesRoot();
-    if (!msg && root && root.querySelector) msg = root.querySelector('#fnMessage');
-    var count = root && root.querySelector ? root.querySelector('#fnCharCount') : null;
+  function updateFamilyNoteCounter(){
+    var msg = document.getElementById('fnMessage');
+    var count = document.getElementById('fnCharCount');
     if (msg && count) count.textContent = String((msg.value || '').length);
   }
 
@@ -8952,11 +8946,10 @@ function dismissWelcome() {
   };
 
   window.sendFamilyNote = async function(){
-    var root = getActiveFamilyNotesRoot();
-    var msgEl = root && root.querySelector ? root.querySelector('#fnMessage') : document.getElementById('fnMessage');
-    var typeEl = root && root.querySelector ? root.querySelector('#fnType') : document.getElementById('fnType');
-    var dueEl = root && root.querySelector ? root.querySelector('#fnDue') : document.getElementById('fnDue');
-    var pinEl = root && root.querySelector ? root.querySelector('#fnPin') : document.getElementById('fnPin');
+    var msgEl = document.getElementById('fnMessage');
+    var typeEl = document.getElementById('fnType');
+    var dueEl = document.getElementById('fnDue');
+    var pinEl = document.getElementById('fnPin');
     var message = sanitizePlainString(msgEl && msgEl.value ? msgEl.value.trim() : '', FAMILY_NOTES_LIMIT);
     if (!message) return showToast('Write a note first.', 'error');
     if (message.length > FAMILY_NOTES_LIMIT) return showToast('Keep notes under ' + FAMILY_NOTES_LIMIT + ' characters.', 'error');
@@ -8975,7 +8968,6 @@ function dismissWelcome() {
     if (msgEl) msgEl.value = '';
     if (dueEl) dueEl.value = '';
     if (pinEl) pinEl.checked = false;
-    updateFamilyNoteCounter({ target: msgEl });
     notes = [res.data].concat(notes || []);
     renderFamilyNotesViews();
     renderNavBadges();
@@ -10243,68 +10235,6 @@ function dismissWelcome() {
   window.acceptJoin = function(key){ return joinByGroupId(key); };
   window.acceptJoinPatched = function(key){ return joinByGroupId(key); };
   window.fpJoinLedger = function(){ return joinByGroupId(document.getElementById('fp_joinKey')?.value || ''); };
-})();
-</script>
-
-
-<style id="mobile-nav-ux-fix">
-@media (max-width: 1023px) {
-  #sideMenu {
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior: contain;
-    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
-  }
-  #sideMenu .nav-spacer { display: none !important; }
-  #sideMenu .nav-logout { margin-top: 10px !important; }
-  #mobileNav .mob-nav-btn { min-width: 0; }
-  #mobileNav .mob-nav-btn span { font-size: .58rem; }
-  #flintPanel {
-    padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
-  }
-  #flintPanel .flint-panel-head {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    background: linear-gradient(180deg, rgba(6,13,28,.98), rgba(6,13,28,.94));
-    backdrop-filter: blur(10px);
-  }
-}
-</style>
-<script id="mobile-nav-ux-fix-script">
-(function(){
-  function closeMobileMenu(){
-    var m = document.getElementById('sideMenu');
-    var o = document.getElementById('sideOverlay');
-    if(!m || !o) return;
-    m.classList.remove('open');
-    o.style.display = 'none';
-  }
-  window.mobileGoHome = function(){
-    closeMobileMenu();
-    if(typeof closePanel === 'function') closePanel();
-    if(typeof switchView === 'function') switchView('app', true);
-  };
-  window.mobileOpenMenu = function(){
-    var panel = document.getElementById('flintPanel');
-    if(panel && typeof closePanel === 'function'){
-      closePanel();
-    }
-    if(typeof toggleMenu === 'function') toggleMenu();
-  };
-  window.mobileOpenProfile = function(){
-    closeMobileMenu();
-    if(typeof openPanel === 'function') openPanel('profileManager');
-  };
-
-  if(typeof window.openPanel === 'function' && !window._mobileOpenPanelPatched){
-    window._mobileOpenPanelPatched = true;
-    var originalOpenPanel = window.openPanel;
-    window.openPanel = function(id){
-      closeMobileMenu();
-      return originalOpenPanel.apply(this, arguments);
-    };
-  }
 })();
 </script>
 
