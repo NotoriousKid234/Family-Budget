@@ -9764,5 +9764,202 @@ function dismissWelcome() {
 })();
 </script>
 
+
+<script id="app-settings-schema-and-join-patch">
+(function(){
+  function syncGlobals(){
+    try {
+      if (typeof _sb !== 'undefined' && _sb) window._sb = _sb;
+      if (typeof currentUser !== 'undefined') window.currentUser = currentUser;
+      if (typeof currentGroup !== 'undefined') window.currentGroup = currentGroup;
+      if (typeof currentEmail !== 'undefined') window.currentEmail = currentEmail;
+      if (typeof currentDisplayName !== 'undefined') window.currentDisplayName = currentDisplayName;
+    } catch(e) {}
+  }
+  function safeNum(v, d){ var n = parseFloat(v); return Number.isFinite(n) ? n : d; }
+  function cleanText(v, d){ v = String(v == null ? '' : v).trim(); return v || (d || ''); }
+  function appSettingsPayload(payload){
+    return {
+      user_id: payload.user_id,
+      group_id: payload.group_id,
+      budget: safeNum(payload.budget, 3000),
+      m_balance: safeNum(payload.m_balance, 0),
+      c_balance: safeNum(payload.c_balance, 0),
+      m_orig: safeNum(payload.m_orig, 0),
+      c_orig: safeNum(payload.c_orig, 0),
+      display_name: cleanText(payload.display_name, payload.user_id ? 'PARTNER' : '')
+    };
+  }
+  function updateConfigInputs(){
+    try {
+      var el;
+      el = document.getElementById('keyDisplay'); if (el) el.innerText = currentGroup || '';
+      el = document.getElementById('conf_income'); if (el) el.value = config.budget || 3000;
+      el = document.getElementById('conf_mbal'); if (el) el.value = config.m_balance || 0;
+      el = document.getElementById('conf_cbal'); if (el) el.value = config.c_balance || 0;
+      el = document.getElementById('conf_morig'); if (el) el.value = config.m_orig || 500000;
+      el = document.getElementById('conf_corig'); if (el) el.value = config.c_orig || 45000;
+      el = document.getElementById('conf_want_cap'); if (el) el.value = config.want_cap || 0;
+      el = document.getElementById('conf_cycle_day'); if (el && config.cycle_start_day) el.value = config.cycle_start_day;
+    } catch(e) {}
+  }
+  async function loadAppPatched(){
+    syncGlobals();
+    if (!window._sb || !currentUser) return;
+    var data = null;
+    try {
+      var r1 = await window._sb.from('app_settings').select('*').eq('user_id', currentUser).limit(1);
+      data = r1.data;
+    } catch(e) {}
+    if (!data || !data.length) {
+      try {
+        var jg = localStorage.getItem('flint_group_' + currentUser);
+        if (jg) {
+          var r2 = await window._sb.from('app_settings').select('*').eq('group_id', jg).limit(1);
+          data = r2.data;
+        }
+      } catch(e) {}
+    }
+    if (!data || !data.length) {
+      var ng = 'grp_' + String(currentUser || '').substring(0,8) + '_' + Date.now();
+      var fresh = appSettingsPayload({
+        user_id: currentUser,
+        group_id: ng,
+        budget: 3000,
+        m_balance: 0,
+        c_balance: 0,
+        m_orig: 0,
+        c_orig: 0,
+        display_name: currentDisplayName || currentEmail || 'PARTNER'
+      });
+      try {
+        var ins = await window._sb.from('app_settings').insert([fresh]).select().limit(1);
+        data = ins.data && ins.data.length ? ins.data : [fresh];
+      } catch(e) {
+        data = [fresh];
+      }
+      try { showToast('Welcome to Flint! Your ledger is ready.', 'success'); } catch(e) {}
+    }
+    if (data && data.length) {
+      config = Object.assign({}, config || {}, data[0] || {});
+      currentGroup = config.group_id;
+      if (!config.m_orig) config.m_orig = 500000;
+      if (!config.c_orig) config.c_orig = 45000;
+      updateConfigInputs();
+    }
+    syncGlobals();
+    try { loadStoredData(); } catch(e) {}
+    try { renderNavBadges(); } catch(e) {}
+    try { loadIcon(); } catch(e) {}
+    try { initCycles(); } catch(e) {}
+    try { fetchData(); } catch(e) {}
+    try { startMarketFeed(); } catch(e) {}
+    try { fetchAiTip(); } catch(e) {}
+    try { startActivityPolling(); } catch(e) {}
+    try { checkPendingJoin(); } catch(e) {}
+  }
+  async function joinLedgerPatched(raw){
+    syncGlobals();
+    var k = typeof normalizeLedgerJoinInput === 'function' ? normalizeLedgerJoinInput(raw || (document.getElementById('joinKey')?.value || '')) : String(raw||'').trim();
+    if (!k) { showToast('Paste the full invite link or just the ledger key.', 'error'); return; }
+    if (!window._sb) { showToast('Ledger service is not ready yet. Refresh and try again.', 'error'); return; }
+    if (!currentUser) { showToast('Please sign in again before joining a ledger.', 'error'); return; }
+    if (window.__flintJoinBusy) { showToast('Joining ledger… please wait.', 'info'); return; }
+    if (k === currentGroup) { showToast('You are already on this ledger!', 'warning'); return; }
+    window.__flintJoinBusy = true;
+    try {
+      var chk = await window._sb.from('app_settings').select('user_id').eq('group_id', k).limit(1);
+      if (chk.error || !chk.data || !chk.data.length) {
+        showToast('Join key not found — check with your partner.', 'error');
+        return;
+      }
+      var payload = appSettingsPayload({
+        user_id: currentUser,
+        group_id: k,
+        budget: config && config.budget ? config.budget : 3000,
+        m_balance: config && config.m_balance ? config.m_balance : 0,
+        c_balance: config && config.c_balance ? config.c_balance : 0,
+        m_orig: config && config.m_orig ? config.m_orig : 0,
+        c_orig: config && config.c_orig ? config.c_orig : 0,
+        display_name: currentDisplayName || currentEmail || 'PARTNER'
+      });
+      var res = await window._sb.from('app_settings').upsert(payload, { onConflict: 'user_id' });
+      if (res.error) {
+        showToast('Error joining: ' + res.error.message, 'error');
+        return;
+      }
+      currentGroup = k;
+      localStorage.setItem('flint_group_' + currentUser, k);
+      syncGlobals();
+      showToast('Ledger joined! Loading...', 'success');
+      setTimeout(function(){ location.reload(); }, 400);
+    } catch(e) {
+      showToast('Something went wrong. Please try again.', 'error');
+    } finally {
+      setTimeout(function(){ window.__flintJoinBusy = false; }, 800);
+    }
+  }
+  async function acceptJoinPatched(key){ return joinLedgerPatched(key); }
+  async function saveConfigPatched(){
+    config.budget = safeNum(document.getElementById('conf_income')?.value, config.budget || 3000);
+    config.want_cap = safeNum(document.getElementById('conf_want_cap')?.value, config.want_cap || 0);
+    config.m_balance = safeNum(document.getElementById('conf_mbal')?.value, config.m_balance || 0);
+    config.c_balance = safeNum(document.getElementById('conf_cbal')?.value, config.c_balance || 0);
+    config.m_orig = safeNum(document.getElementById('conf_morig')?.value, config.m_orig || 500000);
+    config.c_orig = safeNum(document.getElementById('conf_corig')?.value, config.c_orig || 45000);
+    var payload = appSettingsPayload({
+      user_id: currentUser,
+      group_id: currentGroup,
+      budget: config.budget,
+      m_balance: config.m_balance,
+      c_balance: config.c_balance,
+      m_orig: config.m_orig,
+      c_orig: config.c_orig,
+      display_name: currentDisplayName || currentEmail || 'PARTNER'
+    });
+    await window._sb.from('app_settings').upsert(payload, { onConflict: 'user_id' });
+    try { switchView('app'); } catch(e) {}
+    showToast('Settings saved!');
+  }
+  function fpSaveConfigPatched(){
+    config.budget = safeNum(document.getElementById('fp_budget')?.value, config.budget || 3000);
+    config.want_cap = safeNum(document.getElementById('fp_wantcap')?.value, config.want_cap || 0);
+    config.cycle_start_day = parseInt(document.getElementById('fp_cycleday')?.value || config.cycle_start_day || 16, 10) || 16;
+    config.m_balance = safeNum(document.getElementById('fp_mbal')?.value, config.m_balance || 0);
+    config.c_balance = safeNum(document.getElementById('fp_cbal')?.value, config.c_balance || 0);
+    config.m_orig = safeNum(document.getElementById('fp_morig')?.value, config.m_orig || 500000);
+    config.c_orig = safeNum(document.getElementById('fp_corig')?.value, config.c_orig || 45000);
+    var payload = appSettingsPayload({
+      user_id: currentUser,
+      group_id: currentGroup,
+      budget: config.budget,
+      m_balance: config.m_balance,
+      c_balance: config.c_balance,
+      m_orig: config.m_orig,
+      c_orig: config.c_orig,
+      display_name: currentDisplayName || currentEmail || 'PARTNER'
+    });
+    window._sb.from('app_settings').upsert(payload, { onConflict: 'user_id' }).then(function(){
+      showToast('Settings saved!');
+      try { closePanel(); } catch(e) {}
+      try { fetchData(); } catch(e) {}
+    });
+  }
+  function wire(){
+    syncGlobals();
+    try { window.loadApp = loadAppPatched; } catch(e) {}
+    try { window.performLedgerJoin = joinLedgerPatched; } catch(e) {}
+    try { window.joinLedger = function(){ return joinLedgerPatched(); }; } catch(e) {}
+    try { window.acceptJoin = acceptJoinPatched; } catch(e) {}
+    try { window.fpJoinLedger = function(){ var raw = document.getElementById('fp_joinKey')?.value || ''; return joinLedgerPatched(raw); }; } catch(e) {}
+    try { window.saveConfig = saveConfigPatched; } catch(e) {}
+    try { window.fpSaveConfig = fpSaveConfigPatched; } catch(e) {}
+  }
+  wire();
+  var _iv = setInterval(function(){ syncGlobals(); wire(); }, 400);
+  setTimeout(function(){ try{clearInterval(_iv);}catch(e){} }, 12000);
+})();
+</script>
+
 </body>
 </html>
