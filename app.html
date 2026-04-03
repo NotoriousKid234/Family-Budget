@@ -10105,5 +10105,91 @@ function dismissWelcome() {
 })();
 </script>
 
+
+<script id="flint-join-direct-groupid-patch">
+(function(){
+  function syncJoinGlobals(){
+    try {
+      if (typeof _sb !== 'undefined') window._sb = _sb;
+      if (typeof currentUser !== 'undefined') window.currentUser = currentUser;
+      if (typeof currentGroup !== 'undefined') window.currentGroup = currentGroup;
+      if (typeof currentEmail !== 'undefined') window.currentEmail = currentEmail;
+      if (typeof currentDisplayName !== 'undefined') window.currentDisplayName = currentDisplayName;
+    } catch (e) {}
+  }
+  function normalizeJoinInput(raw){
+    var v = String(raw == null ? '' : raw).trim();
+    if (!v) return '';
+    try {
+      if (/^https?:\/\//i.test(v)) {
+        var u = new URL(v);
+        var qp = u.searchParams.get('join');
+        if (qp) return String(qp).trim();
+      }
+    } catch (e) {}
+    if (/^join=/i.test(v)) return v.replace(/^join=/i, '').trim();
+    return v;
+  }
+  function isUuid(v){
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||''));
+  }
+  async function joinByGroupId(raw){
+    syncJoinGlobals();
+    var key = normalizeJoinInput(raw || (document.getElementById('joinKey')?.value || document.getElementById('fp_joinKey')?.value || ''));
+    if (!key) { showToast('Paste the full invite link or just the ledger key.', 'error'); return; }
+    if (!isUuid(key)) { showToast('Paste the full invite link or just the ledger key.', 'error'); return; }
+    if (!window._sb) { showToast('Ledger service is not ready yet. Refresh and try again.', 'error'); return; }
+    if (!window.currentUser) { showToast('Please sign in again before joining a ledger.', 'error'); return; }
+    if (window.__flintJoinBusy) { showToast('Joining ledger… please wait.', 'info'); return; }
+    if (String(key) === String(window.currentGroup||'')) { showToast('You are already on this ledger!', 'warning'); return; }
+    window.__flintJoinBusy = true;
+    try {
+      var payload;
+      if (typeof appSettingsPayload === 'function') {
+        payload = appSettingsPayload({
+          user_id: window.currentUser,
+          group_id: key,
+          budget: (typeof config !== 'undefined' && config && config.budget) ? config.budget : 3000,
+          m_balance: (typeof config !== 'undefined' && config && config.m_balance) ? config.m_balance : 0,
+          c_balance: (typeof config !== 'undefined' && config && config.c_balance) ? config.c_balance : 0,
+          m_orig: (typeof config !== 'undefined' && config && config.m_orig) ? config.m_orig : 0,
+          c_orig: (typeof config !== 'undefined' && config && config.c_orig) ? config.c_orig : 0,
+          display_name: window.currentDisplayName || window.currentEmail || 'PARTNER'
+        });
+      } else {
+        payload = {
+          user_id: window.currentUser,
+          group_id: key,
+          budget: 3000,
+          m_balance: 0,
+          c_balance: 0,
+          m_orig: 0,
+          c_orig: 0,
+          display_name: window.currentDisplayName || window.currentEmail || 'PARTNER'
+        };
+      }
+      var write = await window._sb.from('app_settings').upsert(payload, { onConflict:'user_id' });
+      if (write.error) {
+        showToast('Error joining: ' + write.error.message, 'error');
+        return;
+      }
+      try { localStorage.setItem('flint_group_' + window.currentUser, key); } catch (e) {}
+      try { localStorage.removeItem('flint_pending_join'); } catch (e) {}
+      window.currentGroup = key;
+      try { if (typeof currentGroup !== 'undefined') currentGroup = key; } catch(e){}
+      showToast('Ledger joined! Loading...', 'success');
+      setTimeout(function(){ location.reload(); }, 350);
+    } finally {
+      setTimeout(function(){ window.__flintJoinBusy = false; }, 700);
+    }
+  }
+  window.joinLedger = function(raw){ return joinByGroupId(raw); };
+  window.joinLedgerPatched = function(raw){ return joinByGroupId(raw); };
+  window.acceptJoin = function(key){ return joinByGroupId(key); };
+  window.acceptJoinPatched = function(key){ return joinByGroupId(key); };
+  window.fpJoinLedger = function(){ return joinByGroupId(document.getElementById('fp_joinKey')?.value || ''); };
+})();
+</script>
+
 </body>
 </html>
