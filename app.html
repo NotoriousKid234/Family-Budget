@@ -8504,20 +8504,7 @@ function dismissWelcome() {
   .flint-history-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:0 2px 14px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:14px;}
   .flint-history-kicker{font-size:.68rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
   .flint-history-copy{font-size:.82rem;color:var(--text-soft);line-height:1.6;max-width:760px;}
-  .flint-history-quick{
-    background:rgba(255,255,255,.04);
-    color:var(--text);
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:12px;
-    padding:9px 12px;
-    font-size:.74rem;
-    font-weight:700;
-    cursor:pointer;
-    white-space:nowrap;
-    font-family:'DM Sans',sans-serif;
-    transition:all .18s ease;
-  }
-  .flint-history-quick:hover{background:rgba(255,255,255,.08);border-color:rgba(212,168,67,.22);}
+  
   #searchBar{font-size:.92rem !important;}
   #searchBar::placeholder{color:#6e89ac;}
   #historyCount{
@@ -8585,7 +8572,7 @@ function dismissWelcome() {
   }
   @media (max-width:720px){
     .flint-history-head,.flint-attention-head,.flint-attention-foot{flex-direction:column;align-items:flex-start;}
-    .flint-history-quick,.flint-attention-link{width:100%;text-align:center;}
+    .flint-attention-link{width:100%;text-align:center;}
     .flint-debt-grid,.flint-member-grid,.hero-stat-cards{grid-template-columns:1fr 1fr !important;}
   }
   @media (max-width:560px){
@@ -8675,7 +8662,6 @@ function dismissWelcome() {
         shell.insertAdjacentHTML('afterbegin', ''
           + '<div class="flint-history-head">'
           + '  <div><div class="flint-history-kicker">Recent activity</div><div class="flint-history-copy">Review the latest transactions, filter quickly, and make edits without leaving the dashboard.</div></div>'
-          + '  <button class="flint-history-quick" onclick="openSheet()">Quick add</button>'
           + '</div>');
       }
     }
