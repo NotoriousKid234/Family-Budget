@@ -7769,7 +7769,7 @@ window.flintSaveProfileV2 = async function(){
   .flint-ch-pill.won{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.22)}
   .flint-ch-pill.lost{background:rgba(251,113,133,.10);color:#fb7185;border:1px solid rgba(251,113,133,.22)}
   .flint-ch-scroll::-webkit-scrollbar{display:none}
-</style>
+ .flint-ch-body-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start} @media(max-width:700px){.flint-ch-body-grid{grid-template-columns:1fr!important}} </style>
 <script id="flint-challenges-v2-script">
 (function(){
   var STORAGE_KEY = 'montoya_challenges';
@@ -8386,7 +8386,7 @@ window.flintSaveProfileV2 = async function(){
     h += '<div id="fp_chHero" style="margin-bottom:18px;"></div>';
     h += '<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:0 0 10px;">AI suggested missions</div>';
     h += '<div id="fp_chSuggestions" class="flint-ch-scroll" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;margin-bottom:22px;"></div>';
-    h += '<div style="display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start;">';
+    h += '<div class="flint-ch-body-grid">';
     h += '<div>';
     h += '<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:0 0 10px;">Active missions</div>';
     h += '<div id="fp_chList"></div>';
