@@ -10398,6 +10398,11 @@ function dismissWelcome() {
     if (String(key) === String(window.currentGroup||'')) { showToast('You are already on this ledger!', 'warning'); return; }
     window.__flintJoinBusy = true;
     try {
+      var check = await window._sb.from('app_settings').select('user_id').eq('group_id', key).limit(1);
+      if (check.error || !check.data || check.data.length === 0) {
+        showToast('Join key not found — check with your partner.', 'error');
+        window.__flintJoinBusy = false; return;
+      }
       var payload;
       if (typeof appSettingsPayload === 'function') {
         payload = appSettingsPayload({
