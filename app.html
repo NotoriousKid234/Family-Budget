@@ -8081,7 +8081,7 @@ function dismissWelcome() {
         var current = summary.active[0];
         hero.innerHTML = '<div style="background:linear-gradient(135deg,rgba(15,25,50,.98),rgba(10,18,36,.98));border:1px solid rgba(212,168,67,.18);border-radius:22px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.35);">'
           + '<div style="display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap;">'
-          + '<div style="max-width:680px;"><div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:#d4a843;margin-bottom:8px;">Active challenge</div>'
+          + '<div style="max-width:680px;width:100%;flex:1 1 300px;"><div style="font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:#d4a843;margin-bottom:8px;">Active challenge</div>'
           + '<div style="font-size:1.25rem;font-weight:800;color:#eef2ff;line-height:1.25;">' + esc(current.emoji + ' ' + current.challenge.name) + '</div>'
           + '<div style="font-size:.84rem;color:#8aaac8;line-height:1.7;margin-top:8px;max-width:760px;">' + current.rule + '</div>'
           + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">'
@@ -8102,7 +8102,7 @@ function dismissWelcome() {
     window.__flintChallengeTemplates = deriveSuggestions();
     if (sugg) {
       var cards = window.__flintChallengeTemplates.map(function(item, idx){
-        return '<div style="min-width:250px;max-width:280px;background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:18px;padding:16px;">'
+        return '<div style="min-width:0;max-width:100%;width:100%;flex:1 1 280px;background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:18px;padding:16px;">'
           + '<div style="font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;color:#d4a843;margin-bottom:8px;">Suggested</div>'
           + '<div style="font-size:.95rem;font-weight:700;color:#eef2ff;line-height:1.35;margin-bottom:8px;">' + esc(item.name || buildChallengeTitle(item)) + '</div>'
           + '<div style="font-size:.78rem;color:#8899bb;line-height:1.6;min-height:72px;">' + item.blurb + '</div>'
