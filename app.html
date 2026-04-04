@@ -6513,7 +6513,7 @@ function dismissWelcome() {
       if(newEmail&&newEmail!==email)updates.email=newEmail;
       if(newPass&&newPass.length>=6)updates.password=newPass;
       if(newName)updates.data={display_name:newName};
-      var client=window.supabaseClient||window.supabase;
+      var client=window._sb||window.supabaseClient||window.supabase;
       var finish=function(ok){
         if(ok){var hn=panel.querySelector('#profHeroName,.prof-hero-name');if(hn&&newName)hn.textContent=newName;document.getElementById('flint-edit-pass').value='';btn.textContent='\u2713 Saved!';btn.style.background='linear-gradient(135deg,var(--green),#22c55e)';msg.style.display='block';setTimeout(function(){btn.textContent='Save Changes';btn.style.background='';btn.disabled=false;msg.style.display='none';},2500);}
         else{btn.textContent='Error \u2014 try again';btn.style.background='rgba(251,113,133,.3)';btn.disabled=false;setTimeout(function(){btn.textContent='Save Changes';btn.style.background='';},2000);}
@@ -7254,42 +7254,93 @@ function dismissWelcome() {
     clearTimeout(window.__flintSaveTmr);
     window.__flintSaveTmr = setTimeout(function(){ el.style.display = 'none'; }, 2400);
   }
-  window.flintSaveProfileV2 = async function(){
-    var prefs = readProfilePrefsFromUI();
-    saveProfilePrefs(prefs);
-    applyFlintProfilePrefs(false);
-    var newName = ((document.getElementById('flint-edit-name') || {}).value || '').trim();
-    var newEmail = ((document.getElementById('flint-edit-email') || {}).value || '').trim();
-    var newPass = ((document.getElementById('flint-edit-pass') || {}).value || '');
-    var updates = {};
-    if (newEmail && newEmail !== currentEmail) updates.email = newEmail;
-    if (newPass && newPass.length >= 6) updates.password = newPass;
-    if (newName) updates.data = { display_name: newName };
-    var client = window.supabaseClient || window.supabase || window._sb;
-    try {
-      if (Object.keys(updates).length && client && client.auth && typeof client.auth.updateUser === 'function') {
-        var res = await client.auth.updateUser(updates);
-        if (res && res.error) throw res.error;
-        if (newName) currentDisplayName = newName.toUpperCase();
-        if (newEmail) currentEmail = newEmail;
-      }
-      if (newPass) {
-        var passEl = document.getElementById('flint-edit-pass');
-        if (passEl) passEl.value = '';
-      }
-      if (newName) {
-        var topName = document.getElementById('profHeroName');
-        if (topName) topName.textContent = newName;
-      }
-      saveInlineState();
-      showToast('Profile updated', 'success');
-      if (document.getElementById('profileManager') && document.getElementById('profileManager').style.display !== 'none') {
-        setTimeout(function(){ populateProfile(); }, 60);
-      }
-    } catch(e) {
-      showToast((e && e.message) ? e.message : 'Could not update profile right now', 'error');
+
+// Expose internal profile functions to window scope
+window.getProfilePrefs = getProfilePrefs;
+window.readProfilePrefsFromUI = readProfilePrefsFromUI;
+window.saveProfilePrefs = saveProfilePrefs;
+window.saveInlineState = saveInlineState;
+window.buildProfileContentHTML = buildProfileContentHTML;
+
+window.flintSaveProfileV2 = async function(){
+  // 1. Read and save all preference fields from the UI to localStorage
+  var prefs = (typeof readProfilePrefsFromUI === 'function') ? readProfilePrefsFromUI() : null;
+  if (prefs) {
+    localStorage.setItem('flint_profile_prefs', JSON.stringify(prefs));
+    localStorage.setItem('montoya_notif_prefs', JSON.stringify({
+      bills: prefs.notif.bills !== false,
+      partner: prefs.notif.partner !== false,
+      recap: prefs.notif.recap !== false
+    }));
+  }
+  if (typeof applyFlintProfilePrefs === 'function') applyFlintProfilePrefs(false);
+
+  // 2. Read identity fields
+  var newName  = ((document.getElementById('flint-edit-name')  || {}).value || '').trim();
+  var newEmail = ((document.getElementById('flint-edit-email') || {}).value || '').trim();
+  var newPass  = ((document.getElementById('flint-edit-pass')  || {}).value || '');
+
+  // 3. Use the correct initialized Supabase client
+  var client = window._sb || window.supabaseClient || window.supabase;
+  var authUpdates = {};
+  if (newEmail && newEmail !== currentEmail) authUpdates.email    = newEmail;
+  if (newPass  && newPass.length >= 6)      authUpdates.password = newPass;
+  if (newName)                              authUpdates.data     = { display_name: newName };
+
+  try {
+    // 4. Save name/email/password via Supabase Auth
+    if (Object.keys(authUpdates).length && client && client.auth && typeof client.auth.updateUser === 'function') {
+      var res = await client.auth.updateUser(authUpdates);
+      if (res && res.error) throw res.error;
+      // Patch the local auth token so the name survives page reload
+      try {
+        var storageKey = 'sb-hieqohmhrpjvhotutwls-auth-token';
+        var stored = JSON.parse(localStorage.getItem(storageKey) || 'null');
+        if (stored && stored.user) {
+          if (newName) {
+            stored.user.user_metadata = stored.user.user_metadata || {};
+            stored.user.user_metadata.display_name = newName;
+          }
+          if (newEmail) stored.user.email = newEmail;
+          localStorage.setItem(storageKey, JSON.stringify(stored));
+        }
+      } catch(e2) {}
     }
-  };
+
+    // 5. Also persist display_name in app_settings table (shown to partner and loaded on startup)
+    if (newName && client && window.currentUser) {
+      await client.from('app_settings').update({ display_name: newName }).eq('user_id', window.currentUser);
+    }
+
+    // 6. Update in-memory global state
+    if (newName) {
+      currentDisplayName = newName.toUpperCase();
+      document.querySelectorAll('#profHeroName, .flint-prof-name').forEach(function(el){ el.textContent = newName; });
+    }
+    if (newEmail) {
+      currentEmail = newEmail;
+      document.querySelectorAll('#profHeroEmail, .flint-prof-email').forEach(function(el){ el.textContent = newEmail; });
+    }
+    if (newPass) {
+      var passEl = document.getElementById('flint-edit-pass');
+      if (passEl) passEl.value = '';
+    }
+
+    // 7. Flash the inline "saved" indicator
+    var inlineEl = document.getElementById('flint-inline-saved');
+    if (inlineEl) {
+      inlineEl.style.display = 'block';
+      clearTimeout(window.__flintSaveTmr);
+      window.__flintSaveTmr = setTimeout(function(){ inlineEl.style.display = 'none'; }, 2400);
+    }
+
+    showToast('Profile saved', 'success');
+    if (typeof renderNavBadges === 'function') renderNavBadges();
+
+  } catch(e) {
+    showToast((e && e.message) ? e.message : 'Could not save profile', 'error');
+  }
+};;
   window.saveNotifPrefs = function(){
     var prefs = getProfilePrefs();
     var b = document.getElementById('pref_notif_bills') || document.getElementById('notif_bills');
