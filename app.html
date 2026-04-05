@@ -5444,7 +5444,7 @@ function renderNavBadges() {
 }
 
 async function updatePassword() {
-    const p=document.getElementById('newPass').value; if(p.length<6){showToast('Min 6 chars');return;}
+    const p=document.getElementById('newPass').value; if(p.length<8){showToast('Min 8 chars');return;}
     try{await _sb.auth.updateUser({password:p});showToast('Password updated!');}catch(e){alert(e.message);}
 }
 
@@ -5608,7 +5608,7 @@ function showToast(msg, type='success') {
     const t = document.createElement('div');
     t.className = 'toast';
     t.style.cssText = 'border-left: 3px solid ' + (colors[type]||colors.success) + ';display:flex;align-items:center;gap:10px;';
-    t.innerHTML = '<span style="font-size:1rem;font-weight:700;color:' + (colors[type]||colors.success) + '">' + (icons[type]||'✓') + '</span><span>' + msg + '</span>';
+    t.innerHTML = '<span ...>' + (icons[type]||'✓') + '</span><span>' + escapeHtml(msg) + '</span>';
     const c = document.getElementById('toastContainer');
     c.appendChild(t);
     requestAnimationFrame(() => t.classList.add('show'));
@@ -6715,8 +6715,8 @@ function dismissWelcome() {
     if (newEmail && newEmail !== currentEmail) updates.email = newEmail;
 
     if (newPass) {
-      if (newPass.length < 6) {
-        if (typeof showToast === 'function') showToast('Password must be at least 6 characters.', 'warning');
+      if (newPass.length < 8) {
+        if (typeof showToast === 'function') showToast('Password must be at least 8 characters.', 'warning');
         return;
       }
       updates.password = newPass;
