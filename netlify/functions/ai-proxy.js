@@ -1,83 +1,47 @@
-const fetch = require('node-fetch');
+exports.handler = async function(event) {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
 
-exports.handler = async (event) => {
-    // 🛡️ SECURITY SHIELD: Check for the VIP Pass (Token)
-    // This stops unauthorized people from using your API credits.
-    const secureToken = event.headers['x-ai-proxy-token'];
-    const expectedToken = process.env.AI_PROXY_TOKEN || 'fallback-secret-123';
+  const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+  if (!ANTHROPIC_API_KEY) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'API key not configured' }) };
+  }
 
-    if (!secureToken || secureToken !== expectedToken) {
-        return {
-            statusCode: 403,
-            body: JSON.stringify({ error: "Unauthorized: Missing or invalid security token." })
-        };
-    }
+  let body;
+  try {
+    body = JSON.parse(event.body);
+  } catch (e) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
+  }
 
-    // --- ORIGINAL AI PROXY LOGIC BELOW ---
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
-    }
+  const system = body.system || '';
+  const prompt = body.prompt || '';
+  const messages = body.messages || [{ role: 'user', content: prompt }];
+  const model = body.model || 'claude-haiku-4-5-20251001';
+  const max_tokens = body.max_tokens || 400;
 
-    try {
-        const body = JSON.parse(event.body);
-        const { system, prompt, image, mediaType, message, action, symbols } = body;
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({ model, max_tokens, system, messages }),
+    });
 
-        // Handle Stock API Requests
-        if (action === 'stocks') {
-            const stockRes = await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(',')}`);
-            const stockData = await stockRes.json();
-            return {
-                statusCode: 200,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(stockData)
-            };
-        }
-
-        // Handle Anthropic AI Requests
-        const anthropicPayload = {
-            model: "claude-3-haiku-20240307",
-            max_tokens: 1024,
-            system: system || "You are a helpful financial assistant.",
-            messages: []
-        };
-
-        if (image && mediaType) {
-            anthropicPayload.messages.push({
-                role: "user",
-                content: [
-                    { type: "image", source: { type: "base64", media_type: mediaType, data: image } },
-                    { type: "text", text: prompt || "Analyze this image." }
-                ]
-            });
-        } else {
-            anthropicPayload.messages.push({
-                role: "user",
-                content: message || prompt
-            });
-        }
-
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': process.env.ANTHROPIC_API_KEY,
-                'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify(anthropicPayload)
-        });
-
-        const data = await response.json();
-        return {
-            statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        };
-
-    } catch (error) {
-        console.error('Proxy Error:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: error.message })
-        };
-    }
+    const data = await response.json();
+    return {
+      statusCode: response.status,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    };
+  } catch (err) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
+    };
+  }
 };
