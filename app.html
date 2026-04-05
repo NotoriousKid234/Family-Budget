@@ -5966,8 +5966,7 @@ function fpAskAI(preset){
         '- Savings vaults: '+vaults.length+' (total saved: $'+vaults.reduce(function(s,v){return s+(parseFloat(v.saved)||0);},0)+')';
     secureAIFetch({
     system: 'You are Flint AI - a smart, friendly financial coach for a family. You have access to their real spending, assets, debts, and savings data. Give concise, specific, actionable advice using their actual numbers. Be encouraging but honest. Use plain text, no markdown. Keep responses to 3-5 sentences unless they ask for more detail.',
-    prompt: context + '\n\nUser question: ' + q
-})
+   prompt: context + '\n\nUser question: ' + q
     }).then(function(r){return r.json();}).then(function(d){
         var text=d.content&&d.content[0]?d.content[0].text:'Sorry, I couldn\'t get a response. Try again.';
         if(textDiv) textDiv.innerText=text;
@@ -6166,7 +6165,7 @@ function buildReceiptPanel(){
     h+='<button onclick="fpAddScanned()" style="width:100%;background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-weight:700;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Sync Transaction</button></div>';
     return h;
 }
-function fpScanReceipt(input){if(!input.files||!input.files[0])return;var file=input.files[0];var reader=new FileReader();reader.onload=function(e){document.getElementById('fp_scanImg').src=e.target.result;document.getElementById('fp_scanPreview').style.display='block';document.getElementById('fp_scanStatus').innerHTML='<div style="color:#d4a843;">Reading receipt...</div>';var base64=e.target.result.split(',')[1];secureAIFetch({system:'Extract data from receipt. Respond ONLY with JSON: {amount:number,store:string,category:string}. Categories: Groceries,Dining,Utilities,Misc,Beauty,CreditCard.',prompt:'Extract from this receipt.',image:base64,mediaType:file.type||'image/jpeg'})}).then(function(r){return r.json();}).then(function(d){try{var t=d.content[0].text.replace(/```json|```/g,'').trim();var p=JSON.parse(t);document.getElementById('fp_scanAmt').value=p.amount||'';document.getElementById('fp_scanNote').value=p.store||'';document.getElementById('fp_scanStatus').innerText='Found: '+(p.store||'Unknown')+' · $'+(p.amount||'?');document.getElementById('fp_scanResult').style.display='block';}catch(e){document.getElementById('fp_scanStatus').innerText='Could not read receipt. Fill in manually.';document.getElementById('fp_scanResult').style.display='block';}}).catch(function(){document.getElementById('fp_scanStatus').innerText='Could not read receipt. Fill in manually.';document.getElementById('fp_scanResult').style.display='block';});};reader.readAsDataURL(file);}
+function fpScanReceipt(input){if(!input.files||!input.files[0])return;var file=input.files[0];var reader=new FileReader();reader.onload=function(e){document.getElementById('fp_scanImg').src=e.target.result;document.getElementById('fp_scanPreview').style.display='block';document.getElementById('fp_scanStatus').innerHTML='<div style="color:#d4a843;">Reading receipt...</div>';var base64=e.target.result.split(',')[1];secureAIFetch({system:'Extract data from receipt. Respond ONLY with JSON: {amount:number,store:string,category:string}. Categories: Groceries,Dining,Utilities,Misc,Beauty,CreditCard.',prompt:'Extract from this receipt.',image:base64,mediaType:file.type||'image/jpeg'}).then(function(r){return r.json();}).then(function(d){try{var t=d.content[0].text.replace(/```json|```/g,'').trim();var p=JSON.parse(t);document.getElementById('fp_scanAmt').value=p.amount||'';document.getElementById('fp_scanNote').value=p.store||'';document.getElementById('fp_scanStatus').innerText='Found: '+(p.store||'Unknown')+' · $'+(p.amount||'?');document.getElementById('fp_scanResult').style.display='block';}catch(e){document.getElementById('fp_scanStatus').innerText='Could not read receipt. Fill in manually.';document.getElementById('fp_scanResult').style.display='block';}}).catch(function(){document.getElementById('fp_scanStatus').innerText='Could not read receipt. Fill in manually.';document.getElementById('fp_scanResult').style.display='block';});};reader.readAsDataURL(file);}
 function fpAddScanned(){var amt=parseFloat(document.getElementById('fp_scanAmt').value);if(!amt){showToast('Enter an amount','error');return;}_sb.from('transactions').insert([{amount:amt,member:document.getElementById('fp_scanMember').value,category:document.getElementById('fp_scanCat').value,note:document.getElementById('fp_scanNote').value,intent:'Need',user_id:currentUser,group_id:currentGroup}]).then(function(){showToast('Receipt synced! ✓');fetchData();closePanel();});}
 
 // ── CONFIG PANEL ──
@@ -7443,11 +7442,10 @@ window.flintSaveProfileV2 = async function(){
       + '- Main focus: ' + focusLabel(prefs.aiFocus) + '\n'
       + '- Red-flag categories: ' + (prefs.aiRedFlags || 'none');
     try {
-      var res = awaitsecureAIFetch({
-          system: aiStyleSystem(prefs, false),
-          prompt: context + '\n\nUser question: ' + q
-        }
-      });
+      var res = await secureAIFetch({
+        system: aiStyleSystem(prefs, false),
+        prompt: context + '\n\nUser question: ' + q
+    });
       var d = await res.json();
       var text = d && d.content && d.content[0] && d.content[0].text ? d.content[0].text : 'Unable to get a response. Please try again.';
       if (body) body.innerText = text;
