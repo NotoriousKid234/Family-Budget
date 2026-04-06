@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
+        default-src 'none';
         script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
-        style-src  'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
-        font-src   'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
-        connect-src 'self' https://hieqohmhrpjvhotutwls.supabase.co https://*.netlify.app;
-        img-src 'self' data:;h
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://fonts.gstatic.com;
+        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        connect-src 'self' https://hieqohmhrpjvhotutwls.supabase.co https://*.netlify.app https://api.anthropic.com;
+        img-src 'self' data: blob:;
         object-src 'none';
         base-uri 'self';
         frame-ancestors 'none';
         form-action 'self';
+        upgrade-insecure-requests;
     ">
     <title>Flint — Spark your financial future</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -2744,7 +2745,9 @@
             <!-- Security -->
             <div class="sec-head">Security</div>
             <div class="input-card">
-                <label class="lbl">Update Password</label>
+                <label class="lbl">Current Password</label>
+                <input type="password" id="currentPass" placeholder="Current password">
+                <label class="lbl" style="margin-top:8px">New Password</label>
                 <input type="password" id="newPass" placeholder="New password (min 6 chars)">
                 <button class="btn btn-gold" onclick="updatePassword()">Update Password</button>
             </div>
@@ -3064,7 +3067,7 @@ const CAT_COLORS = { Groceries:'#34d399', Dining:'#fbbf24', Utilities:'#06b6d4',
 
 let _sb, catChartInst, memberChartInst;
 let history=[], recurring=[], notes=[], vaults=[], billReminders=[];
-let currentType='Need', currentGroup=null, currentUser=null, currentEmail='', currentDisplayName='', editingId=null;
+let currentType='Need', currentGroup=null, currentUser=null, currentSession=null, currentEmail='', currentDisplayName='', editingId=null;
 let config={ budget:7400, m_balance:0, c_balance:0, m_orig:500000, c_orig:45000 };
 let netWorth={ home:0, cash:0, invest:0, other:0 };
 let currentViewDate=new Date(), isSignUpMode=false;
@@ -3091,10 +3094,10 @@ try {
     try { if (typeof captureInviteParam === 'function') captureInviteParam(); } catch(e) { /* never block auth */ }
 
     _sb.auth.getSession().then(({ data:{ session } }) => {
-        if (!session) return;
+        if (!session) { document.body.classList.remove('logged-in'); return; }
         currentUser  = session.user.id;
         currentEmail = session.user.email || '';
-        document.body.classList.add('logged-in');
+        document.body.classList.add('logged-in'); currentSession = session;;
         // ── SECURITY: Resolve display name from authenticated session metadata,
         // NOT by sniffing the email string (trivially spoofable).
         // Set user_metadata.display_name when creating accounts via Supabase Auth.
@@ -3200,7 +3203,7 @@ async function acceptJoin(key) {
         c_orig: 0,
         cycle_start_day: 1
     }, { onConflict: 'user_id' });
-    if (error) { showToast('Error joining: ' + error.message, 'error'); return; }
+    if (error) { showToast('An error occurred. Please try again.'); return; }
     localStorage.setItem('flint_group_' + currentUser, key);
     showToast('Ledger joined! Loading...', 'success');
     location.reload();
@@ -3611,7 +3614,7 @@ async function askAI() {
     try {
         const res=await fetch('/.netlify/functions/ai-proxy',{
             method:'POST',
-            headers:{'Content-Type':'application/json'},
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+(currentSession&&currentSession.access_token||'')},
             body:JSON.stringify({
                 system:`You are a friendly, direct financial coach for a family. You have access to their real spending data. Give concise, actionable advice in 2-4 sentences. Use specific numbers from the data. Be encouraging but honest. No markdown, just plain conversational text.`,
                 prompt:`${context}\n\nUser question: ${q}`
@@ -3953,7 +3956,7 @@ async function addEntry() {
         if(editingId){await _sb.from('transactions').update(payload).eq('id',editingId);editingId=null;document.getElementById('syncBtn').innerText='Sync Transaction';document.getElementById('recurRow').style.display='flex';showToast('Transaction updated! ✓');}
         else{
             const {error} = await _sb.from('transactions').insert([payload]);
-            if(error) { showToast('Error saving: '+error.message, 'error'); return; }
+            if(error) { showToast('An error occurred. Please try again.'); return; }
             showToast('$'+fmt(amt)+' synced to '+cat+' ✓', 'success');
             if(isRecurChecked){
                 const bd=new Date().getDate();
@@ -3985,9 +3988,9 @@ function editEntry(id) {
     setTimeout(()=>{ openSheet(); }, 50);
 }
 
-async function deleteEntry(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid transaction id', 'error'); if(confirm('Delete?')){ await _sb.from('transactions').delete().eq('id',safeId); fetchData(); } }
-async function deleteSub(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid subscription id', 'error'); if(confirm('Delete?')){ await _sb.from('recurring_expenses').delete().eq('id',safeId); fetchData(); } }
-async function deleteNote(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid note id', 'error'); if(confirm('Delete?')){ await _sb.from('app_notes').delete().eq('id',safeId); fetchData(); } }
+async function deleteEntry(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid transaction id', 'error'); if(confirm('Delete?')){ await _sb.from('transactions').delete().eq('id',safeId).eq('group_id',currentGroup); fetchData(); } }
+async function deleteSub(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid subscription id', 'error'); if(confirm('Delete?')){ await _sb.from('recurring_expenses').delete().eq('id',safeId).eq('group_id',currentGroup); fetchData(); } }
+async function deleteNote(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid note id', 'error'); if(confirm('Delete?')){ await _sb.from('app_notes').delete().eq('id',safeId).eq('group_id',currentGroup); fetchData(); } }
 
 async function addNote() {
     const msgEl = document.getElementById('noteMessage');
@@ -4040,7 +4043,7 @@ async function addNote() {
             // Remove the optimistic bubble and show error
             const ob = document.getElementById(optimisticId);
             if (ob) ob.remove();
-            showToast('Failed to send: ' + error.message, 'error');
+            showToast('An error occurred. Please try again.');
             msgEl.value = msg; // restore message so user doesn't lose it
             return;
         }
@@ -4079,7 +4082,7 @@ async function addSub() {
         group_id: currentGroup,
         user_id: currentUser
     }]);
-    if(error) return showToast('Could not add subscription: ' + error.message, 'error');
+    if(error) return showToast('An error occurred. Please try again.');
     if(nameEl) nameEl.value='';
     if(amtEl) amtEl.value='';
     if(dayEl) dayEl.value='';
@@ -4103,7 +4106,7 @@ function fpAddSub(){
     if(!(a>0)){showToast('Enter a valid monthly cost','error');return;}
     if(!(d>=1&&d<=31)){showToast('Enter a billing day from 1 to 31','error');return;}
     _sb.from('recurring_expenses').insert([{name:n,amount:a,billing_day:d,category:c,member:'Split',group_id:currentGroup,user_id:currentUser}]).then(function(res){
-        if(res && res.error){ showToast('Could not add subscription: '+res.error.message,'error'); return; }
+        if(res && res.error){ showToast('An error occurred. Please try again.'); return; }
         showToast('Subscription added');
         fetchData().then(function(){ openPanel('subManager'); });
     });
@@ -4141,7 +4144,7 @@ async function authenticateUser() {
         }
         if(data.session) location.reload();
     }catch(e){
-        showToast(e.message||'Login failed. Please try again.','error');
+        showToast('An error occurred. Please try again.');
         btn.innerText=isSignUpMode?'Create Account':'Sign In';
         btn.disabled=false;
     }
@@ -4176,6 +4179,7 @@ function loadIcon() {
 async function scanReceipt(input) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
+    if (!file.type || !file.type.startsWith('image/')) { showToast('Invalid file type. Only images are accepted.'); return; }
     if (file.size > 5 * 1024 * 1024) { showToast('Image too large. Max 5MB.'); return; }
 
     const preview = document.getElementById('receiptPreview');
@@ -4196,7 +4200,7 @@ async function scanReceipt(input) {
             const mediaType = file.type || 'image/jpeg';
             const res = await fetch('/.netlify/functions/ai-proxy', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (currentSession && currentSession.access_token || '') },
                 body: JSON.stringify({
                     system: 'You are a receipt scanner. Extract data from receipt images and respond ONLY with a JSON object with these exact keys: amount (number, total amount paid), store (string, store/restaurant name), category (one of: Groceries, Dining, Utilities, Car, CreditCard, Subscription, Beauty, Misc). No markdown, no explanation, just the JSON object.',
                     prompt: 'Extract the total amount, store name, and category from this receipt.',
@@ -4451,7 +4455,7 @@ async function checkAutoSync() {
         const pressureLabel = budgetPressure > 80 ? 'critical' : budgetPressure > 60 ? 'elevated' : 'healthy';
         const context = `Financial snapshot:\n- Budget: $${budget} | Spent: $${totalSpent.toFixed(2)} (${budgetPressure}% — ${pressureLabel}) | Remaining: $${remaining.toFixed(2)}\n- Days left: ${daysLeft} of ${daysInCycle} (${Math.round(cyclePctLeft*100)}% remaining)\n- Needs: $${needSpent.toFixed(2)} | Wants: $${wantSpent.toFixed(2)}\n${wantCap > 0 ? `- Want cap: $${wantCap} — ${wantCapPct}% used` : '- No want cap set'}\n- Want purchases last 7 days: ${recentWants} (freq: ${freqLevel})\n- Mortgage: $${config.m_balance||0} | Car: $${config.c_balance||0}\nPurchase: "${note}" (${cat}) — $${amt.toFixed(2)}\nBudget pressure: ${budgetPressure}% | Size: ${sizeScore}/100 | Freq: ${freqLevel}\nVERDICT: ${verdictCode}`;
         try {
-            const res = await fetch('/.netlify/functions/ai-proxy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ system: `You are Flint, a sharp finance coach. The verdict is already decided by math. Explain WHY in 2-3 punchy sentences using the real numbers. Never say "I". End with one actionable tip.`, prompt: context + `\n\nExplain this ${verdictCode} verdict in 2-3 sentences. Use real numbers. End with one concrete tip.` }) });
+            const res = await fetch('/.netlify/functions/ai-proxy', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (currentSession && currentSession.access_token || '') }, body: JSON.stringify({ system: `You are Flint, a sharp finance coach. The verdict is already decided by math. Explain WHY in 2-3 punchy sentences using the real numbers. Never say "I". End with one actionable tip.`, prompt: context + `\n\nExplain this ${verdictCode} verdict in 2-3 sentences. Use real numbers. End with one concrete tip.` }) });
             const data = await res.json();
             const full = data.content?.[0]?.text || 'Unable to analyze right now.';
             adviceText.innerText = full;
@@ -4541,7 +4545,7 @@ Be specific, warm, and end with one actionable tip for next week. Keep it under 
 
         const res = await fetch('/.netlify/functions/ai-proxy', {
             method: 'POST',
-            headers: {'Content-Type':'application/json'},
+            headers: {'Content-Type':'application/json','Authorization':'Bearer '+(currentSession&&currentSession.access_token||'')},
             body: JSON.stringify({ message: prompt, system: 'You are a concise, warm family finance coach.' })
         });
         const data = await res.json();
@@ -4956,6 +4960,7 @@ function renderSubSummary() {
 }
 
 function confirmClearCycle() {
+  if (!isOwner) { showToast('Only the group owner can clear all transactions.'); return; }
     showConfirm('This will delete all transactions from the current cycle. This cannot be undone.', async () => {
         const cycleStart = (() => {
             const n = new Date(); const d = config.cycle_start_day||16;
@@ -5041,7 +5046,7 @@ async function fetchStocks(panel) {
     const STOCK_SYMS = STOCK_SYMBOLS.map(s => s.symbol);
     const res = await fetch('/.netlify/functions/ai-proxy', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (currentSession && currentSession.access_token || '') },
         body: JSON.stringify({ action: 'stocks', symbols: STOCK_SYMS }),
         signal: AbortSignal.timeout(10000)
     });
@@ -5199,7 +5204,7 @@ async function fetchAiTip(force = false) {
 
         const res = await fetch('/.netlify/functions/ai-proxy', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (currentSession && currentSession.access_token || '') },
             body: JSON.stringify({
                 system: 'You are a direct, data-driven personal finance coach. Always reference the actual numbers provided. Be specific, never generic. Write exactly 3 numbered insights, nothing else.',
                 prompt: 'Review this real spending data and write exactly 3 numbered insights (1. 2. 3.), one per line. Each must be 1 sentence, use actual dollar figures from the data, and end with one concrete action they can take today.\n\nData: ' + ctx
@@ -5444,8 +5449,15 @@ function renderNavBadges() {
 }
 
 async function updatePassword() {
-    const p=document.getElementById('newPass').value; if(p.length<6){showToast('Min 6 chars');return;}
-    try{await _sb.auth.updateUser({password:p});showToast('Password updated!');}catch(e){alert(e.message);}
+    const cp=document.getElementById('currentPass')?.value||'', np=document.getElementById('newPass').value;
+    if(!cp){showToast('Enter your current password.'); return;}
+    if(np.length<6){showToast('New password must be at least 6 characters.'); return;}
+    try{
+      const reauth=await _sb.auth.signInWithPassword({email:currentEmail,password:cp});
+      if(reauth.error){showToast('Current password is incorrect.'); return;}
+      await _sb.auth.updateUser({password:np});
+      showToast('Password updated successfully.');
+    }catch(e){showToast('An error occurred. Please try again.');}
 }
 
 // ── Misc ──
@@ -5576,7 +5588,7 @@ async function performLedgerJoin(k) {
         };
         const res = await _sb.from('app_settings').upsert(payload, { onConflict: 'user_id' });
         if (res.error) {
-            showToast('Error joining: ' + res.error.message, 'error');
+            showToast('An error occurred. Please try again.');
             return;
         }
         localStorage.setItem('flint_group_' + currentUser, k);
@@ -5601,7 +5613,7 @@ async function joinLedger() {
 }
 function initCycles(){ const s=document.getElementById('cycleSelect'); s.innerHTML=''; let now=new Date(); for(let i=0;i<6;i++){let d=new Date(now.getFullYear(),now.getMonth()-i,16);let o=document.createElement('option');o.value=d.toISOString();o.text=d.toLocaleString('default',{month:'long',year:'numeric'})+' Cycle';s.appendChild(o);} }
 async function changeCycle(){ currentViewDate=new Date(document.getElementById('cycleSelect').value); await fetchData(); }
-async function logoutApp(){ await _sb.auth.signOut(); window.location.href = '/'; }
+async function logoutApp(){ await _sb.auth.signOut(); currentSession = null; document.body.classList.remove('logged-in'); localStorage.clear(); window.location.href = '/'; }
 function showToast(msg, type='success') {
     const icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠️' };
     const colors = { success:'var(--green)', error:'var(--rose)', info:'var(--blue)', warning:'var(--amber)' };
@@ -5964,7 +5976,7 @@ function fpAskAI(preset){
         '- Savings vaults: '+vaults.length+' (total saved: $'+vaults.reduce(function(s,v){return s+(parseFloat(v.saved)||0);},0)+')';
     fetch('/.netlify/functions/ai-proxy',{
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+(currentSession&&currentSession.access_token||'')},
         body:JSON.stringify({
             system:'You are Flint AI — a smart, friendly financial coach for a family. You have access to their real spending, assets, debts, and savings data. Give concise, specific, actionable advice using their actual numbers. Be encouraging but honest. Use plain text, no markdown. Keep responses to 3-5 sentences unless they ask for more detail.',
             prompt:context+'\n\nUser question: '+q
@@ -6034,7 +6046,7 @@ function buildSubsPanel(){
     h+='</div>';
     return h;
 }
-function fpDelSub(id){if(!confirm('Delete this subscription?'))return;var safeId=safeIdValue(id);if(!safeId){showToast('Invalid subscription id','error');return;} _sb.from('recurring_expenses').delete().eq('id',safeId).then(function(res){ if(res && res.error){ showToast('Could not delete subscription: '+res.error.message,'error'); return; } recurring=recurring.filter(function(r){return r.id!==safeId;});showToast('Subscription deleted');openPanel('subManager');});}
+function fpDelSub(id){if(!confirm('Delete this subscription?'))return;var safeId=safeIdValue(id);if(!safeId){showToast('Invalid subscription id','error');return;} _sb.from('recurring_expenses').delete().eq('id',safeId).eq('group_id',currentGroup).then(function(res){ if(res && res.error){ showToast('An error occurred. Please try again.'); return; } recurring=recurring.filter(function(r){return r.id!==safeId;});showToast('Subscription deleted');openPanel('subManager');});}
 
 // ── FAMILY NOTES PANEL ──
 function buildNotesPanel(){
@@ -6167,7 +6179,7 @@ function buildReceiptPanel(){
     h+='<button onclick="fpAddScanned()" style="width:100%;background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-weight:700;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Sync Transaction</button></div>';
     return h;
 }
-function fpScanReceipt(input){if(!input.files||!input.files[0])return;var file=input.files[0];var reader=new FileReader();reader.onload=function(e){document.getElementById('fp_scanImg').src=e.target.result;document.getElementById('fp_scanPreview').style.display='block';document.getElementById('fp_scanStatus').innerHTML='<div style="color:#d4a843;">Reading receipt...</div>';var base64=e.target.result.split(',')[1];fetch('/.netlify/functions/ai-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:'Extract data from receipt. Respond ONLY with JSON: {amount:number,store:string,category:string}. Categories: Groceries,Dining,Utilities,Misc,Beauty,CreditCard.',prompt:'Extract from this receipt.',image:base64,mediaType:file.type||'image/jpeg'})}).then(function(r){return r.json();}).then(function(d){try{var t=d.content[0].text.replace(/```json|```/g,'').trim();var p=JSON.parse(t);document.getElementById('fp_scanAmt').value=p.amount||'';document.getElementById('fp_scanNote').value=p.store||'';document.getElementById('fp_scanStatus').innerText='Found: '+(p.store||'Unknown')+' · $'+(p.amount||'?');document.getElementById('fp_scanResult').style.display='block';}catch(e){document.getElementById('fp_scanStatus').innerText='Could not read receipt. Fill in manually.';document.getElementById('fp_scanResult').style.display='block';}}).catch(function(){document.getElementById('fp_scanStatus').innerText='Could not read receipt. Fill in manually.';document.getElementById('fp_scanResult').style.display='block';});};reader.readAsDataURL(file);}
+function fpScanReceipt(input){if(!input.files||!input.files[0])return;var file=input.files[0];var reader=new FileReader();reader.onload=function(e){document.getElementById('fp_scanImg').src=e.target.result;document.getElementById('fp_scanPreview').style.display='block';document.getElementById('fp_scanStatus').innerHTML='<div style="color:#d4a843;">Reading receipt...</div>';var base64=e.target.result.split(',')[1];fetch('/.netlify/functions/ai-proxy',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(currentSession&&currentSession.access_token||'')},body:JSON.stringify({system:'Extract data from receipt. Respond ONLY with JSON: {amount:number,store:string,category:string}. Categories: Groceries,Dining,Utilities,Misc,Beauty,CreditCard.',prompt:'Extract from this receipt.',image:base64,mediaType:file.type||'image/jpeg'})}).then(function(r){return r.json();}).then(function(d){try{var t=d.content[0].text.replace(/```json|```/g,'').trim();var p=JSON.parse(t);document.getElementById('fp_scanAmt').value=p.amount||'';document.getElementById('fp_scanNote').value=p.store||'';document.getElementById('fp_scanStatus').innerText='Found: '+(p.store||'Unknown')+' · $'+(p.amount||'?');document.getElementById('fp_scanResult').style.display='block';}catch(e){document.getElementById('fp_scanStatus').innerText='Could not read receipt. Fill in manually.';document.getElementById('fp_scanResult').style.display='block';}}).catch(function(){document.getElementById('fp_scanStatus').innerText='Could not read receipt. Fill in manually.';document.getElementById('fp_scanResult').style.display='block';});};reader.readAsDataURL(file);}
 function fpAddScanned(){var amt=parseFloat(document.getElementById('fp_scanAmt').value);if(!amt){showToast('Enter an amount','error');return;}_sb.from('transactions').insert([{amount:amt,member:document.getElementById('fp_scanMember').value,category:document.getElementById('fp_scanCat').value,note:document.getElementById('fp_scanNote').value,intent:'Need',user_id:currentUser,group_id:currentGroup}]).then(function(){showToast('Receipt synced! ✓');fetchData();closePanel();});}
 
 // ── CONFIG PANEL ──
@@ -6189,7 +6201,7 @@ function buildConfigPanel(){
     return h;
 }
 function fpSaveConfig(){config.budget=parseFloat(document.getElementById('fp_budget').value)||config.budget;config.want_cap=parseFloat(document.getElementById('fp_wantcap').value)||0;config.cycle_start_day=parseInt(document.getElementById('fp_cycleday').value)||16;config.m_balance=parseFloat(document.getElementById('fp_mbal').value)||0;config.c_balance=parseFloat(document.getElementById('fp_cbal').value)||0;config.m_orig=parseFloat(document.getElementById('fp_morig').value)||config.m_orig;config.c_orig=parseFloat(document.getElementById('fp_corig').value)||config.c_orig;_sb.from('app_settings').update(config).eq('group_id',currentGroup).then(function(){showToast('Settings saved!');closePanel();fetchData();});}
-function fpClearCycle(){if(!confirm('Delete ALL transactions from the current cycle? This cannot be undone.'))return;var cStart=(function(){var n=new Date(),d=config.cycle_start_day||16,s=new Date(n.getFullYear(),n.getMonth(),d);if(s>n)s.setMonth(s.getMonth()-1);return s;})();_sb.from('transactions').delete().gte('created_at',cStart.toISOString()).eq('group_id',currentGroup).then(function(){showToast('Cycle cleared','info');fetchData();closePanel();});}
+function fpClearCycle(){ if (!isOwner) { showToast('Only the group owner can clear all transactions.'); return; } if(!confirm('Delete ALL transactions from the current cycle? This cannot be undone.'))return;var cStart=(function(){var n=new Date(),d=config.cycle_start_day||16,s=new Date(n.getFullYear(),n.getMonth(),d);if(s>n)s.setMonth(s.getMonth()-1);return s;})();_sb.from('transactions').delete().gte('created_at',cStart.toISOString()).eq('group_id',currentGroup).then(function(){showToast('Cycle cleared','info');fetchData();closePanel();});}
 
 // ── SHARE LEDGER PANEL ──
 function buildSharePanel(){
@@ -6311,7 +6323,7 @@ async function fpKickMember(userId) {
                 showToast('Partner removed from your ledger.', 'success');
                 setTimeout(() => location.reload(), 1200);
             } catch(e) {
-                showToast('Error removing partner: ' + e.message, 'error');
+                showToast('An error occurred. Please try again.');
             }
         }
 async function fpLeaveLedger() {
@@ -6768,7 +6780,7 @@ function dismissWelcome() {
       setSaveButtonState('success');
     } catch (e) {
       if (typeof showToast === 'function') {
-        showToast((e && e.message) ? e.message : 'Could not save profile.', 'error');
+        showToast('An error occurred. Please try again.');
       }
       setSaveButtonState('error');
     }
@@ -7338,7 +7350,7 @@ window.flintSaveProfileV2 = async function(){
     if (typeof renderNavBadges === 'function') renderNavBadges();
 
   } catch(e) {
-    showToast((e && e.message) ? e.message : 'Could not save profile', 'error');
+    showToast('An error occurred. Please try again.');
   }
 };;
   window.saveNotifPrefs = function(){
@@ -7446,7 +7458,7 @@ window.flintSaveProfileV2 = async function(){
     try {
       var res = await fetch('/.netlify/functions/ai-proxy', {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+(currentSession&&currentSession.access_token||'')},
         body: JSON.stringify({
           system: aiStyleSystem(prefs, false),
           prompt: context + '\n\nUser question: ' + q
@@ -7528,7 +7540,7 @@ window.flintSaveProfileV2 = async function(){
     try {
       var res = await fetch('/.netlify/functions/ai-proxy', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (currentSession && currentSession.access_token || '') },
         body: JSON.stringify({
           system: aiStyleSystem(prefs, true),
           prompt: context + '\n\nExplain this ' + verdictCode + ' verdict in 2-3 sentences. Use real numbers. End with one concrete tip.'
@@ -7779,7 +7791,7 @@ window.flintSaveProfileV2 = async function(){
     if (typeof escapeHtml === 'function') return escapeHtml(v == null ? '' : String(v));
     return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});
   }
-  function uid(){ return 'ch_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function uid(){ const _r=new Uint32Array(1); crypto.getRandomValues(_r); return 'ch_' + Date.now().toString(36) + _r[0].toString(36); }
   function currency(n){
     n = Number(n || 0);
     if (typeof fmt === 'function') return '$' + fmt(n);
@@ -10000,7 +10012,7 @@ window.flintSaveProfileV2 = async function(){
         display_name: getMyLabel()
       };
       var res = await window._sb.from('app_settings').upsert(payload, { onConflict: 'user_id' });
-      if (res.error) { showToast('Error joining: ' + res.error.message, 'error'); return; }
+      if (res.error) { showToast('An error occurred. Please try again.'); return; }
       localStorage.setItem('flint_group_' + window.currentUser, key);
       showToast('Ledger joined! Loading...', 'success');
       location.reload();
@@ -10032,7 +10044,7 @@ window.flintSaveProfileV2 = async function(){
         })
         .then(function(res){
           if (!res) return;
-          if (res.error) { showToast('Error joining: ' + res.error.message, 'error'); return; }
+          if (res.error) { showToast('An error occurred. Please try again.'); return; }
           localStorage.setItem('flint_group_' + window.currentUser, k);
           showToast('Ledger joined! Loading...', 'success');
           location.reload();
@@ -10191,7 +10203,7 @@ window.flintSaveProfileV2 = async function(){
       });
       var res = await window._sb.from('app_settings').upsert(payload, { onConflict: 'user_id' });
       if (res.error) {
-        showToast('Error joining: ' + res.error.message, 'error');
+        showToast('An error occurred. Please try again.');
         return;
       }
       currentGroup = k;
@@ -10368,7 +10380,7 @@ window.flintSaveProfileV2 = async function(){
       }
       var write = await window._sb.from('app_settings').upsert(payload, { onConflict:'user_id' });
       if (write.error) {
-        showToast('Error joining: ' + write.error.message, 'error');
+        showToast('An error occurred. Please try again.');
         return;
       }
       try { localStorage.setItem('flint_group_' + window.currentUser, resolved.group_id); } catch (e) {}
@@ -10482,7 +10494,7 @@ window.flintSaveProfileV2 = async function(){
       }
       var write = await window._sb.from('app_settings').upsert(payload, { onConflict:'user_id' });
       if (write.error) {
-        showToast('Error joining: ' + write.error.message, 'error');
+        showToast('An error occurred. Please try again.');
         return;
       }
       try { localStorage.setItem('flint_group_' + window.currentUser, key); } catch (e) {}
