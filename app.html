@@ -9934,7 +9934,12 @@ window.flintSaveProfileV2 = async function(){
   async function syncMyDisplayNameToSettings(){
     try {
       if (!window._sb || !window.currentUser) return;
+      // Only overwrite if the DB currently has a default/blank name, never overwrite a user-set name
+      var existing = window.config && window.config.display_name;
+      var isDefault = !existing || existing === 'PARTNER' || existing === 'partner' || existing === 'USER' || existing === '';
+      if (!isDefault) return;
       var label = getMyLabel();
+      if (!label || label === 'You') return;
       await window._sb.from('app_settings').update({ display_name: label }).eq('user_id', window.currentUser);
     } catch(e) { /* silent */ }
   }
@@ -10237,6 +10242,11 @@ window.flintSaveProfileV2 = async function(){
       currentGroup = config.group_id;
       if (!config.m_orig) config.m_orig = 500000;
       if (!config.c_orig) config.c_orig = 45000;
+      // Set currentDisplayName immediately from DB so syncMyDisplayNameToSettings sees it
+      if (config.display_name && config.display_name !== 'PARTNER' && config.display_name !== '') {
+        currentDisplayName = config.display_name;
+        window.currentDisplayName = config.display_name;
+      }
       updateConfigInputs();
       // Restore net worth from Supabase config
       if(config.nw_home || config.nw_cash || config.nw_invest || config.nw_other) {
