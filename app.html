@@ -10174,7 +10174,12 @@ window.flintSaveProfileV2 = async function(){
       c_balance: safeNum(payload.c_balance, 0),
       m_orig: safeNum(payload.m_orig, 0),
       c_orig: safeNum(payload.c_orig, 0),
-      display_name: cleanText(payload.display_name, payload.user_id ? 'PARTNER' : '')
+      display_name: cleanText(payload.display_name, payload.user_id ? 'PARTNER' : ''),
+      nw_home: safeNum(payload.nw_home, null),
+      nw_cash: safeNum(payload.nw_cash, null),
+      nw_invest: safeNum(payload.nw_invest, null),
+      nw_other: safeNum(payload.nw_other, null),
+      nw_goal: safeNum(payload.nw_goal, null)
     };
   }
   function updateConfigInputs(){
@@ -10279,7 +10284,12 @@ window.flintSaveProfileV2 = async function(){
         c_balance: config && config.c_balance ? config.c_balance : 0,
         m_orig: config && config.m_orig ? config.m_orig : 0,
         c_orig: config && config.c_orig ? config.c_orig : 0,
-        display_name: currentDisplayName || currentEmail || 'PARTNER'
+        display_name: currentDisplayName || currentEmail || 'PARTNER',
+        nw_home: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.home, null) : null,
+        nw_cash: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.cash, null) : null,
+        nw_invest: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.invest, null) : null,
+        nw_other: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.other, null) : null,
+        nw_goal: safeNum(localStorage.getItem('flint_nw_goal') || (config && config.nw_goal) || null, null)
       });
       var res = await window._sb.from('app_settings').upsert(payload, { onConflict: 'user_id' });
       if (res.error) {
@@ -10313,7 +10323,12 @@ window.flintSaveProfileV2 = async function(){
       c_balance: config.c_balance,
       m_orig: config.m_orig,
       c_orig: config.c_orig,
-      display_name: currentDisplayName || currentEmail || 'PARTNER'
+      display_name: currentDisplayName || currentEmail || 'PARTNER',
+      nw_home: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.home, null) : null,
+      nw_cash: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.cash, null) : null,
+      nw_invest: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.invest, null) : null,
+      nw_other: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.other, null) : null,
+      nw_goal: safeNum(localStorage.getItem('flint_nw_goal') || (config && config.nw_goal) || null, null)
     });
     await window._sb.from('app_settings').upsert(payload, { onConflict: 'user_id' });
     try { switchView('app'); } catch(e) {}
@@ -10335,7 +10350,12 @@ window.flintSaveProfileV2 = async function(){
       c_balance: config.c_balance,
       m_orig: config.m_orig,
       c_orig: config.c_orig,
-      display_name: currentDisplayName || currentEmail || 'PARTNER'
+      display_name: currentDisplayName || currentEmail || 'PARTNER',
+      nw_home: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.home, null) : null,
+      nw_cash: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.cash, null) : null,
+      nw_invest: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.invest, null) : null,
+      nw_other: (typeof netWorth !== 'undefined' && netWorth) ? safeNum(netWorth.other, null) : null,
+      nw_goal: safeNum(localStorage.getItem('flint_nw_goal') || (config && config.nw_goal) || null, null)
     });
     window._sb.from('app_settings').upsert(payload, { onConflict: 'user_id' }).then(function(){
       showToast('Settings saved!');
@@ -10444,7 +10464,12 @@ window.flintSaveProfileV2 = async function(){
           c_balance: (typeof config !== 'undefined' && config && config.c_balance) ? config.c_balance : 0,
           m_orig: (typeof config !== 'undefined' && config && config.m_orig) ? config.m_orig : 0,
           c_orig: (typeof config !== 'undefined' && config && config.c_orig) ? config.c_orig : 0,
-          display_name: window.currentDisplayName || window.currentEmail || 'PARTNER'
+          display_name: window.currentDisplayName || window.currentEmail || 'PARTNER',
+          nw_home: (typeof netWorth !== 'undefined' && netWorth) ? parseFloat(netWorth.home)||null : null,
+          nw_cash: (typeof netWorth !== 'undefined' && netWorth) ? parseFloat(netWorth.cash)||null : null,
+          nw_invest: (typeof netWorth !== 'undefined' && netWorth) ? parseFloat(netWorth.invest)||null : null,
+          nw_other: (typeof netWorth !== 'undefined' && netWorth) ? parseFloat(netWorth.other)||null : null,
+          nw_goal: parseFloat(localStorage.getItem('flint_nw_goal'))||(typeof config !== 'undefined' && config && config.nw_goal ? config.nw_goal : null)
         });
       } else {
         payload = {
@@ -10558,7 +10583,12 @@ window.flintSaveProfileV2 = async function(){
           c_balance: (typeof config !== 'undefined' && config && config.c_balance) ? config.c_balance : 0,
           m_orig: (typeof config !== 'undefined' && config && config.m_orig) ? config.m_orig : 0,
           c_orig: (typeof config !== 'undefined' && config && config.c_orig) ? config.c_orig : 0,
-          display_name: window.currentDisplayName || window.currentEmail || 'PARTNER'
+          display_name: window.currentDisplayName || window.currentEmail || 'PARTNER',
+          nw_home: (typeof netWorth !== 'undefined' && netWorth) ? parseFloat(netWorth.home)||null : null,
+          nw_cash: (typeof netWorth !== 'undefined' && netWorth) ? parseFloat(netWorth.cash)||null : null,
+          nw_invest: (typeof netWorth !== 'undefined' && netWorth) ? parseFloat(netWorth.invest)||null : null,
+          nw_other: (typeof netWorth !== 'undefined' && netWorth) ? parseFloat(netWorth.other)||null : null,
+          nw_goal: parseFloat(localStorage.getItem('flint_nw_goal'))||(typeof config !== 'undefined' && config && config.nw_goal ? config.nw_goal : null)
         });
       } else {
         payload = {
