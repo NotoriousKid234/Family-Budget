@@ -1,16 +1,30 @@
 {
   "name": "Flint Finance",
-  "short_name": "Ledger",
-  "start_url": ".",
+  "short_name": "Flint",
+  "description": "Spark your financial future — family budget tracking, bill reminders, and AI insights.",
+  "start_url": "/app.html",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#060d1c",
+  "theme_color": "#060d1c",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "icon.png",
-      "sizes": "192x192 512x512",
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "categories": [
+    "finance",
+    "productivity"
+  ],
+  "lang": "en-US",
+  "scope": "/"
 }
