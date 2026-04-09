@@ -1,3 +1,9 @@
 [build]
   command = "node generate-config.js"
   publish = "."
+
+[build.environment]
+  # config.js is auto-generated at build time and intentionally contains
+  # the Supabase publishable (anon) key for client-side use.
+  # This key is safe to be public — it is protected by Supabase RLS policies.
+  SECRETS_SCAN_OMIT_PATHS = "config.js"
