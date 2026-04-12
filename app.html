@@ -827,12 +827,12 @@
             border: 1px solid rgba(100,150,230,.18);
             border-bottom: none;
             border-radius: 32px 32px 0 0;
-            padding: 10px 24px 44px;
+            padding: 10px 24px max(44px, env(safe-area-inset-bottom, 44px));
             z-index: 3002;
             transform: translateY(110%);
             pointer-events: none;
             transition: transform .4s cubic-bezier(.4,0,.2,1);
-            max-height: 94vh; overflow-y: auto;
+            max-height: 90dvh; max-height: 90vh; overflow-y: scroll; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
             box-shadow: 0 -20px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06);
         }
         .bottom-sheet.open { transform: translateY(0); pointer-events: all; }
@@ -2306,11 +2306,6 @@
 
 
 
-            <!-- Add Transaction Button -->
-            <button class="add-txn-btn" onclick="openSheet()" id="addTxnBtn">
-                <i class="fa-solid fa-plus" style="font-size:.85rem;"></i>
-                <span>Add Transaction</span>
-            </button>
 
             <!-- Transaction List -->
             <div style="background:var(--ink-2);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:12px;padding:14px 16px 6px;">
