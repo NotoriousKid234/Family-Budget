@@ -47,7 +47,11 @@ self.addEventListener('install', event => {
     );
 });
 
-// ── Activate: remove every old cache version ──
+// ── Activate: remove every old cache version, then reload all open tabs ──
+// Reloading is critical: the old SW may have served a stale cached config.js
+// to already-open pages before we took control. A reload forces a fresh fetch
+// of config.js (which is in BYPASS, so it always comes from the network).
+// This fires only ONCE per SW version — no reload loop risk.
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys()
@@ -55,6 +59,10 @@ self.addEventListener('activate', event => {
                 keys.filter(k => k !== CACHE).map(k => caches.delete(k))
             ))
             .then(() => self.clients.claim())
+            .then(() => self.clients.matchAll({ type: 'window' }))
+            .then(clients => Promise.all(
+                clients.map(client => client.navigate(client.url))
+            ))
     );
 });
 
