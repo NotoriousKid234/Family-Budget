@@ -10,6 +10,10 @@
   Cache-Control: no-cache, no-store, must-revalidate
   Service-Worker-Allowed: /
 
+# Supabase credentials — generated at build time, must never be cached
+/config.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
 # Digital Asset Links — required for TWA / Play Store verification
 /.well-known/assetlinks.json
   Content-Type: application/json

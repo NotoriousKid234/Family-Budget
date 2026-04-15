@@ -1,6 +1,6 @@
 // ── Flint Finance Service Worker ──
 // Bump CACHE version any time you want to force all clients to get fresh files.
-const CACHE = 'flint-v2';
+const CACHE = 'flint-v3';
 
 // Files that make up the app shell — pre-cached on install.
 // NOTE: config.js is intentionally excluded — it must always be fetched
@@ -47,11 +47,9 @@ self.addEventListener('install', event => {
     );
 });
 
-// ── Activate: remove every old cache version, then reload all open tabs ──
-// Reloading is critical: the old SW may have served a stale cached config.js
-// to already-open pages before we took control. A reload forces a fresh fetch
-// of config.js (which is in BYPASS, so it always comes from the network).
-// This fires only ONCE per SW version — no reload loop risk.
+// ── Activate: remove every old cache version, then notify all open tabs ──
+// We post a message rather than force-navigating so the app can decide
+// whether a reload is safe (e.g. not mid-transaction).
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys()
@@ -60,9 +58,7 @@ self.addEventListener('activate', event => {
             ))
             .then(() => self.clients.claim())
             .then(() => self.clients.matchAll({ type: 'window' }))
-            .then(clients => Promise.all(
-                clients.map(client => client.navigate(client.url))
-            ))
+            .then(clients => clients.forEach(c => c.postMessage({ type: 'SW_UPDATED' })))
     );
 });
 

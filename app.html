@@ -4263,6 +4263,13 @@ async function authenticateUser() {
         if(conf&&conf!==pass){showToast('Passwords do not match','error');return;}
         if(pass.length<6){showToast('Password must be at least 6 characters','warning');return;}
     }
+    // Guard: config.js must have loaded before we can reach Supabase.
+    // If credentials are missing the SW probably served a stale cached version.
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+        showToast('App config not loaded — refreshing…', 'warning');
+        setTimeout(() => location.reload(), 1500);
+        return;
+    }
     const btn=document.getElementById('authBtn');
     btn.innerText=isSignUpMode?'Creating account...':'Signing in...';
     btn.disabled=true;
@@ -4285,7 +4292,16 @@ async function authenticateUser() {
         }
         if(data.session) location.reload();
     }catch(e){
-        showToast('An error occurred. Please try again.');
+        const msg = e?.message || '';
+        if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials') || msg.toLowerCase().includes('email not confirmed')) {
+            showToast('Invalid email or password. Please try again.', 'error');
+        } else if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('failed to fetch')) {
+            showToast('Network error — check your internet connection.', 'error');
+        } else if (msg) {
+            showToast(msg, 'error');
+        } else {
+            showToast('Sign in failed. Please try again.', 'error');
+        }
         btn.innerText=isSignUpMode?'Create Account':'Sign In';
         btn.disabled=false;
     }
@@ -10872,6 +10888,16 @@ if ('serviceWorker' in navigator) {
             .catch(function (err) {
                 console.warn('Service worker registration failed:', err);
             });
+    });
+    // When the SW updates and takes control, reload the page if we are still
+    // on the login screen (not logged in). This gets fresh config.js so
+    // Supabase credentials are available. If already logged in, just show a toast.
+    navigator.serviceWorker.addEventListener('message', function (event) {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+            if (!document.body.classList.contains('logged-in')) {
+                location.reload();
+            }
+        }
     });
 }
 </script>
