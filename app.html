@@ -10864,5 +10864,61 @@ window.flintSaveProfileV2 = async function(){
 })();
 </script>
 
+<!-- ── Idle Session Timeout (10 min) ── -->
+<script>
+(function () {
+    var IDLE_MS  = 10 * 60 * 1000; // 10 minutes
+    var WARN_MS  =  9 * 60 * 1000; //  9 minutes — show warning 1 min before logout
+
+    var idleTimer = null;
+    var warnTimer = null;
+
+    function isLoggedIn() {
+        return document.body.classList.contains('logged-in');
+    }
+
+    function reset() {
+        if (!isLoggedIn()) return;
+        clearTimeout(idleTimer);
+        clearTimeout(warnTimer);
+
+        warnTimer = setTimeout(function () {
+            if (!isLoggedIn()) return;
+            if (typeof showToast === 'function')
+                showToast('You\'ll be signed out in 1 minute due to inactivity.', 'warning');
+        }, WARN_MS);
+
+        idleTimer = setTimeout(function () {
+            if (!isLoggedIn()) return;
+            if (typeof showToast === 'function')
+                showToast('Signing you out due to inactivity…', 'info');
+            setTimeout(function () {
+                if (typeof logoutApp === 'function') logoutApp();
+            }, 1500);
+        }, IDLE_MS);
+    }
+
+    function stop() {
+        clearTimeout(idleTimer);
+        clearTimeout(warnTimer);
+    }
+
+    // Reset timer on any user interaction
+    ['mousemove','mousedown','keydown','touchstart','touchmove','scroll','click','visibilitychange']
+        .forEach(function (evt) {
+            document.addEventListener(evt, reset, { passive: true });
+        });
+
+    // Start/stop as login state changes
+    var observer = new MutationObserver(function () {
+        if (isLoggedIn()) { reset(); } else { stop(); }
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    // Start immediately if already logged in (page reload)
+    if (isLoggedIn()) reset();
+})();
+</script>
+
 </body>
 </html>
