@@ -3213,7 +3213,16 @@ try {
           } catch(e2) {}
         });
     });
-} catch(e){ console.error(e); }
+} catch(e){
+    console.error('[Flint] Init error:', e);
+    // If the Supabase client failed to initialise (most likely because config.js
+    // served stale / empty credentials), reload the page so the SW can serve
+    // a fresh copy.  Show a brief message so the user isn't staring at a blank screen.
+    if (!_sb) {
+        try { showToast('App initialising — please wait…', 'info'); } catch(_) {}
+        setTimeout(function(){ location.reload(); }, 1800);
+    }
+}
 
 // ── Load ──
 async function loadApp() {
@@ -4263,9 +4272,9 @@ async function authenticateUser() {
         if(conf&&conf!==pass){showToast('Passwords do not match','error');return;}
         if(pass.length<6){showToast('Password must be at least 6 characters','warning');return;}
     }
-    // Guard: config.js must have loaded before we can reach Supabase.
-    // If credentials are missing the SW probably served a stale cached version.
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
+    // Guard: config.js must have loaded AND the Supabase client must have initialised.
+    // If either is missing the SW probably served a stale cached version of config.js.
+    if (!SUPABASE_URL || !SUPABASE_KEY || !_sb) {
         showToast('App config not loaded — refreshing…', 'warning');
         setTimeout(() => location.reload(), 1500);
         return;
@@ -4292,13 +4301,16 @@ async function authenticateUser() {
         }
         if(data.session) location.reload();
     }catch(e){
-        const msg = e?.message || '';
-        if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_credentials') || msg.toLowerCase().includes('email not confirmed')) {
+        const msg = (e?.message || '').toLowerCase();
+        if (msg.includes('invalid login') || msg.includes('invalid_credentials') || msg.includes('email not confirmed')) {
             showToast('Invalid email or password. Please try again.', 'error');
-        } else if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('failed to fetch')) {
+        } else if (msg.includes('network') || msg.includes('failed to fetch')) {
             showToast('Network error — check your internet connection.', 'error');
-        } else if (msg) {
-            showToast(msg, 'error');
+        } else if (msg.includes('undefined') || msg.includes('cannot read') || !_sb) {
+            // JS init error — config.js not ready yet, trigger a reload
+            showToast('App config not loaded — refreshing…', 'warning');
+            setTimeout(() => location.reload(), 1500);
+            return;
         } else {
             showToast('Sign in failed. Please try again.', 'error');
         }
