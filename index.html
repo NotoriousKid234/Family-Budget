@@ -538,10 +538,11 @@
   <!-- SIGNUP -->
   <div class="signup-section">
     <p class="signup-label">Get early access</p>
-    <div class="signup-form" id="signup-form">
-      <input type="email" id="email-input" placeholder="you@example.com" autocomplete="off" />
-      <button class="signup-btn" id="signup-btn" onclick="handleSignup()">Notify Me →</button>
-    </div>
+    <form class="signup-form" id="signup-form" name="waitlist" method="POST" data-netlify="true" onsubmit="handleSignup(event)">
+      <input type="hidden" name="form-name" value="waitlist" />
+      <input type="email" id="email-input" name="email" placeholder="you@example.com" autocomplete="email" required />
+      <button type="submit" class="signup-btn" id="signup-btn">Notify Me →</button>
+    </form>
     <div class="success-msg" id="success-msg">
       <span>🎉</span> You're on the list! We'll be in touch.
     </div>
@@ -609,7 +610,9 @@
 
 
   // ── SIGNUP ──
-  function handleSignup() {
+  function handleSignup(e) {
+    e.preventDefault();
+    const form = e.target;
     const val = document.getElementById('email-input').value.trim();
     const re  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!re.test(val)) {
@@ -617,13 +620,15 @@
       setTimeout(() => document.getElementById('email-input').style.color = '', 600);
       return;
     }
-    document.getElementById('signup-form').style.display = 'none';
-    document.getElementById('success-msg').classList.add('visible');
+    fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(new FormData(form)).toString()
+    }).finally(() => {
+      document.getElementById('signup-form').style.display = 'none';
+      document.getElementById('success-msg').classList.add('visible');
+    });
   }
-
-  document.getElementById('email-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') handleSignup();
-  });
 </script>
 </body>
 </html>
