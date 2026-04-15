@@ -5773,6 +5773,26 @@ async function joinLedger() {
 function initCycles(){ const s=document.getElementById('cycleSelect'); s.innerHTML=''; let now=new Date(); for(let i=0;i<6;i++){let d=new Date(now.getFullYear(),now.getMonth()-i,16);let o=document.createElement('option');o.value=d.toISOString();o.text=d.toLocaleString('default',{month:'long',year:'numeric'})+' Cycle';s.appendChild(o);} }
 async function changeCycle(){ currentViewDate=new Date(document.getElementById('cycleSelect').value); await fetchData(); }
 async function logoutApp(){ await _sb.auth.signOut(); currentSession = null; document.body.classList.remove('logged-in'); localStorage.clear(); window.location.href = '/'; }
+function deleteAccount() {
+    showConfirm('This will permanently delete ALL your transactions, bills, notes, and account data. This cannot be undone.', async () => {
+        showToast('Deleting your account data…', 'info');
+        try {
+            await Promise.all([
+                _sb.from('transactions').delete().eq('user_id', currentUser),
+                _sb.from('recurring_expenses').delete().eq('user_id', currentUser),
+                _sb.from('app_notes').delete().eq('user_id', currentUser),
+                _sb.from('app_history').delete().eq('user_id', currentUser),
+            ]);
+            await _sb.from('app_settings').delete().eq('user_id', currentUser);
+            await _sb.auth.signOut();
+            localStorage.clear();
+            window.location.href = '/';
+        } catch(e) {
+            showToast('An error occurred deleting your account. Please try again.', 'error');
+            console.error('deleteAccount error:', e);
+        }
+    });
+}
 function showToast(msg, type='success') {
     const icons = { success:'✓', error:'✕', info:'ℹ', warning:'⚠️' };
     const colors = { success:'var(--green)', error:'var(--rose)', info:'var(--blue)', warning:'var(--amber)' };
