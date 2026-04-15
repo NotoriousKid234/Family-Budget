@@ -3207,6 +3207,14 @@ function declineJoin() {
 async function acceptJoin(key) {
     const m = document.getElementById('joinConfirmModal');
     if (m) m.style.display = 'none';
+    // Re-verify member count before joining (prevents race conditions and direct calls)
+    const { data: members } = await _sb.from('app_settings').select('user_id').eq('group_id', key);
+    const alreadyMember = members && members.some(row => row.user_id === currentUser);
+    if (!alreadyMember && members && members.length >= 2) {
+        showToast('This ledger already has 2 members and cannot accept more.', 'error');
+        localStorage.removeItem('flint_pending_join');
+        return;
+    }
     const { error } = await _sb.from('app_settings').upsert({
         user_id: currentUser,
         group_id: key,
@@ -4034,9 +4042,9 @@ function editEntry(id) {
     setTimeout(()=>{ openSheet(); }, 50);
 }
 
-async function deleteEntry(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid transaction id', 'error'); if(confirm('Delete?')){ await _sb.from('transactions').delete().select().eq('id',safeId).eq('group_id',currentGroup); fetchData(); } }
-async function deleteSub(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid subscription id', 'error'); if(confirm('Delete?')){ await _sb.from('recurring_expenses').delete().select().eq('id',safeId).eq('group_id',currentGroup); fetchData(); } }
-async function deleteNote(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid note id', 'error'); if(confirm('Delete?')){ await _sb.from('app_notes').delete().select().eq('id',safeId).eq('group_id',currentGroup); fetchData(); } }
+async function deleteEntry(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid transaction id', 'error'); if(confirm('Delete?')){ await _sb.from('transactions').delete().select().eq('id',safeId).eq('group_id',currentGroup).eq('user_id',currentUser); fetchData(); } }
+async function deleteSub(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid subscription id', 'error'); if(confirm('Delete?')){ await _sb.from('recurring_expenses').delete().select().eq('id',safeId).eq('group_id',currentGroup).eq('user_id',currentUser); fetchData(); } }
+async function deleteNote(id){ const safeId = safeIdValue(id); if(!safeId) return showToast('Invalid note id', 'error'); if(confirm('Delete?')){ await _sb.from('app_notes').delete().select().eq('id',safeId).eq('group_id',currentGroup).eq('user_id',currentUser); fetchData(); } }
 
 async function addNote() {
     const msgEl = document.getElementById('noteMessage');
@@ -4211,7 +4219,9 @@ async function saveConfig() {
 function setIcon(cls) { localStorage.setItem('montoya_icon',cls); loadIcon(); showToast('Avatar updated!'); }
 function loadIcon() {
     const cls=(localStorage.getItem('montoya_icon')||'fa-user');
-    const safe=cls.startsWith('fa-')?cls:'fa-'+cls;
+    // Strict allowlist regex: only lowercase letters, digits, and hyphens after 'fa-'
+    // Prevents attribute injection (e.g., 'fa-x" onmouseover="...')
+    const safe=/^fa-[a-z0-9-]+$/.test(cls)?cls:'fa-user';
     const html=`<i class="fa-solid ${safe}"></i>`;
     // sideAvatar always shows the wolf logo - never overwrite it
     // topAvatar shows the user's chosen profile icon
@@ -5054,8 +5064,8 @@ function renderTicker(symbol, name, price, pct, type) {
     div.className = 'ticker-item';
     div.innerHTML = `
         <div class="ticker-left">
-            <span class="ticker-symbol">${symbol}</span>
-            <span class="ticker-name">${name}</span>
+            <span class="ticker-symbol">${escapeHtml(symbol)}</span>
+            <span class="ticker-name">${escapeHtml(name)}</span>
         </div>
         <div class="ticker-right">
             <div class="ticker-price">$${priceStr}</div>
@@ -5510,9 +5520,18 @@ async function updatePassword() {
 // ── Misc ──
 function triggerCelebration(type){ celebratedMilestones[type]=true; confetti({particleCount:150,spread:70,origin:{y:.6}}); showToast(`🎉 ${type.charAt(0).toUpperCase()+type.slice(1)} Paid Off!`); }
 
+function csvQuote(v) {
+    // RFC 4180: quote fields that contain commas, double-quotes, or newlines.
+    // Also quote fields starting with =, +, -, @, tab to prevent spreadsheet formula injection.
+    const s = String(v == null ? '' : v);
+    if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r') || /^[=+\-@\t]/.test(s)) {
+        return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+}
 function exportCSV() {
     let csv='Date,Category,Member,Amount,Note\n';
-    history.forEach(i=>csv+=`${new Date(i.created_at).toLocaleDateString()},${i.category},${i.member},${i.amount},${i.note}\n`);
+    history.forEach(i=>csv+=`${csvQuote(new Date(i.created_at).toLocaleDateString())},${csvQuote(i.category)},${csvQuote(i.member)},${csvQuote(i.amount)},${csvQuote(i.note)}\n`);
     const a=document.createElement('a'); a.setAttribute('href','data:text/csv;charset=utf-8,'+encodeURIComponent(csv)); a.setAttribute('download','Flint_Export.csv'); a.click();
 }
 
@@ -5617,9 +5636,15 @@ async function performLedgerJoin(k) {
     }
     window.__flintJoinBusy = true;
     try {
-        const { data, error } = await _sb.from('app_settings').select('user_id').eq('group_id', k).limit(1);
+        const { data, error } = await _sb.from('app_settings').select('user_id').eq('group_id', k);
         if (error || !data || data.length === 0) {
             showToast('Join key not found — check with your partner.', 'error');
+            return;
+        }
+        // Prevent joining a ledger that already has 2 members (family cap)
+        const alreadyMember = data.some(row => row.user_id === currentUser);
+        if (!alreadyMember && data.length >= 2) {
+            showToast('This ledger already has 2 members. Ask your partner to remove a member first.', 'error');
             return;
         }
         const payload = {
@@ -5667,7 +5692,13 @@ function showToast(msg, type='success') {
     const t = document.createElement('div');
     t.className = 'toast';
     t.style.cssText = 'border-left: 3px solid ' + (colors[type]||colors.success) + ';display:flex;align-items:center;gap:10px;';
-    t.innerHTML = '<span style="font-size:1rem;font-weight:700;color:' + (colors[type]||colors.success) + '">' + (icons[type]||'✓') + '</span><span>' + msg + '</span>';
+    const iconSpan = document.createElement('span');
+    iconSpan.style.cssText = 'font-size:1rem;font-weight:700;color:' + (colors[type]||colors.success);
+    iconSpan.textContent = icons[type]||'✓';
+    const msgSpan = document.createElement('span');
+    msgSpan.textContent = msg;
+    t.appendChild(iconSpan);
+    t.appendChild(msgSpan);
     const c = document.getElementById('toastContainer');
     c.appendChild(t);
     requestAnimationFrame(() => t.classList.add('show'));
@@ -6380,22 +6411,38 @@ function fpCopyInviteLink() {
     }
 }
 async function fpKickMember(userId) {
-            if (!userId || userId === currentUser) return;
-            const action = prompt('Remove this partner from your ledger?\\n\\nType "keep" to leave their transactions on this ledger.\\nType "move" to send their transactions with them.\\n\\nThen press OK.', 'keep');
-            if (action === null) return;
-            const shouldMove = action.trim().toLowerCase() === 'move';
-            const newGroup = crypto.randomUUID();
-            try {
-                if (shouldMove) {
-                    await _sb.from('transactions').update({ group_id: newGroup }).eq('group_id', currentGroup).eq('author_id', userId);
-                }
-                await _sb.from('app_settings').update({ group_id: newGroup }).eq('user_id', userId);
-                showToast('Partner removed from your ledger.', 'success');
-                setTimeout(() => location.reload(), 1200);
-            } catch(e) {
-                showToast('An error occurred. Please try again.');
-            }
+    if (!userId || userId === currentUser) return;
+    // Server-side ownership check: re-query member list and verify currentUser is the group owner
+    // (owner = the first user to create the group, ordered by created_at ascending)
+    try {
+        const { data: members, error: membErr } = await _sb
+            .from('app_settings')
+            .select('user_id')
+            .eq('group_id', currentGroup)
+            .order('created_at', { ascending: true });
+        if (membErr || !members || !members.length || members[0].user_id !== currentUser) {
+            showToast('Only the ledger owner can remove members.', 'error');
+            return;
         }
+    } catch(e) {
+        showToast('Could not verify ledger ownership. Please try again.', 'error');
+        return;
+    }
+    const action = prompt('Remove this partner from your ledger?\n\nType "keep" to leave their transactions on this ledger.\nType "move" to send their transactions with them.\n\nThen press OK.', 'keep');
+    if (action === null) return;
+    const shouldMove = action.trim().toLowerCase() === 'move';
+    const newGroup = crypto.randomUUID();
+    try {
+        if (shouldMove) {
+            await _sb.from('transactions').update({ group_id: newGroup }).eq('group_id', currentGroup).eq('author_id', userId);
+        }
+        await _sb.from('app_settings').update({ group_id: newGroup }).eq('user_id', userId);
+        showToast('Partner removed from your ledger.', 'success');
+        setTimeout(() => location.reload(), 1200);
+    } catch(e) {
+        showToast('An error occurred. Please try again.');
+    }
+}
 async function fpLeaveLedger() {
     if (!confirm('Leave this ledger? A new private ledger will be created for you. Your partner will keep the shared ledger.')) return;
     var newGroup = 'grp_' + currentUser.substring(0,8) + '_' + Date.now();
@@ -6461,7 +6508,8 @@ function showWelcomeSplash(name) {
   document.getElementById('splashName').innerText = displayName;
   document.getElementById('splashMsg').innerText = msg;
   const av = document.getElementById('splashAvatar');
-  const icon = localStorage.getItem('montoya_icon') || (isBrandon ? 'fa-user-astronaut' : isGina ? 'fa-crown' : 'fa-user');
+  const rawIcon = localStorage.getItem('montoya_icon') || (isBrandon ? 'fa-user-astronaut' : isGina ? 'fa-crown' : 'fa-user');
+  const icon = /^fa-[a-z0-9-]+$/.test(rawIcon) ? rawIcon : 'fa-user';
   av.innerHTML = '<i class="fa-solid ' + icon + '" style="color:' + (isBrandon ? 'var(--brandon)' : isGina ? 'var(--gina)' : 'var(--gold)') + '"></i>';
   av.className = 'splash-avatar ' + (isBrandon ? 'brandon' : isGina ? 'gina' : '');
   const splash = document.getElementById('welcomeSplash');

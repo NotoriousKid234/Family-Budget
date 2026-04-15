@@ -133,6 +133,12 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing prompt or messages' }) };
   }
 
+  // Validate mediaType if image data is provided (for future vision calls)
+  const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (body.image && body.mediaType && !ALLOWED_MEDIA_TYPES.includes(body.mediaType)) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid or unsupported image media type' }) };
+  }
+
   // Sanitize messages array: cap count, cap content length, enforce valid roles
   const messages = rawMessages
     ? rawMessages.slice(0, MAX_MSGS).map(m => ({
