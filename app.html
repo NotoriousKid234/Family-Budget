@@ -822,17 +822,22 @@
 
         /* ─── Bottom Sheet ─── */
         .bottom-sheet {
-            position: fixed; top: 50%; left: 50%;
+            position: fixed;
+            /* Center within the area ABOVE the 64px mobile nav bar */
+            top: calc(50% - 32px);
+            left: 50%;
             width: min(92vw, 480px);
             background: linear-gradient(180deg, #111e38 0%, #0d1628 100%);
             border: 1px solid rgba(100,150,230,.18);
             border-radius: 28px;
-            padding: 16px 24px 28px;
+            padding: 16px 24px 0;
             z-index: 9001;
             transform: translate(-50%, 120vh);
             pointer-events: none;
             transition: transform .4s cubic-bezier(.4,0,.2,1);
-            max-height: 85dvh; max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+            /* Leave 88px total: ~12px top gap + 64px nav + 12px bottom gap */
+            max-height: calc(100vh - 88px); max-height: calc(100dvh - 88px);
+            overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
             box-shadow: 0 20px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06);
         }
         .bottom-sheet.open { transform: translate(-50%, -50%); pointer-events: all; }
@@ -1004,7 +1009,14 @@
         #aiAdviceText { color: rgba(240,244,255,.85) !important; }
 
         /* ─── Action buttons ─── */
-        .sheet-actions { display: flex; gap: 10px; margin-top: 14px; }
+        .sheet-actions {
+            display: flex; gap: 10px;
+            position: sticky; bottom: 0;
+            /* Fade the background so content doesn't hard-clip behind it */
+            background: linear-gradient(to top, #0d1628 75%, transparent);
+            padding: 16px 0 20px;
+            margin-top: 8px;
+        }
         .sheet-sync-btn {
             flex: 1;
             background: linear-gradient(135deg, #e8c252 0%, #b8941c 100%);
@@ -1576,6 +1588,8 @@
             .bottom-sheet {
                 max-width: 520px;
                 width: 90vw;
+                top: 50%; /* true center — no nav bar on desktop */
+                max-height: 85vh; max-height: 85dvh;
             }
             .sheet-handle { display: none; }
             .sheet-amount-input { text-align: center !important; width: 100% !important; }
