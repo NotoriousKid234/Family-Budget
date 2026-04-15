@@ -10864,6 +10864,18 @@ window.flintSaveProfileV2 = async function(){
 })();
 </script>
 
+<!-- ── Service Worker Registration ── -->
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js')
+            .catch(function (err) {
+                console.warn('Service worker registration failed:', err);
+            });
+    });
+}
+</script>
+
 <!-- ── Idle Session Timeout (10 min) ── -->
 <script>
 (function () {

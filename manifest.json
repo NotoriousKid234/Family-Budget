@@ -3,10 +3,13 @@
   "short_name": "Flint",
   "description": "Spark your financial future — family budget tracking, bill reminders, and AI insights.",
   "start_url": "/app.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#060d1c",
   "theme_color": "#060d1c",
   "orientation": "portrait-primary",
+  "lang": "en-US",
+  "categories": ["finance", "productivity"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -19,12 +22,21 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "categories": [
-    "finance",
-    "productivity"
+  "screenshots": [
+    {
+      "src": "/app-screenshot.png",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Flint Finance home screen"
+    }
   ],
-  "lang": "en-US",
-  "scope": "/"
+  "prefer_related_applications": false
 }

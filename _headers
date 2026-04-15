@@ -4,3 +4,14 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com cdnjs.cloudflare.com cdn.jsdelivr.net; font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com cdn.jsdelivr.net; img-src 'self' data: blob:; connect-src 'self' https://hieqohmhrpjvhotutwls.supabase.co https://api.coingecko.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';
+
+# Service worker — must never be cached so updates reach users immediately
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Service-Worker-Allowed: /
+
+# Digital Asset Links — required for TWA / Play Store verification
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Access-Control-Allow-Origin: *
+  Cache-Control: no-cache

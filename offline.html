@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flint — You're Offline</title>
+    <link rel="icon" href="/icon-192.png">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: #060d1c;
+            color: #eef3ff;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+        }
+        .icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-8px); }
+        }
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #eef3ff;
+        }
+        p {
+            font-size: .92rem;
+            color: #8aaac8;
+            line-height: 1.6;
+            max-width: 300px;
+            margin-bottom: 32px;
+        }
+        button {
+            background: linear-gradient(135deg, #d4a843, #a07c20);
+            color: #060d1c;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 32px;
+            font-size: .9rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity .2s, transform .15s;
+        }
+        button:hover  { opacity: .88; }
+        button:active { transform: scale(.97); }
+        .logo {
+            position: absolute;
+            top: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #d4a843;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">FLINT</div>
+    <div class="icon">📡</div>
+    <h1>You're offline</h1>
+    <p>No internet connection detected. Check your network and try again — your data will be right here when you're back.</p>
+    <button onclick="window.location.reload()">Try Again</button>
+</body>
+</html>
