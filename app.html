@@ -822,20 +822,20 @@
 
         /* ─── Bottom Sheet ─── */
         .bottom-sheet {
-            position: fixed; bottom: 0; left: 0; right: 0;
+            position: fixed; top: 50%; left: 50%;
+            width: min(92vw, 480px);
             background: linear-gradient(180deg, #111e38 0%, #0d1628 100%);
             border: 1px solid rgba(100,150,230,.18);
-            border-bottom: none;
-            border-radius: 32px 32px 0 0;
-            padding: 10px 24px max(44px, env(safe-area-inset-bottom, 44px));
+            border-radius: 28px;
+            padding: 16px 24px 28px;
             z-index: 3002;
-            transform: translateY(110%);
+            transform: translate(-50%, 120vh);
             pointer-events: none;
             transition: transform .4s cubic-bezier(.4,0,.2,1);
-            max-height: 90dvh; max-height: 90vh; overflow-y: scroll; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
-            box-shadow: 0 -20px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06);
+            max-height: 85dvh; max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+            box-shadow: 0 20px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06);
         }
-        .bottom-sheet.open { transform: translateY(0); pointer-events: all; }
+        .bottom-sheet.open { transform: translate(-50%, -50%); pointer-events: all; }
 
         .sheet-handle {
             width: 40px; height: 4px;
@@ -1572,29 +1572,10 @@
         .add-txn-btn:active { transform: scale(.98); }
 
         @media (min-width: 1024px) {
-            /* On desktop the sheet should appear centered over the content area, not the whole screen */
             .sheet-overlay { background: rgba(4,8,20,.7); left: 0; right: 0; }
             .bottom-sheet {
                 max-width: 520px;
                 width: 90vw;
-                left: 50% !important;
-                right: auto !important;
-                bottom: auto !important;
-                top: 50% !important;
-                transform: translate(-50%, -50%) scale(.96);
-                border-radius: 28px !important;
-                max-height: 90vh;
-                opacity: 0;
-                pointer-events: none;
-                visibility: hidden;
-                transition: transform .3s cubic-bezier(.34,1.2,.64,1), opacity .25s ease, visibility 0s .3s;
-            }
-            .bottom-sheet.open {
-                transform: translate(-50%, -50%) scale(1) !important;
-                opacity: 1 !important;
-                pointer-events: all !important;
-                visibility: visible !important;
-                transition: transform .3s cubic-bezier(.34,1.2,.64,1), opacity .25s ease, visibility 0s 0s !important;
             }
             .sheet-handle { display: none; }
             .sheet-amount-input { text-align: center !important; width: 100% !important; }
