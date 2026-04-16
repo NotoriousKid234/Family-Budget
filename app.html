@@ -1924,7 +1924,27 @@ button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
   .prof-danger-btn{background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.25);color:var(--rose);font-weight:600;font-size:.83rem;border-radius:12px;padding:11px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;transition:background .2s}
   .prof-danger-btn:hover{background:rgba(251,113,133,.2)}
 </style>
-<script src="/.netlify/functions/get-config"></script></head>
+<script src="/.netlify/functions/get-config"></script>
+<script>
+(function(){
+    // Auto-heal: if credentials didn't load and we haven't tried yet, clear stale
+    // SW/cache and reload once. sessionStorage guard prevents an infinite loop.
+    if (!window.__APP_SUPABASE_URL && !sessionStorage.getItem('flint_auto_fixed')) {
+        sessionStorage.setItem('flint_auto_fixed', '1');
+        Promise.all([
+            navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(regs){
+                return Promise.all(regs.map(function(r){ return r.unregister(); }));
+            }) : Promise.resolve(),
+            window.caches ? caches.keys().then(function(keys){
+                return Promise.all(keys.map(function(k){ return caches.delete(k); }));
+            }) : Promise.resolve()
+        ]).then(function(){ location.reload(true); }).catch(function(){ location.reload(true); });
+    } else {
+        // Clear the guard so a future genuine stale-cache situation can self-heal again
+        sessionStorage.removeItem('flint_auto_fixed');
+    }
+})();
+</script></head>
 <body>
 
 <div class="scene"><div class="scene-grid"></div><div class="scene-noise"></div></div>
