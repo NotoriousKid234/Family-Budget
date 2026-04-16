@@ -4605,15 +4605,26 @@ async function checkAutoSync() {
         let didInsert = false;
         for (const rec of (recurring || [])) {
             const key = 'rec_' + (rec.name || '') + '_' + rec.billing_day;
-            if (rec.billing_day === today && !synced[monthKey].includes(key)) {
-                // Mark as synced BEFORE the insert so any concurrent call
-                // that reads localStorage will already see it as done.
+            if (rec.billing_day !== today) continue;
+            // localStorage guard: prevents double-insert within the same device/tab
+            if (synced[monthKey].includes(key)) continue;
+            // DB guard: prevents double-insert across devices (both members logged in)
+            const alreadyLogged = (history || []).some(function(t) {
+                return t.is_recurring && t.note === rec.name && t.group_id === currentGroup;
+            });
+            if (alreadyLogged) {
+                // Keep localStorage in sync so we skip the DB check next time too
                 synced[monthKey].push(key);
                 localStorage.setItem('flint_autosynced', JSON.stringify(synced));
-                await _sb.from('transactions').insert([{amount:rec.amount,member:rec.member||'Split',category:rec.category||'Utilities',note:rec.name,intent:rec.intent||'Need',is_recurring:true,user_id:currentUser,group_id:currentGroup}]);
-                showToast('Auto-logged: ' + rec.name + ' -$' + rec.amount, 'info');
-                didInsert = true;
+                continue;
             }
+            // Mark as synced BEFORE the insert so any concurrent call
+            // that reads localStorage will already see it as done.
+            synced[monthKey].push(key);
+            localStorage.setItem('flint_autosynced', JSON.stringify(synced));
+            await _sb.from('transactions').insert([{amount:rec.amount,member:rec.member||'Split',category:rec.category||'Utilities',note:rec.name,intent:rec.intent||'Need',is_recurring:true,user_id:currentUser,group_id:currentGroup}]);
+            showToast('Auto-logged: ' + rec.name + ' -$' + rec.amount, 'info');
+            didInsert = true;
         }
         // Only re-fetch if we actually inserted something new.
         if (didInsert) fetchData();
