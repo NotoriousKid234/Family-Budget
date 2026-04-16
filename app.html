@@ -4572,26 +4572,34 @@ function reactTo(itemId, emoji) {
 
 // ── Recurring Auto-Sync ──
 async function checkAutoSync() {
-    if (!currentGroup) return;
-    const today = new Date().getDate();
-    const synced = safeJsonParse(localStorage.getItem('flint_autosynced'), {});
-    const monthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
-    if (!synced[monthKey]) synced[monthKey] = [];
-    let didInsert = false;
-    for (const rec of (recurring || [])) {
-        const key = 'rec_' + (rec.name || '') + '_' + rec.billing_day;
-        if (rec.billing_day === today && !synced[monthKey].includes(key)) {
-            await _sb.from('transactions').insert([{amount:rec.amount,member:rec.member||'Split',category:rec.category||'Utilities',note:rec.name,intent:rec.intent||'Need',is_recurring:true,user_id:currentUser,group_id:currentGroup}]);
-            synced[monthKey].push(key);
-            showToast('Auto-logged: ' + rec.name + ' -$' + rec.amount, 'info');
-            didInsert = true;
+    // _autoSyncActive prevents two concurrent fetchData() calls from both
+    // reading localStorage before either writes back, which would cause
+    // the same recurring bill to be inserted twice on its billing day.
+    if (!currentGroup || _autoSyncActive) return;
+    _autoSyncActive = true;
+    try {
+        const today = new Date().getDate();
+        const synced = safeJsonParse(localStorage.getItem('flint_autosynced'), {});
+        const monthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
+        if (!synced[monthKey]) synced[monthKey] = [];
+        let didInsert = false;
+        for (const rec of (recurring || [])) {
+            const key = 'rec_' + (rec.name || '') + '_' + rec.billing_day;
+            if (rec.billing_day === today && !synced[monthKey].includes(key)) {
+                // Mark as synced BEFORE the insert so any concurrent call
+                // that reads localStorage will already see it as done.
+                synced[monthKey].push(key);
+                localStorage.setItem('flint_autosynced', JSON.stringify(synced));
+                await _sb.from('transactions').insert([{amount:rec.amount,member:rec.member||'Split',category:rec.category||'Utilities',note:rec.name,intent:rec.intent||'Need',is_recurring:true,user_id:currentUser,group_id:currentGroup}]);
+                showToast('Auto-logged: ' + rec.name + ' -$' + rec.amount, 'info');
+                didInsert = true;
+            }
         }
+        // Only re-fetch if we actually inserted something new.
+        if (didInsert) fetchData();
+    } finally {
+        _autoSyncActive = false;
     }
-    localStorage.setItem('flint_autosynced', JSON.stringify(synced));
-    // Only re-fetch if we actually inserted new transactions this run.
-    // Calling fetchData() unconditionally here caused an infinite render loop
-    // because checkAutoSync() itself runs inside fetchData().
-    if (didInsert) fetchData();
 }
 
 // ── AI Purchase Coach ──
@@ -5448,6 +5456,7 @@ let _activityPollTimer = null;
 let _lastSeenTxnId = null;
 let _lastSeenNoteId = null;
 let _pollActive = false;
+let _autoSyncActive = false;
 
 function startActivityPolling() {
     // Record the most recent IDs we already know about at login
