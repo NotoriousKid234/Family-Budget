@@ -3216,16 +3216,31 @@ try {
 } catch(e){
     console.error('[Flint] Init error:', e);
     if (!_sb) {
-        // Do NOT auto-reload — it causes a loop if config.js is unavailable.
-        // Instead show a visible message so the user can act.
         window.addEventListener('DOMContentLoaded', function() {
             var btn = document.getElementById('authBtn');
-            if (btn) { btn.disabled = true; btn.innerText = 'App Error — see below'; }
+            if (btn) { btn.disabled = true; btn.innerText = 'App Error — tap Fix below'; }
             var form = document.getElementById('authForm') || document.querySelector('.auth-card') || document.body;
             var msg = document.createElement('div');
-            msg.style.cssText = 'background:#7f1d1d;color:#fecaca;padding:14px 18px;border-radius:12px;font-size:.85rem;margin-top:16px;text-align:center;line-height:1.5;';
-            msg.innerHTML = '⚠️ App failed to load credentials.<br>Please <strong>hard-refresh</strong> this page<br><small>(Ctrl+Shift+R on desktop · or clear site data on mobile)</small>';
+            msg.style.cssText = 'background:#7f1d1d;color:#fecaca;padding:16px 18px;border-radius:12px;font-size:.85rem;margin-top:16px;text-align:center;line-height:1.6;';
+            msg.innerHTML = '⚠️ App credentials didn\'t load.<br><button id="flintFixBtn" style="margin-top:10px;background:#dc2626;color:#fff;border:none;padding:10px 22px;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;">Clear Cache &amp; Fix</button>';
             form.appendChild(msg);
+            document.getElementById('flintFixBtn').addEventListener('click', function() {
+                this.innerText = 'Clearing…';
+                var self = this;
+                // Unregister all service workers, delete all caches, then hard-reload
+                Promise.all([
+                    navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(regs) {
+                        return Promise.all(regs.map(function(r){ return r.unregister(); }));
+                    }) : Promise.resolve(),
+                    window.caches ? caches.keys().then(function(keys) {
+                        return Promise.all(keys.map(function(k){ return caches.delete(k); }));
+                    }) : Promise.resolve()
+                ]).then(function() {
+                    location.reload(true);
+                }).catch(function() {
+                    location.reload(true);
+                });
+            });
         });
     }
 }
