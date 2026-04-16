@@ -6095,7 +6095,22 @@ function buildNetworthPanel() {
     h+='<button onclick="fpSaveNW()" style="width:100%;background:linear-gradient(135deg,#d4a843,#b8941c);color:#0a0e1a;font-weight:700;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Save Net Worth</button></div>';
     return h;
 }
-function fpSaveNW(){netWorth={home:document.getElementById('fp_nw_home').value||0,cash:document.getElementById('fp_nw_cash').value||0,invest:document.getElementById('fp_nw_invest').value||0,other:document.getElementById('fp_nw_other').value||0};localStorage.setItem('montoya_networth',JSON.stringify(netWorth));showToast('Net worth saved!');openPanel('networth');}
+async function fpSaveNW(){
+    netWorth={home:document.getElementById('fp_nw_home').value||0,cash:document.getElementById('fp_nw_cash').value||0,invest:document.getElementById('fp_nw_invest').value||0,other:document.getElementById('fp_nw_other').value||0};
+    localStorage.setItem('montoya_networth',JSON.stringify(netWorth));
+    if(currentUser && currentGroup && _sb){
+        try{
+            await _sb.from('app_settings').upsert({
+                user_id:currentUser,group_id:currentGroup,
+                nw_home:safeNumber(netWorth.home),nw_cash:safeNumber(netWorth.cash),
+                nw_invest:safeNumber(netWorth.invest),nw_other:safeNumber(netWorth.other)
+            },{onConflict:'user_id'});
+        }catch(e){showToast('Could not save to cloud','error');return;}
+    }
+    renderNetWorth();
+    showToast('Net worth saved!');
+    openPanel('networth');
+}
 
 function buildVaultsPanel() {
     var h='';
