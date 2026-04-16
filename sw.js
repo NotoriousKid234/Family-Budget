@@ -1,6 +1,6 @@
 // ── Flint Finance Service Worker ──
 // Bump CACHE version any time you want to force all clients to get fresh files.
-const CACHE = 'flint-v3';
+const CACHE = 'flint-v4';
 
 // Files that make up the app shell — pre-cached on install.
 // NOTE: config.js is intentionally excluded — it must always be fetched
@@ -38,7 +38,9 @@ self.addEventListener('install', event => {
         caches.open(CACHE).then(cache =>
             Promise.allSettled(
                 SHELL.map(url =>
-                    fetch(url).then(res => {
+                    // cache: 'no-store' bypasses the browser HTTP cache so we always
+                    // pre-cache the freshest version of each shell file.
+                    fetch(url, { cache: 'no-store' }).then(res => {
                         if (res.ok) return cache.put(url, res);
                     }).catch(() => { /* skip files that fail */ })
                 )
@@ -47,9 +49,7 @@ self.addEventListener('install', event => {
     );
 });
 
-// ── Activate: remove every old cache version, then notify all open tabs ──
-// We post a message rather than force-navigating so the app can decide
-// whether a reload is safe (e.g. not mid-transaction).
+// ── Activate: remove every old cache version ──
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys()
@@ -57,8 +57,6 @@ self.addEventListener('activate', event => {
                 keys.filter(k => k !== CACHE).map(k => caches.delete(k))
             ))
             .then(() => self.clients.claim())
-            .then(() => self.clients.matchAll({ type: 'window' }))
-            .then(clients => clients.forEach(c => c.postMessage({ type: 'SW_UPDATED' })))
     );
 });
 
@@ -71,15 +69,25 @@ self.addEventListener('fetch', event => {
 
     const url = request.url;
 
-    // Always go network-first for APIs, credentials, and external CDNs
+    // Always go network-only for APIs, credentials, and external CDNs.
+    // Use cache: 'no-store' so the browser HTTP cache is also bypassed —
+    // without this flag fetch() can still serve a stale HTTP-cached response.
     if (isBypass(url)) {
         event.respondWith(
-            fetch(request).catch(() =>
-                new Response(JSON.stringify({ error: 'offline' }), {
+            fetch(request, { cache: 'no-store' }).catch(() => {
+                // For config.js specifically, a failure means the app can't init —
+                // return an empty script rather than a JSON error so the page loads.
+                if (url.includes('config.js')) {
+                    return new Response('', {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/javascript' },
+                    });
+                }
+                return new Response(JSON.stringify({ error: 'offline' }), {
                     status: 503,
                     headers: { 'Content-Type': 'application/json' },
-                })
-            )
+                });
+            })
         );
         return;
     }
@@ -103,7 +111,6 @@ self.addEventListener('fetch', event => {
                     if (request.mode === 'navigate') {
                         return caches.match('/offline.html');
                     }
-                    // For other asset failures return a proper empty response
                     return new Response('', {
                         status: 503,
                         statusText: 'Service Unavailable',

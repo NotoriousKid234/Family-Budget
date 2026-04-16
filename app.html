@@ -3215,12 +3215,18 @@ try {
     });
 } catch(e){
     console.error('[Flint] Init error:', e);
-    // If the Supabase client failed to initialise (most likely because config.js
-    // served stale / empty credentials), reload the page so the SW can serve
-    // a fresh copy.  Show a brief message so the user isn't staring at a blank screen.
     if (!_sb) {
-        try { showToast('App initialising — please wait…', 'info'); } catch(_) {}
-        setTimeout(function(){ location.reload(); }, 1800);
+        // Do NOT auto-reload — it causes a loop if config.js is unavailable.
+        // Instead show a visible message so the user can act.
+        window.addEventListener('DOMContentLoaded', function() {
+            var btn = document.getElementById('authBtn');
+            if (btn) { btn.disabled = true; btn.innerText = 'App Error — see below'; }
+            var form = document.getElementById('authForm') || document.querySelector('.auth-card') || document.body;
+            var msg = document.createElement('div');
+            msg.style.cssText = 'background:#7f1d1d;color:#fecaca;padding:14px 18px;border-radius:12px;font-size:.85rem;margin-top:16px;text-align:center;line-height:1.5;';
+            msg.innerHTML = '⚠️ App failed to load credentials.<br>Please <strong>hard-refresh</strong> this page<br><small>(Ctrl+Shift+R on desktop · or clear site data on mobile)</small>';
+            form.appendChild(msg);
+        });
     }
 }
 
@@ -4273,10 +4279,8 @@ async function authenticateUser() {
         if(pass.length<6){showToast('Password must be at least 6 characters','warning');return;}
     }
     // Guard: config.js must have loaded AND the Supabase client must have initialised.
-    // If either is missing the SW probably served a stale cached version of config.js.
     if (!SUPABASE_URL || !SUPABASE_KEY || !_sb) {
-        showToast('App config not loaded — refreshing…', 'warning');
-        setTimeout(() => location.reload(), 1500);
+        showToast('App not ready — please hard-refresh (Ctrl+Shift+R)', 'error');
         return;
     }
     const btn=document.getElementById('authBtn');
@@ -4306,11 +4310,6 @@ async function authenticateUser() {
             showToast('Invalid email or password. Please try again.', 'error');
         } else if (msg.includes('network') || msg.includes('failed to fetch')) {
             showToast('Network error — check your internet connection.', 'error');
-        } else if (msg.includes('undefined') || msg.includes('cannot read') || !_sb) {
-            // JS init error — config.js not ready yet, trigger a reload
-            showToast('App config not loaded — refreshing…', 'warning');
-            setTimeout(() => location.reload(), 1500);
-            return;
         } else {
             showToast('Sign in failed. Please try again.', 'error');
         }
@@ -10901,16 +10900,7 @@ if ('serviceWorker' in navigator) {
                 console.warn('Service worker registration failed:', err);
             });
     });
-    // When the SW updates and takes control, reload the page if we are still
-    // on the login screen (not logged in). This gets fresh config.js so
-    // Supabase credentials are available. If already logged in, just show a toast.
-    navigator.serviceWorker.addEventListener('message', function (event) {
-        if (event.data && event.data.type === 'SW_UPDATED') {
-            if (!document.body.classList.contains('logged-in')) {
-                location.reload();
-            }
-        }
-    });
+    // SW_UPDATED message — intentionally NOT auto-reloading to avoid loops.
 }
 </script>
 
