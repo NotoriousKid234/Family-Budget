@@ -3456,7 +3456,6 @@ function renderDashboard() {
     Object.values(groups).forEach((group, gi) => {
         const groupEl = document.createElement('div');
         groupEl.className = 'txn-date-group';
-        groupEl.style.animationDelay = (gi * 0.06) + 's';
 
         const now = new Date();
         const yesterday = new Date(now); yesterday.setDate(now.getDate()-1);
@@ -4578,16 +4577,21 @@ async function checkAutoSync() {
     const synced = safeJsonParse(localStorage.getItem('flint_autosynced'), {});
     const monthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
     if (!synced[monthKey]) synced[monthKey] = [];
+    let didInsert = false;
     for (const rec of (recurring || [])) {
         const key = 'rec_' + (rec.name || '') + '_' + rec.billing_day;
         if (rec.billing_day === today && !synced[monthKey].includes(key)) {
             await _sb.from('transactions').insert([{amount:rec.amount,member:rec.member||'Split',category:rec.category||'Utilities',note:rec.name,intent:rec.intent||'Need',is_recurring:true,user_id:currentUser,group_id:currentGroup}]);
             synced[monthKey].push(key);
             showToast('Auto-logged: ' + rec.name + ' -$' + rec.amount, 'info');
+            didInsert = true;
         }
     }
     localStorage.setItem('flint_autosynced', JSON.stringify(synced));
-    if ((recurring||[]).some(r=>r.billing_day===today)) fetchData();
+    // Only re-fetch if we actually inserted new transactions this run.
+    // Calling fetchData() unconditionally here caused an infinite render loop
+    // because checkAutoSync() itself runs inside fetchData().
+    if (didInsert) fetchData();
 }
 
 // ── AI Purchase Coach ──
