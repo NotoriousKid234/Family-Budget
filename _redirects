@@ -1,0 +1,4 @@
+# Legacy compatibility: old app.html loads config.js for Supabase credentials.
+# Rewrite it to the runtime function so old cached pages get real credentials
+# without needing to clear the service worker first.
+/config.js  /.netlify/functions/get-config  200
