@@ -1011,11 +1011,13 @@
         /* ─── Action buttons ─── */
         .sheet-actions {
             display: flex; gap: 10px;
-            position: sticky; bottom: 0;
-            /* Fade the background so content doesn't hard-clip behind it */
+            /* Use -webkit-sticky for Safari/iOS WebView compatibility */
+            position: -webkit-sticky; position: sticky; bottom: 0;
             background: linear-gradient(to top, #0d1628 75%, transparent);
             padding: 16px 0 20px;
             margin-top: 8px;
+            /* Fallback: flex-shrink:0 ensures it's never squashed */
+            flex-shrink: 0;
         }
         .sheet-sync-btn {
             flex: 1;
@@ -2991,6 +2993,11 @@ button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
         <button class="mob-nav-btn mob-home" onclick="switchView('app')">
             <i class="fa-solid fa-house"></i>
             <span>Home</span>
+        </button>
+        <div class="mob-nav-divider"></div>
+        <button class="mob-nav-btn" onclick="openSheet()" style="color:var(--gold);">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add</span>
         </button>
         <div class="mob-nav-divider"></div>
         <button class="mob-nav-btn" onclick="goBack()">
@@ -9080,6 +9087,7 @@ window.flintSaveProfileV2 = async function(){
         shell.insertAdjacentHTML('afterbegin', ''
           + '<div class="flint-history-head">'
           + '  <div><div class="flint-history-kicker">Recent activity</div><div class="flint-history-copy">Review the latest transactions, filter quickly, and make edits without leaving the dashboard.</div></div>'
+          + '  <button onclick="openSheet()" style="flex-shrink:0;background:linear-gradient(135deg,#e8c252,#b8941c);color:#08101f;border:none;border-radius:12px;padding:9px 16px;font-size:.75rem;font-weight:800;cursor:pointer;font-family:\'DM Sans\',sans-serif;white-space:nowrap;letter-spacing:.2px;">+ Add</button>'
           + '</div>');
       }
     }
