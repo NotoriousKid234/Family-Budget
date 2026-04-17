@@ -3732,7 +3732,7 @@ function renderBills() {
         }
 
         const div=document.createElement('div'); div.className='bill-item';
-        div.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">${escapeHtml(sanitizePlainString(b.icon||'💳', 8))}</div><div><div class="bill-name">${escapeHtml(sanitizePlainString(b.name, 80))}</div><div class="bill-due">Due day ${Math.max(1, Math.min(31, parseInt(b.day, 10) || 1))}</div></div></div><div class="bill-right"><div class="bill-amt">$${safeNumber(b.amount).toFixed(2)}</div><div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;"><span class="bill-countdown ${cls}">${label}</span><button class="act-btn act-del" onclick="deleteBill(${i})"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        div.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">${escapeHtml(sanitizePlainString(b.icon||'💳', 8))}</div><div><div class="bill-name">${escapeHtml(sanitizePlainString(b.name, 80))}</div><div class="bill-due">Due day ${Math.max(1, Math.min(31, parseInt(b.day, 10) || 1))}</div></div></div><div class="bill-right"><div class="bill-amt">$${safeNumber(b.amount).toFixed(2)}</div><div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;"><span class="bill-countdown ${cls}">${label}</span><button class="act-btn act-del" onclick="deleteBill('${b.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
         all.appendChild(div);
     });
 
@@ -3753,15 +3753,12 @@ async function addBill() {
     await fetchData(); renderBills(); showToast('Bill added!');
 }
 
-async function deleteBill(i) {
+async function deleteBill(id) {
     if(!confirm('Delete bill?')) return;
-    const bill = billReminders[i];
-    if(bill && bill.id) {
-        const { error } = await _sb.from('recurring_expenses').delete().select().eq('id', bill.id).eq('group_id', currentGroup);
+    const safeId = safeIdValue(id);
+    if(safeId) {
+        const { error } = await _sb.from('recurring_expenses').delete().select().eq('id', safeId).eq('group_id', currentGroup);
         if(error){ showToast('Could not delete bill.','error'); return; }
-    } else {
-        billReminders.splice(i,1);
-        localStorage.setItem('montoya_bills',JSON.stringify(billReminders));
     }
     await fetchData(); renderBills();
 }
@@ -6158,7 +6155,7 @@ function buildBillsPanel(){
     else{sorted.forEach(function(b,i){
         var days=daysUntil(b.day);var lbl=days===0?'TODAY!':days===1?'Tomorrow':days+'d away';
         var cls=days<=3?'#fb7185':days<=7?'#fbbf24':'#34d399';
-        h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.2rem;">'+(b.icon||'💳')+'</span><div><div style="font-size:.85rem;font-weight:600;color:#eef2ff;">'+b.name+'</div><div style="font-size:.7rem;color:#8899bb;">Due day '+b.day+'</div></div></div><div style="display:flex;align-items:center;gap:10px;"><div style="text-align:right;"><div style="font-size:.88rem;font-weight:700;color:#eef2ff;font-family:DM Mono,monospace;">$'+parseFloat(b.amount).toFixed(2)+'</div><div style="font-size:.68rem;font-weight:600;color:'+cls+';">'+lbl+'</div></div><button onclick="fpDelBill('+i+')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.2);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.72rem;"><i class="fa-solid fa-trash-can"></i></button></div></div>';
+        h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.2rem;">'+(b.icon||'💳')+'</span><div><div style="font-size:.85rem;font-weight:600;color:#eef2ff;">'+b.name+'</div><div style="font-size:.7rem;color:#8899bb;">Due day '+b.day+'</div></div></div><div style="display:flex;align-items:center;gap:10px;"><div style="text-align:right;"><div style="font-size:.88rem;font-weight:700;color:#eef2ff;font-family:DM Mono,monospace;">$'+parseFloat(b.amount).toFixed(2)+'</div><div style="font-size:.68rem;font-weight:600;color:'+cls+';">'+lbl+'</div></div><button onclick="fpDelBill(\''+b.id+'\')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.2);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.72rem;"><i class="fa-solid fa-trash-can"></i></button></div></div>';
     });}
     // Monthly total
     if(sorted.length){var total=sorted.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
@@ -6182,16 +6179,13 @@ async function fpAddBill(){
     openPanel('bills');
 }
 
-async function fpDelBill(i){
-    if(!confirm('Delete "'+billReminders[i].name+'"?'))return;
-    var bill = billReminders[i];
-    if(bill && bill.id){
-        var res = await _sb.from('recurring_expenses').delete().select().eq('id',bill.id).eq('group_id',currentGroup);
-        if(res && res.error){showToast('Could not delete bill.','error');return;}
-    } else {
-        billReminders.splice(i,1);
-        localStorage.setItem('montoya_bills',JSON.stringify(billReminders));
-    }
+async function fpDelBill(id){
+    var safeId = safeIdValue(id);
+    if(!safeId){showToast('Invalid bill id','error');return;}
+    var bill = billReminders.find(function(b){return b.id===safeId;});
+    if(!confirm('Delete "'+(bill?bill.name:'this bill')+'"?'))return;
+    var res = await _sb.from('recurring_expenses').delete().select().eq('id',safeId).eq('group_id',currentGroup);
+    if(res && res.error){showToast('Could not delete bill.','error');return;}
     showToast('Bill deleted');
     await fetchData();
     openPanel('bills');

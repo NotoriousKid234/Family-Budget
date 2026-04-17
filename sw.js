@@ -1,12 +1,10 @@
 // ── Flint Finance Service Worker ──
 // Bump CACHE version any time you want to force all clients to get fresh files.
-const CACHE = 'flint-v4';
+const CACHE = 'flint-v5';
 
-// Files that make up the app shell — pre-cached on install.
-// NOTE: config.js is intentionally excluded — it must always be fetched
-// fresh from the server so Supabase credentials are never served stale.
+// Static assets to pre-cache on install (app.html intentionally excluded —
+// navigations always go to the network so the page is never served stale).
 const SHELL = [
-    '/app.html',
     '/offline.html',
     '/manifest.json',
     '/icon-192.png',
@@ -16,7 +14,7 @@ const SHELL = [
 // Patterns for requests that must NEVER be served from cache.
 const BYPASS = [
     'supabase.co',          // Supabase API (auth, realtime, DB)
-    '.netlify/functions',   // Serverless functions (AI, stocks)
+    '.netlify/functions',   // Serverless functions (AI, stocks, config)
     'api.coingecko.com',    // Crypto prices
     'finance.yahoo.com',    // Stock prices
     'anthropic.com',        // Claude API safety net
@@ -32,17 +30,14 @@ function isBypass(url) {
 }
 
 // ── Install: pre-cache the app shell ──
-// Uses individual fetches so one missing file doesn't block the whole install.
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE).then(cache =>
             Promise.allSettled(
                 SHELL.map(url =>
-                    // cache: 'no-store' bypasses the browser HTTP cache so we always
-                    // pre-cache the freshest version of each shell file.
                     fetch(url, { cache: 'no-store' }).then(res => {
                         if (res.ok) return cache.put(url, res);
-                    }).catch(() => { /* skip files that fail */ })
+                    }).catch(() => {})
                 )
             )
         ).then(() => self.skipWaiting())
@@ -60,23 +55,29 @@ self.addEventListener('activate', event => {
     );
 });
 
-// ── Fetch: cache-first for static assets, network-only for everything else ──
+// ── Fetch ──
 self.addEventListener('fetch', event => {
     const { request } = event;
 
-    // Only intercept GET requests
     if (request.method !== 'GET') return;
 
     const url = request.url;
 
-    // Always go network-only for APIs, credentials, and external CDNs.
-    // Use cache: 'no-store' so the browser HTTP cache is also bypassed —
-    // without this flag fetch() can still serve a stale HTTP-cached response.
+    // Network-only for page navigations — app.html is never served from cache
+    // so users always get the latest version on every visit.
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            fetch(request, { cache: 'no-store' }).catch(() =>
+                caches.match('/offline.html')
+            )
+        );
+        return;
+    }
+
+    // Network-only for APIs, credentials, and external CDNs.
     if (isBypass(url)) {
         event.respondWith(
             fetch(request, { cache: 'no-store' }).catch(() => {
-                // For config.js specifically, a failure means the app can't init —
-                // return an empty script rather than a JSON error so the page loads.
                 if (url.includes('config.js')) {
                     return new Response('', {
                         status: 200,
@@ -92,30 +93,22 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Cache-first with network fallback for app shell assets
+    // Cache-first with network fallback for static assets (icons, manifest, etc.)
     event.respondWith(
         caches.match(request).then(cached => {
             if (cached) return cached;
-
             return fetch(request)
                 .then(response => {
-                    // Only cache successful same-origin responses
                     if (response && response.status === 200 && response.type !== 'opaque') {
                         const clone = response.clone();
                         caches.open(CACHE).then(cache => cache.put(request, clone));
                     }
                     return response;
                 })
-                .catch(() => {
-                    // Offline fallback for page navigations
-                    if (request.mode === 'navigate') {
-                        return caches.match('/offline.html');
-                    }
-                    return new Response('', {
-                        status: 503,
-                        statusText: 'Service Unavailable',
-                    });
-                });
+                .catch(() => new Response('', {
+                    status: 503,
+                    statusText: 'Service Unavailable',
+                }));
         })
     );
 });
