@@ -1929,21 +1929,24 @@ button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
 <script src="/.netlify/functions/get-config"></script>
 <script>
 (function(){
-    // Auto-heal: if credentials didn't load and we haven't tried yet, clear stale
-    // SW/cache and reload once. sessionStorage guard prevents an infinite loop.
-    if (!window.__APP_SUPABASE_URL && !sessionStorage.getItem('flint_auto_fixed')) {
-        sessionStorage.setItem('flint_auto_fixed', '1');
-        Promise.all([
-            navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(regs){
-                return Promise.all(regs.map(function(r){ return r.unregister(); }));
-            }) : Promise.resolve(),
-            window.caches ? caches.keys().then(function(keys){
-                return Promise.all(keys.map(function(k){ return caches.delete(k); }));
-            }) : Promise.resolve()
-        ]).then(function(){ location.reload(true); }).catch(function(){ location.reload(true); });
+    // Auto-heal: credentials didn't load — silently clear SW/cache and retry.
+    // Tries up to 3 times before falling through to the error state.
+    if (!window.__APP_SUPABASE_URL) {
+        var _bt = parseInt(sessionStorage.getItem('flint_boot_try') || '0', 10);
+        if (_bt < 3) {
+            sessionStorage.setItem('flint_boot_try', String(_bt + 1));
+            Promise.all([
+                navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(rs){
+                    return Promise.all(rs.map(function(r){ return r.unregister(); }));
+                }) : Promise.resolve(),
+                window.caches ? caches.keys().then(function(ks){
+                    return Promise.all(ks.map(function(k){ return caches.delete(k); }));
+                }) : Promise.resolve()
+            ]).then(function(){ location.reload(true); }).catch(function(){ location.reload(true); });
+        }
+        // After 3 retries fall through — catch block will show a clean message
     } else {
-        // Clear the guard so a future genuine stale-cache situation can self-heal again
-        sessionStorage.removeItem('flint_auto_fixed');
+        sessionStorage.removeItem('flint_boot_try');
     }
 })();
 </script></head>
@@ -3243,32 +3246,32 @@ try {
 } catch(e){
     console.error('[Flint] Init error:', e);
     if (!_sb) {
-        window.addEventListener('DOMContentLoaded', function() {
-            var btn = document.getElementById('authBtn');
-            if (btn) { btn.disabled = true; btn.innerText = 'App Error — tap Fix below'; }
-            var form = document.getElementById('authForm') || document.querySelector('.auth-card') || document.body;
-            var msg = document.createElement('div');
-            msg.style.cssText = 'background:#7f1d1d;color:#fecaca;padding:16px 18px;border-radius:12px;font-size:.85rem;margin-top:16px;text-align:center;line-height:1.6;';
-            msg.innerHTML = '⚠️ App credentials didn\'t load.<br><button id="flintFixBtn" style="margin-top:10px;background:#dc2626;color:#fff;border:none;padding:10px 22px;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;">Clear Cache &amp; Fix</button>';
-            form.appendChild(msg);
-            document.getElementById('flintFixBtn').addEventListener('click', function() {
-                this.innerText = 'Clearing…';
-                var self = this;
-                // Unregister all service workers, delete all caches, then hard-reload
-                Promise.all([
-                    navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(regs) {
-                        return Promise.all(regs.map(function(r){ return r.unregister(); }));
-                    }) : Promise.resolve(),
-                    window.caches ? caches.keys().then(function(keys) {
-                        return Promise.all(keys.map(function(k){ return caches.delete(k); }));
-                    }) : Promise.resolve()
-                ]).then(function() {
-                    location.reload(true);
-                }).catch(function() {
-                    location.reload(true);
-                });
+        // Credentials failed to initialize — try one more silent auto-heal cycle
+        var _bt2 = parseInt(sessionStorage.getItem('flint_boot_try') || '0', 10);
+        if (!SUPABASE_URL && _bt2 < 3) {
+            sessionStorage.setItem('flint_boot_try', String(_bt2 + 1));
+            Promise.all([
+                navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(rs){
+                    return Promise.all(rs.map(function(r){ return r.unregister(); }));
+                }) : Promise.resolve(),
+                window.caches ? caches.keys().then(function(ks){
+                    return Promise.all(ks.map(function(k){ return caches.delete(k); }));
+                }) : Promise.resolve()
+            ]).then(function(){ location.reload(true); }).catch(function(){ location.reload(true); });
+        } else {
+            // All retries exhausted — show a clean, non-scary message
+            window.addEventListener('DOMContentLoaded', function() {
+                var btn = document.getElementById('authBtn');
+                if (btn) btn.disabled = true;
+                var box = document.querySelector('.login-box');
+                if (box) {
+                    var d = document.createElement('div');
+                    d.style.cssText = 'color:rgba(255,255,255,.45);padding:10px 0;text-align:center;font-size:.78rem;margin-top:8px;line-height:1.5;';
+                    d.textContent = 'Unable to connect. Check your internet connection and try refreshing.';
+                    box.appendChild(d);
+                }
             });
-        });
+        }
     }
 }
 
