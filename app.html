@@ -1929,25 +1929,23 @@ button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
 <script src="/.netlify/functions/get-config"></script>
 <script>
 (function(){
-    // Auto-heal: credentials didn't load — silently clear SW/cache and retry.
-    // Tries up to 3 times before falling through to the error state.
-    if (!window.__APP_SUPABASE_URL) {
-        var _bt = parseInt(sessionStorage.getItem('flint_boot_try') || '0', 10);
-        if (_bt < 3) {
-            sessionStorage.setItem('flint_boot_try', String(_bt + 1));
-            Promise.all([
-                navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(rs){
-                    return Promise.all(rs.map(function(r){ return r.unregister(); }));
-                }) : Promise.resolve(),
-                window.caches ? caches.keys().then(function(ks){
-                    return Promise.all(ks.map(function(k){ return caches.delete(k); }));
-                }) : Promise.resolve()
-            ]).then(function(){ location.reload(true); }).catch(function(){ location.reload(true); });
-        }
-        // After 3 retries fall through — catch block will show a clean message
-    } else {
-        sessionStorage.removeItem('flint_boot_try');
+window.__credentialsReady = (function(){
+    if (window.__APP_SUPABASE_URL) return Promise.resolve(true);
+    function attempt(n) {
+        return fetch('/.netlify/functions/get-config', {cache:'no-store'})
+            .then(function(r){ return r.text(); })
+            .then(function(t){
+                var um = t.match(/__APP_SUPABASE_URL="([^"]+)"/);
+                var km = t.match(/__APP_SUPABASE_KEY="([^"]+)"/);
+                if (um && km) { window.__APP_SUPABASE_URL=um[1]; window.__APP_SUPABASE_KEY=km[1]; return true; }
+                return n > 0 ? new Promise(function(r){ setTimeout(r, 700); }).then(function(){ return attempt(n-1); }) : false;
+            })
+            .catch(function(){
+                return n > 0 ? new Promise(function(r){ setTimeout(r, 700); }).then(function(){ return attempt(n-1); }) : false;
+            });
     }
+    return attempt(4);
+})();
 })();
 </script></head>
 <body>
@@ -3208,72 +3206,58 @@ let celebratedMilestones={ car:false, mortgage:false };
 })();
 
 // ── Init ──
-try {
-    _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    try { if (typeof captureInviteParam === 'function') captureInviteParam(); } catch(e) { /* never block auth */ }
-
-    _sb.auth.getSession().then(({ data:{ session } }) => {
-        if (!session) { document.body.classList.remove('logged-in'); return; }
-        currentUser  = session.user.id;
-        currentEmail = session.user.email || '';
-        document.body.classList.add('logged-in'); currentSession = session;;
-        // ── SECURITY: Resolve display name from authenticated session metadata,
-        // NOT by sniffing the email string (trivially spoofable).
-        // Set user_metadata.display_name when creating accounts via Supabase Auth.
-        const displayName = (session.user.user_metadata?.display_name || '').toUpperCase();
-        currentDisplayName = displayName || 'PARTNER';
-        let name = currentDisplayName;
-        const wEl = document.getElementById('welcomeTitle');
-                if (wEl) wEl.innerText = name === 'PARTNER' ? 'Welcome Back' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-                const greetEl = document.getElementById('timeOfDay');
-                if (greetEl) { const h = new Date().getHours(); greetEl.innerText = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'; }
-                showWelcomeSplash(name);
-        loadApp().then && loadApp().then(function(){
-          // After loadApp, re-read display_name from app_settings config and update greeting
-          try {
-            var finalName = (window.config && window.config.display_name) ? String(window.config.display_name).toUpperCase() : currentDisplayName;
-            if (finalName && finalName !== 'PARTNER' && finalName !== '') {
-              currentDisplayName = finalName;
-              window.currentDisplayName = finalName;
-              var wTitle = document.getElementById('welcomeTitle');
-              if (wTitle && wTitle.innerText === 'Welcome Back') {
-                wTitle.innerText = finalName.charAt(0).toUpperCase() + finalName.slice(1).toLowerCase();
-              }
+(window.__credentialsReady || Promise.resolve(true)).then(function() {
+    var sbUrl = window.__APP_SUPABASE_URL || '';
+    var sbKey = window.__APP_SUPABASE_KEY || '';
+    if (!sbUrl || !sbKey) {
+        window.addEventListener('DOMContentLoaded', function() {
+            var btn = document.getElementById('authBtn');
+            if (btn) btn.disabled = true;
+            var box = document.querySelector('.login-box');
+            if (box) {
+                var d = document.createElement('div');
+                d.style.cssText = 'color:rgba(255,255,255,.45);padding:10px 0;text-align:center;font-size:.78rem;margin-top:8px;line-height:1.5;';
+                d.textContent = 'Unable to connect. Check your internet connection and try refreshing.';
+                box.appendChild(d);
             }
-          } catch(e2) {}
         });
-    });
-} catch(e){
-    console.error('[Flint] Init error:', e);
-    if (!_sb) {
-        // Credentials failed to initialize — try one more silent auto-heal cycle
-        var _bt2 = parseInt(sessionStorage.getItem('flint_boot_try') || '0', 10);
-        if (!SUPABASE_URL && _bt2 < 3) {
-            sessionStorage.setItem('flint_boot_try', String(_bt2 + 1));
-            Promise.all([
-                navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(rs){
-                    return Promise.all(rs.map(function(r){ return r.unregister(); }));
-                }) : Promise.resolve(),
-                window.caches ? caches.keys().then(function(ks){
-                    return Promise.all(ks.map(function(k){ return caches.delete(k); }));
-                }) : Promise.resolve()
-            ]).then(function(){ location.reload(true); }).catch(function(){ location.reload(true); });
-        } else {
-            // All retries exhausted — show a clean, non-scary message
-            window.addEventListener('DOMContentLoaded', function() {
-                var btn = document.getElementById('authBtn');
-                if (btn) btn.disabled = true;
-                var box = document.querySelector('.login-box');
-                if (box) {
-                    var d = document.createElement('div');
-                    d.style.cssText = 'color:rgba(255,255,255,.45);padding:10px 0;text-align:center;font-size:.78rem;margin-top:8px;line-height:1.5;';
-                    d.textContent = 'Unable to connect. Check your internet connection and try refreshing.';
-                    box.appendChild(d);
-                }
-            });
-        }
+        return;
     }
-}
+    try {
+        _sb = supabase.createClient(sbUrl, sbKey);
+        try { if (typeof captureInviteParam === 'function') captureInviteParam(); } catch(e) { /* never block auth */ }
+
+        _sb.auth.getSession().then(({ data:{ session } }) => {
+            if (!session) { document.body.classList.remove('logged-in'); return; }
+            currentUser  = session.user.id;
+            currentEmail = session.user.email || '';
+            document.body.classList.add('logged-in'); currentSession = session;;
+            const displayName = (session.user.user_metadata?.display_name || '').toUpperCase();
+            currentDisplayName = displayName || 'PARTNER';
+            let name = currentDisplayName;
+            const wEl = document.getElementById('welcomeTitle');
+                    if (wEl) wEl.innerText = name === 'PARTNER' ? 'Welcome Back' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+                    const greetEl = document.getElementById('timeOfDay');
+                    if (greetEl) { const h = new Date().getHours(); greetEl.innerText = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'; }
+                    showWelcomeSplash(name);
+            loadApp().then && loadApp().then(function(){
+              try {
+                var finalName = (window.config && window.config.display_name) ? String(window.config.display_name).toUpperCase() : currentDisplayName;
+                if (finalName && finalName !== 'PARTNER' && finalName !== '') {
+                  currentDisplayName = finalName;
+                  window.currentDisplayName = finalName;
+                  var wTitle = document.getElementById('welcomeTitle');
+                  if (wTitle && wTitle.innerText === 'Welcome Back') {
+                    wTitle.innerText = finalName.charAt(0).toUpperCase() + finalName.slice(1).toLowerCase();
+                  }
+                }
+              } catch(e2) {}
+            });
+        });
+    } catch(e){
+        console.error('[Flint] Init error:', e);
+    }
+});
 
 // ── Load ──
 async function loadApp() {
@@ -4320,8 +4304,7 @@ async function authenticateUser() {
         if(conf&&conf!==pass){showToast('Passwords do not match','error');return;}
         if(pass.length<6){showToast('Password must be at least 6 characters','warning');return;}
     }
-    // Guard: config.js must have loaded AND the Supabase client must have initialised.
-    if (!SUPABASE_URL || !SUPABASE_KEY || !_sb) {
+    if (!_sb) {
         showToast('App not ready — please hard-refresh (Ctrl+Shift+R)', 'error');
         return;
     }
