@@ -3945,7 +3945,7 @@ function renderNotes() {
         const reactionsHTML = ['👍','❤️','😂','😮','🙏'].map(emoji => {
             const count = rData[emoji] || 0;
             const reacted = myNoteReactions[n.id] === emoji;
-            return `<button class="bubble-reaction-btn${reacted?' reacted':''}" onclick="reactNote('${n.id}','${emoji}')">${emoji}${count>0?`<span class="r-count">${count}</span>`:''}</button>`;
+            return `<button class="bubble-reaction-btn${reacted?' reacted':''}" onclick="reactNote('${escapeHtml(n.id)}','${emoji}')">${emoji}${count>0?`<span class="r-count">${count}</span>`:''}</button>`;
         }).join('');
 
         // SECURITY: escape all DB-sourced strings before innerHTML insertion
@@ -4142,12 +4142,13 @@ async function addEntry() {
             if(!confirm(`⚠️ This Want puts you $${over} over your Want budget. Add anyway?`)) return;
         }
     }
-    if(cat==='Mortgage'&&!editingId) config.m_balance-=amt;
-    if(cat==='Car'&&!editingId)      config.c_balance-=amt;
+    const currentEditId=editingId; editingId=null;
+    if(cat==='Mortgage'&&!currentEditId) config.m_balance-=amt;
+    if(cat==='Car'&&!currentEditId)      config.c_balance-=amt;
     const isRecurChecked=document.getElementById('isRecur')?document.getElementById('isRecur').checked:false;
     const payload={amount:amt,member:document.getElementById('memberSelect').value,category:cat,note:sanitizePlainString(document.getElementById('noteInput').value, 240),intent:currentType,user_id:currentUser,group_id:currentGroup,is_recurring:isRecurChecked};
     try {
-        if(editingId){await _sb.from('transactions').update(payload).eq('id',editingId).eq('group_id',currentGroup).eq('user_id',currentUser);editingId=null;document.getElementById('syncBtn').innerText='Sync Transaction';document.getElementById('recurRow').style.display='flex';showToast('Transaction updated! ✓');}
+        if(currentEditId){await _sb.from('transactions').update(payload).eq('id',currentEditId).eq('group_id',currentGroup).eq('user_id',currentUser);document.getElementById('syncBtn').innerText='Sync Transaction';document.getElementById('recurRow').style.display='flex';showToast('Transaction updated! ✓');}
         else{
             const {error} = await _sb.from('transactions').insert([payload]);
             if(error) { showToast('An error occurred. Please try again.'); return; }
@@ -4165,7 +4166,7 @@ async function addEntry() {
         setType('Need');
         fetchData();
     } catch(e) { showToast('Network error. Check connection.', 'error'); console.error('addEntry error:', e); }
-    finally { _isSubmitting=false; if(syncBtn){syncBtn.disabled=false;syncBtn.style.opacity='1';syncBtn.innerText=editingId?'Update Transaction':'Sync Transaction';} }
+    finally { _isSubmitting=false; if(syncBtn){syncBtn.disabled=false;syncBtn.style.opacity='1';syncBtn.innerText='Sync Transaction';} }
 }
 
 function editEntry(id) {
@@ -6374,16 +6375,17 @@ function buildNotesPanel(){
         var ts=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
         var cat=n.category||'General';
         h+='<div style="display:flex;flex-direction:column;align-items:'+(isMe?'flex-end':'flex-start')+';margin-bottom:12px;">';
-        h+='<div style="font-size:.68rem;color:#8899bb;margin-bottom:3px;">'+n.author+'</div>';
+        var safeNId=safeIdValue(n.id)||'';
+        h+='<div style="font-size:.68rem;color:#8899bb;margin-bottom:3px;">'+escapeHtml(n.author||'')+'</div>';
         h+='<div style="background:'+(isMe?'rgba(96,165,250,.12)':'rgba(255,255,255,.06)')+';border:1px solid '+(isMe?'rgba(96,165,250,.2)':'rgba(255,255,255,.08)')+';border-radius:16px;padding:12px 16px;max-width:85%;">';
-        h+='<div style="font-size:.65rem;color:'+(cat==='Urgent'?'#fb7185':'#8899bb')+';margin-bottom:4px;">'+(catEmojis[cat]||'💬')+' '+cat+'</div>';
-        h+='<div style="font-size:.85rem;color:#eef2ff;line-height:1.5;">'+n.message+'</div></div>';
-        h+='<div style="font-size:.62rem;color:#4a5a7a;margin-top:3px;display:flex;gap:8px;align-items:center;">'+ts+(isMe?' · <span onclick="fpDelNote(\''+n.id+'\')" style="color:#fb7185;cursor:pointer;">Delete</span>':'')+'</div></div>';
+        h+='<div style="font-size:.65rem;color:'+(cat==='Urgent'?'#fb7185':'#8899bb')+';margin-bottom:4px;">'+(catEmojis[cat]||'💬')+' '+escapeHtml(cat)+'</div>';
+        h+='<div style="font-size:.85rem;color:#eef2ff;line-height:1.5;">'+escapeHtml(n.message||'')+'</div></div>';
+        h+='<div style="font-size:.62rem;color:#4a5a7a;margin-top:3px;display:flex;gap:8px;align-items:center;">'+ts+(isMe&&safeNId?' · <span onclick="fpDelNote(\''+safeNId+'\')" style="color:#fb7185;cursor:pointer;">Delete</span>':'')+'</div></div>';
     });}
     return h;
 }
 function fpSendNote(){var msg=document.getElementById('fp_noteMsg').value;if(!msg){showToast('Write a message first','error');return;}var author='Partner';if(currentDisplayName==='BRANDON')author='Brandon';else if(currentDisplayName==='GINA')author='Gina';var cat=document.getElementById('fp_noteCat').value||'General';_sb.from('app_notes').insert([{author:author,message:sanitizePlainString(msg, 500),category:cat,user_id:currentUser,group_id:currentGroup}]).then(function(){showToast('Note sent!');fetchData().then(function(){openPanel('notesManager');});});}
-function fpDelNote(id){if(!confirm('Delete note?'))return;_sb.from('app_notes').delete().select().eq('id',id).then(function(){notes=notes.filter(function(n){return n.id!==id;});showToast('Note deleted');openPanel('notesManager');});}
+async function fpDelNote(id){var safeId=safeIdValue(id);if(!safeId){showToast('Invalid note id','error');return;}if(!confirm('Delete note?'))return;var res=await _sb.from('app_notes').delete().select().eq('id',safeId).eq('group_id',currentGroup).eq('user_id',currentUser);if(res&&res.error){showToast('Could not delete note.','error');return;}notes=notes.filter(function(n){return n.id!==safeId;});showToast('Note deleted');openPanel('notesManager');}
 
 // ── FAMILY FEED PANEL ──
 function buildFamilyFeedPanel(){
