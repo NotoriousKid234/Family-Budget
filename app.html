@@ -189,7 +189,7 @@
         .nav-item-label { font-size: .85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .nav-item-sub { font-size: .6rem; font-weight: 400; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .2s; }
         .nav-item:hover .nav-item-sub { color: var(--text-soft); }
-        .nav-item.active .nav-item-sub { color: rgba(212,168,67,.6); }
+        .nav-item.active .nav-item-sub { color: rgba(22,163,74,.6); }
         .nav-item:hover { color: var(--text); background: var(--ink-3); }
         .nav-item:hover i { opacity: 1; }
         .nav-item.active {
@@ -1041,7 +1041,7 @@
         .note-cat-pill {
             padding: 6px 14px; border-radius: 100px;
             border: 1px solid var(--border);
-            background: rgba(255,255,255,.04);
+            background: var(--ink-4);
             font-size: .7rem; font-weight: 700;
             color: var(--text-soft); white-space: nowrap;
             cursor: pointer; transition: all .2s;
@@ -1202,11 +1202,11 @@
             gap: 12px;
             padding: 16px;
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,.08) transparent;
+            scrollbar-color: rgba(15,23,42,.12) transparent;
         }
         .chat-messages::-webkit-scrollbar { width: 4px; }
         .chat-messages::-webkit-scrollbar-track { background: transparent; }
-        .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 100px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(15,23,42,.12); border-radius: 100px; }
 
         .chat-compose-card {
             background: var(--ink-3);
@@ -1242,7 +1242,7 @@
         .hero-balance-num .gold-accent { color: var(--gold); -webkit-text-fill-color: var(--gold); }
         .hero-balance-pills { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .cycle-pill-inline {
-            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+            background: var(--ink-4); border: 1px solid var(--border-hi);
             color: var(--text-soft); font-size: .72rem; font-weight: 600;
             padding: 5px 14px; border-radius: 100px; cursor: pointer; outline: none;
             font-family: 'DM Sans', sans-serif;
@@ -1295,19 +1295,19 @@
         }
         .recap-date { font-size: .65rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
         .recap-dismiss {
-            background: rgba(255,255,255,.06); border: 1px solid var(--border);
+            background: var(--ink-4); border: 1px solid var(--border);
             color: var(--text-dim); border-radius: 8px;
             width: 26px; height: 26px; cursor: pointer;
             font-size: .75rem; display: flex; align-items: center; justify-content: center;
             transition: all .2s; flex-shrink: 0;
         }
-        .recap-dismiss:hover { background: rgba(255,255,255,.12); color: var(--text); }
+        .recap-dismiss:hover { background: var(--ink-3); color: var(--text); }
         .recap-stats-row {
             display: grid; grid-template-columns: repeat(3, 1fr);
             gap: 8px; margin-bottom: 14px;
         }
         .recap-stat {
-            background: rgba(0,0,0,.2); border-radius: 12px;
+            background: var(--ink-4); border-radius: 12px;
             padding: 10px; text-align: center;
         }
         .recap-stat-val { font-family: 'DM Mono', monospace; font-size: .9rem; font-weight: 600; color: var(--text); }
@@ -1315,12 +1315,12 @@
         .recap-body { font-size: .82rem; line-height: 1.65; color: var(--text-soft); }
         .recap-generate-btn {
             width: 100%; margin-top: 12px; padding: 10px;
-            background: rgba(167,139,250,.15); border: 1px solid rgba(167,139,250,.3);
-            color: #c4b5fd; border-radius: 12px; font-size: .78rem;
+            background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.25);
+            color: #3b82f6; border-radius: 12px; font-size: .78rem;
             font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif;
             transition: all .2s;
         }
-        .recap-generate-btn:hover { background: rgba(167,139,250,.25); }
+        .recap-generate-btn:hover { background: rgba(59,130,246,.14); }
 
         /* ═══ PREDICTIVE WARNING ═══ */
         .budget-warning-card {
@@ -1382,9 +1382,9 @@
         .prof-toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 16px; }
         .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider { position: absolute; inset: 0; background: rgba(255,255,255,.1); border-radius: 100px; cursor: pointer; transition: .3s; border: 1px solid var(--border); }
+        .toggle-slider { position: absolute; inset: 0; background: var(--slate-dim); border-radius: 100px; cursor: pointer; transition: .3s; border: 1px solid var(--border); }
         .toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px; background: white; border-radius: 50%; transition: .3s; }
-        .toggle-switch input:checked + .toggle-slider { background: linear-gradient(90deg,#f97316,#e8c252); border-color: rgba(249,115,22,.4); }
+        .toggle-switch input:checked + .toggle-slider { background: linear-gradient(90deg,#16a34a,#15803d); border-color: rgba(22,163,74,.4); }
         .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
 
         /* ─── Right Side Panels ─── */
@@ -1429,7 +1429,7 @@
             color: var(--gold); font-family: 'DM Mono', monospace;
         }
         .vault-mini-bar-bg {
-            height: 5px; background: rgba(255,255,255,.07);
+            height: 5px; background: var(--ink-4);
             border-radius: 100px; overflow: hidden;
         }
         .vault-mini-bar-fill {
@@ -1550,13 +1550,13 @@
         /* ─── Pinned Add Button ─── */
         .add-txn-btn {
             width: 100%; padding: 17px;
-            background: linear-gradient(135deg, #e8c252 0%, #d4a843 40%, #a07c20 100%);
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
             border: none; border-radius: 18px;
-            color: #08101f; font-weight: 800; font-size: .9rem;
+            color: #ffffff; font-weight: 800; font-size: .9rem;
             font-family: 'DM Sans', sans-serif;
             cursor: pointer; margin-bottom: 14px;
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            box-shadow: 0 4px 24px rgba(232,194,82,.4), inset 0 1px 0 rgba(255,255,255,.3);
+            box-shadow: 0 4px 24px rgba(22,163,74,.3), inset 0 1px 0 rgba(255,255,255,.2);
             transition: all .22s; letter-spacing: .3px;
             position: relative; overflow: hidden;
         }
@@ -1566,11 +1566,11 @@
             transform: translateX(-100%); transition: transform .5s;
         }
         .add-txn-btn:hover::after { transform: translateX(100%); }
-        .add-txn-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(232,194,82,.5); }
+        .add-txn-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(22,163,74,.4); }
         .add-txn-btn:active { transform: scale(.98); }
 
         @media (min-width: 1024px) {
-            .sheet-overlay { background: rgba(4,8,20,.7); left: 0; right: 0; }
+            .sheet-overlay { background: rgba(15,23,42,.5); left: 0; right: 0; }
             .bottom-sheet {
                 max-width: 520px;
                 width: 90vw;
@@ -1647,18 +1647,18 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: non
 }
 
 /* ── Chip: slightly stronger hover ── */
-.chip:hover { background: rgba(255,255,255,.09); border-color: var(--border-hi); color: var(--text); }
+.chip:hover { background: var(--ink-4); border-color: var(--border-hi); color: var(--text); }
 
 /* ── Recur-row: add hover state ── */
 .recur-row { transition: border-color .2s, background .2s; cursor: default; }
-.recur-row:hover { border-color: rgba(167,139,250,.35); background: rgba(139,127,212,.1); }
+.recur-row:hover { border-color: rgba(22,163,74,.35); background: rgba(22,163,74,.08); }
 
 /* ── Card hover: add box-shadow to card types that were missing it ── */
-.prog-card:hover { border-color: var(--border-hi); box-shadow: 0 4px 20px rgba(0,0,0,.2); }
-.nw-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0,0,0,.22); }
-.ms-card:hover { transform: translateY(-2px); border-color: var(--border-hi); box-shadow: 0 6px 22px rgba(0,0,0,.22); }
-.bill-item:hover { border-color: var(--border-hi); transform: translateY(-1px); box-shadow: 0 4px 18px rgba(0,0,0,.2); }
-.loan-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.28); }
+.prog-card:hover { border-color: var(--border-hi); box-shadow: 0 4px 20px rgba(15,23,42,.08); }
+.nw-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(15,23,42,.08); }
+.ms-card:hover { transform: translateY(-2px); border-color: var(--border-hi); box-shadow: 0 6px 22px rgba(15,23,42,.08); }
+.bill-item:hover { border-color: var(--border-hi); transform: translateY(-1px); box-shadow: 0 4px 18px rgba(15,23,42,.08); }
+.loan-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,.1); }
 
 /* ── Section heading: tiny bump for legibility ── */
 .sec-head { font-size: .62rem; letter-spacing: 2.2px; }
@@ -1671,7 +1671,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: non
 .bal-eyebrow { font-size: .62rem; }
 
 /* ── History rows: slightly stronger hover ── */
-.hist-item:hover { background: rgba(255,255,255,.035); }
+.hist-item:hover { background: var(--ink-4); }
 
 /* ── Profile option: scale on hover ── */
 .prof-opt:hover { transform: scale(1.07); }
@@ -1692,11 +1692,11 @@ button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
 /* ── Add line-height to ai body for breathing room ── */
 .ai-body { line-height: 1.7; }
 
-/* ── Balance hero: slight glow on number ── */
-.bal-number { filter: drop-shadow(0 2px 12px rgba(232,194,82,.25)); }
+/* ── Balance hero: number text stays white on dark hero card ── */
+.bal-number { filter: none; }
 
 /* ── Bottom sheet handle: subtle hover ── */
-.sheet-handle:hover { background: rgba(255,255,255,.25); transition: background .2s; }
+.sheet-handle:hover { background: rgba(15,23,42,.18); transition: background .2s; }
 
 </style>
 
@@ -1718,7 +1718,7 @@ button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
     top:0;
     z-index:5;
     padding: 6px 0 14px;
-    background: linear-gradient(180deg, rgba(6,13,28,.96) 0%, rgba(6,13,28,.90) 72%, rgba(6,13,28,0) 100%);
+    background: linear-gradient(180deg, rgba(247,249,252,.98) 0%, rgba(247,249,252,.92) 72%, rgba(247,249,252,0) 100%);
     backdrop-filter: blur(10px);
   }
   .flint-panel-back {
@@ -1726,23 +1726,23 @@ button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
     width:36px;
     height:36px;
     border-radius:10px;
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.08);
+    background:var(--ink-4);
+    border:1px solid var(--border-hi);
     display:flex;
     align-items:center;
     justify-content:center;
-    color:#8899bb;
+    color:var(--text-soft);
     font-size:.85rem;
     flex-shrink:0;
     transition:all .18s ease;
   }
-  .flint-panel-back:hover { color:#eef2ff; border-color:rgba(212,168,67,.28); background:rgba(255,255,255,.08); }
+  .flint-panel-back:hover { color:var(--text); border-color:rgba(22,163,74,.3); background:#ffffff; }
   .flint-panel-title {
     font-size:.82rem;
     font-weight:700;
     letter-spacing:2px;
     text-transform:uppercase;
-    color:#eef2ff;
+    color:var(--text);
   }
   .flint-panel-body { width:100%; }
   .flint-panel-compact { width:min(980px, calc(100vw - 240px - 64px)); }
@@ -1977,7 +1977,7 @@ window.__credentialsReady = (function(){
         <div id="signupExtras" style="display:none;width:100%;">
             <input type="text" id="displayNameField" placeholder="Your first name (e.g. Brandon)" style="width:100%;margin-bottom:10px;" autocomplete="given-name">
             <input type="password" id="confirmPasswordField" placeholder="Confirm password" style="width:100%;margin-bottom:10px;">
-            <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:12px;line-height:1.5;text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.08);">&#128274; Your data is encrypted and stored securely.</div>
+            <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:12px;line-height:1.5;text-align:left;padding:10px 12px;background:rgba(22,163,74,.05);border-radius:10px;border:1px solid rgba(22,163,74,.15);">&#128274; Your data is encrypted and stored securely.</div>
         </div>
 
         <button class="btn btn-gold" id="authBtn" onclick="authenticateUser()" style="margin-bottom:14px;width:100%;">Sign In</button>
@@ -2169,7 +2169,7 @@ window.__credentialsReady = (function(){
                     <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),transparent);"></div>
                     <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--violet);margin-bottom:8px;">Mortgage</div>
                     <div id="mortgageBalText" style="font-family:'Instrument Serif',serif;font-size:1.5rem;font-weight:300;color:var(--text);margin-bottom:14px;">$0.00</div>
-                    <div style="height:3px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;margin-bottom:8px;">
+                    <div style="height:3px;background:#edf0f6;border-radius:100px;overflow:hidden;margin-bottom:8px;">
                         <div id="mortgBar" class="prog-fill fill-mortgage" style="width:0%;height:100%;border-radius:100px;"></div>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -2183,7 +2183,7 @@ window.__credentialsReady = (function(){
                     <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--teal),transparent);"></div>
                     <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--blue);margin-bottom:8px;">Car Loan</div>
                     <div id="carBalText" style="font-family:'Instrument Serif',serif;font-size:1.5rem;font-weight:300;color:var(--text);margin-bottom:14px;">$0.00</div>
-                    <div style="height:3px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;margin-bottom:8px;">
+                    <div style="height:3px;background:#edf0f6;border-radius:100px;overflow:hidden;margin-bottom:8px;">
                         <div id="carBar" class="prog-fill fill-car" style="width:0%;height:100%;border-radius:100px;"></div>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -2238,7 +2238,7 @@ window.__credentialsReady = (function(){
                         <div id="wantCapDisplay" style="font-family:'DM Mono',monospace;font-size:.95rem;color:var(--text);">$0</div>
                     </div>
                 </div>
-                <div style="height:6px;background:rgba(255,255,255,.05);border-radius:100px;overflow:hidden;display:flex;">
+                <div style="height:6px;background:#edf0f6;border-radius:100px;overflow:hidden;display:flex;">
                     <div id="needBar2" style="height:100%;background:linear-gradient(90deg,var(--green),rgba(52,211,153,.7));border-radius:100px;transition:width .8s ease;width:0%;"></div>
                     <div id="wantBar2" style="height:100%;background:linear-gradient(90deg,var(--amber),rgba(251,191,36,.7));border-radius:100px;transition:width .8s ease;width:0%;margin-left:2px;"></div>
                 </div>
@@ -2247,7 +2247,7 @@ window.__credentialsReady = (function(){
                 </div>
                 <div id="wantCapBar" style="display:none;margin-top:8px;">
                     <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--text-dim);margin-bottom:4px;"><span>Want budget used</span><span id="wantCapPct">0%</span></div>
-                    <div style="height:5px;background:rgba(255,255,255,.05);border-radius:100px;overflow:hidden;">
+                    <div style="height:5px;background:#edf0f6;border-radius:100px;overflow:hidden;">
                         <div id="wantCapFill" style="height:100%;border-radius:100px;transition:width .8s ease;width:0%;background:linear-gradient(90deg,var(--amber),var(--rose));"></div>
                     </div>
                 </div>
@@ -2369,7 +2369,7 @@ window.__credentialsReady = (function(){
                 </div>
 
                 <!-- Divider -->
-                <div style="height:1px;background:rgba(255,255,255,.06);margin:16px 0;"></div>
+                <div style="height:1px;background:rgba(15,23,42,.07);margin:16px 0;"></div>
 
                 <!-- Savings Vaults Mini -->
                 <div id="vaultMiniPanel" style="display:none;margin-bottom:16px;">
@@ -2381,7 +2381,7 @@ window.__credentialsReady = (function(){
                 </div>
 
                 <!-- Divider for vaults -->
-                <div id="vaultMiniDivider" style="display:none;height:1px;background:rgba(255,255,255,.06);margin-bottom:16px;"></div>
+                <div id="vaultMiniDivider" style="display:none;height:1px;background:rgba(15,23,42,.07);margin-bottom:16px;"></div>
 
                 <!-- AI Daily Tip -->
                 <div id="aiTipPanel">
@@ -2404,10 +2404,10 @@ window.__credentialsReady = (function(){
             <!-- Transaction List -->
             <div style="background:var(--ink-2);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:12px;padding:14px 16px 6px;">
                 <!-- Search bar -->
-                <div style="display:flex;align-items:center;gap:10px;padding:0 2px 12px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:12px;">
+                <div style="display:flex;align-items:center;gap:10px;padding:0 2px 12px;border-bottom:1px solid rgba(15,23,42,.07);margin-bottom:12px;">
                     <i class="fa-solid fa-magnifying-glass" style="color:var(--text-dim);font-size:.8rem;flex-shrink:0;"></i>
                     <input type="text" id="searchBar" placeholder="Search transactions…" onkeyup="filterHistory()" style="background:none;border:none;outline:none;color:var(--text);font-size:.85rem;flex:1;font-family:'DM Sans',sans-serif;padding:0;margin:0;">
-                    <div id="historyCount" style="font-size:.65rem;font-weight:700;color:var(--text-dim);font-family:'DM Mono',monospace;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);padding:2px 10px;border-radius:100px;white-space:nowrap;flex-shrink:0;">0 transactions</div>
+                    <div id="historyCount" style="font-size:.65rem;font-weight:700;color:var(--text-dim);font-family:'DM Mono',monospace;background:#edf0f6;border:1px solid rgba(15,23,42,.08);padding:2px 10px;border-radius:100px;white-space:nowrap;flex-shrink:0;">0 transactions</div>
                 </div>
                 <!-- Filter pills -->
                 <div class="txn-filter-bar" id="txnFilterBar">
@@ -2461,7 +2461,7 @@ window.__credentialsReady = (function(){
                         <span>Progress to goal</span>
                         <span id="nwGoalPct">0%</span>
                     </div>
-                    <div style="height:6px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden;">
+                    <div style="height:6px;background:#edf0f6;border-radius:100px;overflow:hidden;">
                         <div id="nwGoalBar" style="height:100%;background:linear-gradient(90deg,var(--green),#86efac);border-radius:100px;width:0%;transition:width .6s;"></div>
                     </div>
                 </div>
@@ -3002,14 +3002,14 @@ function showConfirm(msg, onConfirm) {
     if (existing) existing.remove();
     const overlay = document.createElement('div');
     overlay.id = 'confirmOverlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(4,8,20,.8);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-    overlay.innerHTML = '<div style="background:#0d1628;border:1px solid rgba(100,150,230,.2);border-radius:20px;padding:28px 24px;max-width:320px;width:100%;text-align:center;">' +
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML = '<div style="background:#ffffff;border:1px solid rgba(15,23,42,.1);border-radius:20px;padding:28px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(15,23,42,.15);">' +
         '<div style="font-size:1.8rem;margin-bottom:12px;">&#128465;</div>' +
-        '<div style="font-size:.95rem;font-weight:600;color:white;margin-bottom:6px;">Are you sure?</div>' +
-        '<div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:20px;">' + escapeHtml(msg) + '</div>' +
+        '<div style="font-size:.95rem;font-weight:600;color:#0f172a;margin-bottom:6px;">Are you sure?</div>' +
+        '<div style="font-size:.82rem;color:#475569;margin-bottom:20px;">' + escapeHtml(msg) + '</div>' +
         '<div style="display:flex;gap:10px;">' +
-        '<button id="confirmCancelBtn" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:white;cursor:pointer;font-size:.88rem;font-weight:600;">Cancel</button>' +
-        '<button id="confirmOkBtn" style="flex:1;padding:12px;border-radius:12px;border:none;background:#f87171;color:white;cursor:pointer;font-size:.88rem;font-weight:700;">Delete</button>' +
+        '<button id="confirmCancelBtn" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(15,23,42,.12);background:#f1f5f9;color:#475569;cursor:pointer;font-size:.88rem;font-weight:600;">Cancel</button>' +
+        '<button id="confirmOkBtn" style="flex:1;padding:12px;border-radius:12px;border:none;background:#ef4444;color:white;cursor:pointer;font-size:.88rem;font-weight:700;">Delete</button>' +
         '</div></div>';
     document.getElementById('confirmCancelBtn').onclick = () => overlay.remove();
     document.body.appendChild(overlay);
@@ -3299,15 +3299,15 @@ function showJoinConfirmModal(pendingKey, ownerLabel) {
     if (old) old.remove();
     const modal = document.createElement('div');
     modal.id = 'joinConfirmModal';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7);padding:20px;';
-    modal.innerHTML = '<div style="background:#0d1b33;border:1px solid rgba(45,212,191,.3);border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6);">'
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.5);backdrop-filter:blur(8px);padding:20px;';
+    modal.innerHTML = '<div style="background:#ffffff;border:1px solid rgba(15,23,42,.1);border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(15,23,42,.15);">'
         + '<div style="font-size:2rem;text-align:center;margin-bottom:12px;">🔗</div>'
-        + '<div style="font-size:1.1rem;font-weight:700;color:#eef2ff;text-align:center;margin-bottom:10px;">Join Shared Ledger?</div>'
-        + '<div style="font-size:.82rem;color:#8899bb;line-height:1.6;text-align:center;margin-bottom:20px;">You were invited to join ' + ownerLabel + ' ledger.<br>Your account will be linked and you\'ll share transactions, vaults, and budgets.</div>'
-        + '<div style="background:rgba(0,0,0,.4);border:1px solid rgba(45,212,191,.2);border-radius:10px;padding:10px 14px;font-family:\'DM Mono\',monospace;font-size:.72rem;color:#2dd4bf;word-break:break-all;text-align:center;margin-bottom:20px;">' + pendingKey + '</div>'
+        + '<div style="font-size:1.1rem;font-weight:700;color:#0f172a;text-align:center;margin-bottom:10px;">Join Shared Ledger?</div>'
+        + '<div style="font-size:.82rem;color:#475569;line-height:1.6;text-align:center;margin-bottom:20px;">You were invited to join ' + ownerLabel + ' ledger.<br>Your account will be linked and you\'ll share transactions, vaults, and budgets.</div>'
+        + '<div style="background:#f0fdf4;border:1px solid rgba(22,163,74,.2);border-radius:10px;padding:10px 14px;font-family:\'DM Mono\',monospace;font-size:.72rem;color:#16a34a;word-break:break-all;text-align:center;margin-bottom:20px;">' + pendingKey + '</div>'
         + '<div style="display:flex;gap:10px;">'
-        + '<button onclick="declineJoin()" style="flex:1;background:rgba(255,255,255,.06);color:#8899bb;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;font-weight:600;">Decline</button>'
-        + '<button onclick="acceptJoin(\'' + pendingKey + '\')" style="flex:1;background:linear-gradient(135deg,rgba(45,212,191,.2),rgba(45,212,191,.1));color:#2dd4bf;border:1px solid rgba(45,212,191,.35);border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;font-weight:700;">Join Ledger ✓</button>'
+        + '<button onclick="declineJoin()" style="flex:1;background:#f1f5f9;color:#475569;border:1px solid rgba(15,23,42,.12);border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;font-weight:600;">Decline</button>'
+        + '<button onclick="acceptJoin(\'' + pendingKey + '\')" style="flex:1;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;font-weight:700;">Join Ledger ✓</button>'
         + '</div></div>';
     document.body.appendChild(modal);
 }
@@ -3705,12 +3705,12 @@ function renderBills() {
         // upcoming (≤7 days)
         if(days<=7){
             const d=document.createElement('div'); d.className='bill-item';
-            d.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">${escapeHtml(sanitizePlainString(b.icon||'💳', 8))}</div><div><div class="bill-name">${escapeHtml(sanitizePlainString(b.name, 80))}</div><div class="bill-due">Day ${Math.max(1, Math.min(31, parseInt(b.day, 10) || 1))} of each cycle</div></div></div><div class="bill-right"><div class="bill-amt">$${safeNumber(b.amount).toFixed(2)}</div><div class="bill-countdown ${cls}">${label}</div></div>`;
+            d.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:#edf0f6;">${escapeHtml(sanitizePlainString(b.icon||'💳', 8))}</div><div><div class="bill-name">${escapeHtml(sanitizePlainString(b.name, 80))}</div><div class="bill-due">Day ${Math.max(1, Math.min(31, parseInt(b.day, 10) || 1))} of each cycle</div></div></div><div class="bill-right"><div class="bill-amt">$${safeNumber(b.amount).toFixed(2)}</div><div class="bill-countdown ${cls}">${label}</div></div>`;
             upcoming.appendChild(d);
         }
 
         const div=document.createElement('div'); div.className='bill-item';
-        div.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:rgba(255,255,255,.06);">${escapeHtml(sanitizePlainString(b.icon||'💳', 8))}</div><div><div class="bill-name">${escapeHtml(sanitizePlainString(b.name, 80))}</div><div class="bill-due">Due day ${Math.max(1, Math.min(31, parseInt(b.day, 10) || 1))}</div></div></div><div class="bill-right"><div class="bill-amt">$${safeNumber(b.amount).toFixed(2)}</div><div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;"><span class="bill-countdown ${cls}">${label}</span><button class="act-btn act-del" onclick="deleteBill('${b.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+        div.innerHTML=`<div class="bill-left"><div class="bill-icon" style="background:#edf0f6;">${escapeHtml(sanitizePlainString(b.icon||'💳', 8))}</div><div><div class="bill-name">${escapeHtml(sanitizePlainString(b.name, 80))}</div><div class="bill-due">Due day ${Math.max(1, Math.min(31, parseInt(b.day, 10) || 1))}</div></div></div><div class="bill-right"><div class="bill-amt">$${safeNumber(b.amount).toFixed(2)}</div><div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;"><span class="bill-countdown ${cls}">${label}</span><button class="act-btn act-del" onclick="deleteBill('${b.id}')"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
         all.appendChild(div);
     });
 
@@ -5011,7 +5011,7 @@ function renderCatLimits() {
             '<span style="font-size:.72rem;color:var(--text-dim);">$' + spent.toFixed(0) + ' / $' + limit + '</span>' +
             '<button onclick="removeCatLimit(\'' + cat + '\')" style="background:none;border:none;color:var(--rose);cursor:pointer;font-size:.7rem;">✕</button>' +
             '</div></div>' +
-            '<div style="height:5px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden;">' +
+            '<div style="height:5px;background:#edf0f6;border-radius:100px;overflow:hidden;">' +
             '<div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:100px;transition:width .5s;"></div></div>';
         list.appendChild(div);
     });
@@ -5098,7 +5098,7 @@ function renderCategoryBreakdown() {
             '<span style="font-size:.82rem;font-weight:600;">' + escapeHtml(sanitizePlainString(cat, 40)) + '</span>' +
             '<span style="font-size:.78rem;color:var(--text-soft);">$' + amt.toFixed(2) + ' (' + pct + '%)</span>' +
             '</div>' +
-            '<div style="height:6px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden;">' +
+            '<div style="height:6px;background:#edf0f6;border-radius:100px;overflow:hidden;">' +
             '<div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:100px;transition:width .6s ' + (i*0.05) + 's;"></div></div></div>';
     });
     el.innerHTML = html || '<div style="color:var(--text-dim);font-size:.82rem;">No transactions this cycle.</div>';
@@ -5124,7 +5124,7 @@ function renderSpendByDay() {
         const h = Math.round((amt/max)*100);
         const isMax = amt === max;
         html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;">' +
-            '<div style="width:100%;height:' + h + '%;background:' + (isMax ? 'linear-gradient(180deg,#f97316,#e8c252)' : 'rgba(255,255,255,.1)') + ';border-radius:6px 6px 0 0;transition:height .5s ' + (i*0.05) + 's;min-height:3px;"></div>' +
+            '<div style="width:100%;height:' + h + '%;background:' + (isMax ? 'linear-gradient(180deg,#16a34a,#22c55e)' : '#edf0f6') + ';border-radius:6px 6px 0 0;transition:height .5s ' + (i*0.05) + 's;min-height:3px;"></div>' +
             '<div style="font-size:.58rem;color:' + (isMax?'var(--g1,#f97316)':'var(--text-dim)') + ';font-weight:' + (isMax?'700':'400') + ';">' + days[i] + '</div></div>';
     });
     html += '</div>';
@@ -5428,14 +5428,14 @@ async function fetchAiTip(force = false) {
         if (lines.length > 0) {
             lines.forEach((line, i) => {
                 const txt = escapeHtml(sanitizePlainString(line.replace(/^[1-3][\.\)]\s*/, ''), 240));
-                html += '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.07);">'
+                html += '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:#f7f9fc;border-radius:10px;border:1px solid rgba(15,23,42,.07);">'
                       + '<span style="font-size:.85rem;flex-shrink:0;">' + (icons[i]||'💡') + '</span>'
-                      + '<span style="font-size:.78rem;line-height:1.55;color:rgba(240,244,255,.85);">' + txt + '</span>'
+                      + '<span style="font-size:.78rem;line-height:1.55;color:#475569;">' + txt + '</span>'
                       + '</div>';
             });
         } else {
             // Fallback: show raw text formatted
-            html += '<div style="font-size:.78rem;line-height:1.65;color:rgba(240,244,255,.8);">' + escapeHtml(sanitizePlainString(text, 1200)).replace(/\n/g,'<br>') + '</div>';
+            html += '<div style="font-size:.78rem;line-height:1.65;color:#475569;">' + escapeHtml(sanitizePlainString(text, 1200)).replace(/\n/g,'<br>') + '</div>';
         }
         html += '</div>';
 
@@ -6044,30 +6044,30 @@ function buildNetworthPanel() {
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">';
     h+='<div style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#34d399;margin-bottom:6px;">Total Assets</div><div style="font-size:1.3rem;font-weight:700;color:#34d399;font-family:DM Mono,monospace;">$'+fmt0(totalAssets)+'</div></div>';
     h+='<div style="background:rgba(251,113,133,.06);border:1px solid rgba(251,113,133,.15);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#fb7185;margin-bottom:6px;">Total Debts</div><div style="font-size:1.3rem;font-weight:700;color:#fb7185;font-family:DM Mono,monospace;">$'+fmt0(totalDebts)+'</div></div></div>';
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:20px 0 10px;">Asset Breakdown</div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;overflow:hidden;">';
-    [{i:'🏠',n:'Home Value',v:home,c:'#eef2ff'},{i:'🏦',n:'Checking / Savings',v:cash,c:'#eef2ff'},{i:'📈',n:'Investments / 401k',v:invest,c:'#eef2ff'},{i:'💼',n:'Other Assets',v:other,c:'#eef2ff'},{i:'🏠',n:'Mortgage (debt)',v:-mBal,c:'#fb7185'},{i:'🚗',n:'Car Loan (debt)',v:-cBal,c:'#fb7185'}].forEach(function(r){
-        h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:.82rem;color:#8899bb;">'+r.i+' '+r.n+'</span><span style="font-size:.85rem;font-weight:600;color:'+r.c+';font-family:DM Mono,monospace;">'+(r.v>=0?'$':'-$')+fmt0(Math.abs(r.v))+'</span></div>';
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin:20px 0 10px;">Asset Breakdown</div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:16px;overflow:hidden;">';
+    [{i:'🏠',n:'Home Value',v:home,c:'#0f172a'},{i:'🏦',n:'Checking / Savings',v:cash,c:'#0f172a'},{i:'📈',n:'Investments / 401k',v:invest,c:'#0f172a'},{i:'💼',n:'Other Assets',v:other,c:'#0f172a'},{i:'🏠',n:'Mortgage (debt)',v:-mBal,c:'#ef4444'},{i:'🚗',n:'Car Loan (debt)',v:-cBal,c:'#ef4444'}].forEach(function(r){
+        h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid rgba(15,23,42,.06);"><span style="font-size:.82rem;color:#475569;">'+r.i+' '+r.n+'</span><span style="font-size:.85rem;font-weight:600;color:'+r.c+';font-family:DM Mono,monospace;">'+(r.v>=0?'$':'-$')+fmt0(Math.abs(r.v))+'</span></div>';
     });
     h+='</div>';
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:24px 0 10px;">Net Worth Goal</div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;">';
-    h+='<div style="display:flex;gap:10px;margin-bottom:12px;"><input type="number" id="fp_nw_goal" value="'+(nwGoal||'')+'" placeholder="Target net worth" style="flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;"><button onclick="localStorage.setItem(\'montoya_nw_goal\',document.getElementById(\'fp_nw_goal\').value);openPanel(\'networth\');" style="background:linear-gradient(135deg,#d4a843,#b8941c);color:#0a0e1a;font-weight:700;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;font-size:.78rem;">Set</button></div>';
-    if(nwGoal>0){h+='<div style="display:flex;justify-content:space-between;font-size:.72rem;color:#8899bb;margin-bottom:6px;"><span>Progress to $'+fmt0(nwGoal)+'</span><span style="color:#34d399;">'+nwGoalPct+'%</span></div><div style="height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;"><div style="height:100%;width:'+nwGoalPct+'%;background:linear-gradient(90deg,#34d399,#86efac);border-radius:100px;"></div></div>';}
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin:24px 0 10px;">Net Worth Goal</div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:16px;padding:18px;">';
+    h+='<div style="display:flex;gap:10px;margin-bottom:12px;"><input type="number" id="fp_nw_goal" value="'+(nwGoal||'')+'" placeholder="Target net worth" style="flex:1;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;"><button onclick="localStorage.setItem(\'montoya_nw_goal\',document.getElementById(\'fp_nw_goal\').value);openPanel(\'networth\');" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;font-weight:700;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;font-size:.78rem;">Set</button></div>';
+    if(nwGoal>0){h+='<div style="display:flex;justify-content:space-between;font-size:.72rem;color:#475569;margin-bottom:6px;"><span>Progress to $'+fmt0(nwGoal)+'</span><span style="color:#16a34a;">'+nwGoalPct+'%</span></div><div style="height:8px;background:#edf0f6;border-radius:100px;overflow:hidden;"><div style="height:100%;width:'+nwGoalPct+'%;background:linear-gradient(90deg,#22c55e,#86efac);border-radius:100px;"></div></div>';}
     h+='</div>';
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:24px 0 10px;">Emergency Fund</div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;">';
-    h+='<div style="font-size:.78rem;color:#8899bb;margin-bottom:12px;line-height:1.6;">Experts recommend 3–6 months of expenses saved.</div>';
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;"><div><div style="font-size:.65rem;font-weight:600;color:#4a5a7a;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">Emergency Fund</div><input type="number" id="fp_ef_saved" value="'+(efSaved||'')+'" placeholder="Saved" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;"></div><div><div style="font-size:.65rem;font-weight:600;color:#4a5a7a;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">Monthly Expenses</div><input type="number" id="fp_ef_monthly" value="'+(efMonthly||'')+'" placeholder="Spend" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;"></div></div>';
-    h+='<button onclick="localStorage.setItem(\'montoya_ef_saved\',document.getElementById(\'fp_ef_saved\').value||0);localStorage.setItem(\'montoya_ef_monthly\',document.getElementById(\'fp_ef_monthly\').value||0);openPanel(\'networth\');" style="width:100%;background:rgba(45,212,191,.12);color:#2dd4bf;font-weight:700;border:1px solid rgba(45,212,191,.25);border-radius:10px;padding:10px;cursor:pointer;font-size:.78rem;margin-bottom:10px;">Update</button>';
-    if(efMonthly>0){h+='<div style="padding:12px;background:rgba(0,0,0,.2);border-radius:10px;font-size:.82rem;color:'+efColor+';font-weight:600;text-align:center;">'+efMonths+' months covered '+(parseFloat(efMonths)>=6?'✅ Excellent!':(parseFloat(efMonths)>=3?'⚠️ Getting there':'🚨 Needs work'))+'</div>';}
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin:24px 0 10px;">Emergency Fund</div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:16px;padding:18px;">';
+    h+='<div style="font-size:.78rem;color:#475569;margin-bottom:12px;line-height:1.6;">Experts recommend 3–6 months of expenses saved.</div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;"><div><div style="font-size:.65rem;font-weight:600;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">Emergency Fund</div><input type="number" id="fp_ef_saved" value="'+(efSaved||'')+'" placeholder="Saved" style="width:100%;box-sizing:border-box;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;"></div><div><div style="font-size:.65rem;font-weight:600;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">Monthly Expenses</div><input type="number" id="fp_ef_monthly" value="'+(efMonthly||'')+'" placeholder="Spend" style="width:100%;box-sizing:border-box;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;"></div></div>';
+    h+='<button onclick="localStorage.setItem(\'montoya_ef_saved\',document.getElementById(\'fp_ef_saved\').value||0);localStorage.setItem(\'montoya_ef_monthly\',document.getElementById(\'fp_ef_monthly\').value||0);openPanel(\'networth\');" style="width:100%;background:rgba(14,165,233,.08);color:#0ea5e9;font-weight:700;border:1px solid rgba(14,165,233,.25);border-radius:10px;padding:10px;cursor:pointer;font-size:.78rem;margin-bottom:10px;">Update</button>';
+    if(efMonthly>0){h+='<div style="padding:12px;background:#f0fdf4;border-radius:10px;font-size:.82rem;color:'+efColor+';font-weight:600;text-align:center;">'+efMonths+' months covered '+(parseFloat(efMonths)>=6?'✅ Excellent!':(parseFloat(efMonths)>=3?'⚠️ Getting there':'🚨 Needs work'))+'</div>';}
     h+='</div>';
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:24px 0 10px;">Update Assets</div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;">';
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin:24px 0 10px;">Update Assets</div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:16px;padding:18px;">';
     [{id:'fp_nw_home',l:'Home Value',v:home},{id:'fp_nw_cash',l:'Checking / Savings',v:cash},{id:'fp_nw_invest',l:'Investments / 401k',v:invest},{id:'fp_nw_other',l:'Other Assets',v:other}].forEach(function(f){
-        h+='<div style="margin-bottom:12px;"><div style="font-size:.65rem;font-weight:600;color:#4a5a7a;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">'+f.l+'</div><input type="number" id="'+f.id+'" value="'+(f.v||'')+'" placeholder="$0" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;"></div>';
+        h+='<div style="margin-bottom:12px;"><div style="font-size:.65rem;font-weight:600;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;">'+f.l+'</div><input type="number" id="'+f.id+'" value="'+(f.v||'')+'" placeholder="$0" style="width:100%;box-sizing:border-box;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;"></div>';
     });
-    h+='<button onclick="fpSaveNW()" style="width:100%;background:linear-gradient(135deg,#d4a843,#b8941c);color:#0a0e1a;font-weight:700;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Save Net Worth</button></div>';
+    h+='<button onclick="fpSaveNW()" style="width:100%;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;font-weight:700;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Save Net Worth</button></div>';
     return h;
 }
 async function fpSaveNW(){
@@ -6089,27 +6089,27 @@ async function fpSaveNW(){
 
 function buildVaultsPanel() {
     var h='';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;margin-bottom:20px;">';
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#d4a843;margin-bottom:14px;">Create New Vault</div>';
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;"><input type="text" id="fp_vn" placeholder="Goal name" style="background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;"><input type="number" id="fp_vt" placeholder="Target ($)" style="background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;"></div>';
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;"><input type="text" id="fp_ve" placeholder="Emoji 🏖️" maxlength="2" style="background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;"><input type="number" id="fp_vs" placeholder="Already saved ($)" style="background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;"></div>';
-    h+='<button onclick="fpAddVault()" style="width:100%;background:linear-gradient(135deg,#d4a843,#b8941c);color:#0a0e1a;font-weight:700;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Create Vault</button></div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:16px;padding:18px;margin-bottom:20px;">';
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#16a34a;margin-bottom:14px;">Create New Vault</div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;"><input type="text" id="fp_vn" placeholder="Goal name" style="background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;"><input type="number" id="fp_vt" placeholder="Target ($)" style="background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;"></div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;"><input type="text" id="fp_ve" placeholder="Emoji 🏖️" maxlength="2" style="background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;"><input type="number" id="fp_vs" placeholder="Already saved ($)" style="background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;"></div>';
+    h+='<button onclick="fpAddVault()" style="width:100%;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;font-weight:700;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Create Vault</button></div>';
     if(vaults.length>0){var ts=0,tt=0;vaults.forEach(function(v){ts+=parseFloat(v.saved)||0;tt+=parseFloat(v.target)||0;});var op=tt>0?Math.min(100,Math.round(ts/tt*100)):0;
-    h+='<div style="background:linear-gradient(135deg,rgba(96,165,250,.08),rgba(167,139,250,.06));border:1px solid rgba(96,165,250,.2);border-radius:16px;padding:18px;margin-bottom:20px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#8899bb;margin-bottom:6px;">All Vaults</div><div style="font-size:1.5rem;font-weight:800;color:#60a5fa;font-family:DM Mono,monospace;">$'+fmt0(ts)+' <span style="font-size:.85rem;color:#8899bb;font-weight:400;">of $'+fmt0(tt)+'</span></div><div style="height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;margin-top:10px;"><div style="height:100%;width:'+op+'%;background:linear-gradient(90deg,#60a5fa,#a78bfa);border-radius:100px;"></div></div><div style="font-size:.72rem;color:#8899bb;margin-top:6px;">'+op+'%</div></div>';}
-    if(!vaults.length){h+='<div style="text-align:center;color:#8899bb;padding:40px 20px;font-size:.85rem;">No vaults yet. Create your first savings goal! 🎯</div>';}
-    else{vaults.forEach(function(v,i){var s=parseFloat(v.saved)||0,t=parseFloat(v.target)||1,p=Math.min(100,Math.round(s/t*100)),r=Math.max(0,t-s),bc=p>=100?'#34d399':p>=50?'#60a5fa':'#f59e0b';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;margin-bottom:12px;">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;"><div><div style="font-size:1.5rem;margin-bottom:4px;">'+(v.emoji||'🎯')+'</div><div style="font-size:.92rem;font-weight:600;color:#eef2ff;">'+v.name+'</div></div><div style="text-align:right;"><div style="font-size:1.1rem;font-weight:700;color:#34d399;font-family:DM Mono,monospace;">$'+fmt0(s)+'</div><div style="font-size:.72rem;color:#8899bb;">of $'+fmt0(t)+'</div></div></div>';
-    h+='<div style="height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;margin-bottom:8px;"><div style="height:100%;width:'+p+'%;background:'+bc+';border-radius:100px;"></div></div>';
-    h+='<div style="display:flex;justify-content:space-between;font-size:.72rem;color:#8899bb;margin-bottom:14px;"><span>'+p+'%'+(p>=100?' 🎉':'')+'</span><span>$'+fmt0(r)+' to go</span></div>';
-    h+='<div style="display:flex;gap:8px;"><input type="number" id="fp_c'+i+'" placeholder="Add $" style="flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:9px 12px;color:#eef2ff;font-size:.82rem;outline:none;"><button onclick="fpContrib('+i+')" style="background:rgba(45,212,191,.12);color:#2dd4bf;font-weight:700;border:1px solid rgba(45,212,191,.25);border-radius:10px;padding:9px 16px;cursor:pointer;font-size:.78rem;">Add</button><button onclick="fpDelVault('+i+')" style="background:rgba(251,113,133,.1);color:#fb7185;font-weight:600;border:1px solid rgba(251,113,133,.2);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:.78rem;"><i class="fa-solid fa-trash-can"></i></button></div></div>';});}
+    h+='<div style="background:linear-gradient(135deg,rgba(22,163,74,.08),rgba(59,130,246,.05));border:1px solid rgba(22,163,74,.18);border-radius:16px;padding:18px;margin-bottom:20px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#475569;margin-bottom:6px;">All Vaults</div><div style="font-size:1.5rem;font-weight:800;color:#16a34a;font-family:DM Mono,monospace;">$'+fmt0(ts)+' <span style="font-size:.85rem;color:#475569;font-weight:400;">of $'+fmt0(tt)+'</span></div><div style="height:8px;background:#edf0f6;border-radius:100px;overflow:hidden;margin-top:10px;"><div style="height:100%;width:'+op+'%;background:linear-gradient(90deg,#16a34a,#22c55e);border-radius:100px;"></div></div><div style="font-size:.72rem;color:#475569;margin-top:6px;">'+op+'%</div></div>';}
+    if(!vaults.length){h+='<div style="text-align:center;color:#475569;padding:40px 20px;font-size:.85rem;">No vaults yet. Create your first savings goal! 🎯</div>';}
+    else{vaults.forEach(function(v,i){var s=parseFloat(v.saved)||0,t=parseFloat(v.target)||1,p=Math.min(100,Math.round(s/t*100)),r=Math.max(0,t-s),bc=p>=100?'#16a34a':p>=50?'#3b82f6':'#f59e0b';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:16px;padding:18px;margin-bottom:12px;">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;"><div><div style="font-size:1.5rem;margin-bottom:4px;">'+(v.emoji||'🎯')+'</div><div style="font-size:.92rem;font-weight:600;color:#0f172a;">'+v.name+'</div></div><div style="text-align:right;"><div style="font-size:1.1rem;font-weight:700;color:#16a34a;font-family:DM Mono,monospace;">$'+fmt0(s)+'</div><div style="font-size:.72rem;color:#475569;">of $'+fmt0(t)+'</div></div></div>';
+    h+='<div style="height:8px;background:#edf0f6;border-radius:100px;overflow:hidden;margin-bottom:8px;"><div style="height:100%;width:'+p+'%;background:'+bc+';border-radius:100px;"></div></div>';
+    h+='<div style="display:flex;justify-content:space-between;font-size:.72rem;color:#475569;margin-bottom:14px;"><span>'+p+'%'+(p>=100?' 🎉':'')+'</span><span>$'+fmt0(r)+' to go</span></div>';
+    h+='<div style="display:flex;gap:8px;"><input type="number" id="fp_c'+i+'" placeholder="Add $" style="flex:1;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:9px 12px;color:#0f172a;font-size:.82rem;outline:none;"><button onclick="fpContrib('+i+')" style="background:rgba(14,165,233,.08);color:#0ea5e9;font-weight:700;border:1px solid rgba(14,165,233,.25);border-radius:10px;padding:9px 16px;cursor:pointer;font-size:.78rem;">Add</button><button onclick="fpDelVault('+i+')" style="background:rgba(239,68,68,.08);color:#ef4444;font-weight:600;border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:.78rem;"><i class="fa-solid fa-trash-can"></i></button></div></div>';});}
     return h;
 }
 function fpAddVault(){var n=document.getElementById('fp_vn').value,t=parseFloat(document.getElementById('fp_vt').value),e=document.getElementById('fp_ve').value||'🎯',s=parseFloat(document.getElementById('fp_vs').value)||0;if(!n||!t){showToast('Enter name and target','error');return;}vaults.push({name:n,target:t,saved:s,emoji:e});localStorage.setItem('montoya_vaults',JSON.stringify(vaults));showToast('Vault created! 🎯');openPanel('vaults');}
 function fpContrib(i){var a=parseFloat(document.getElementById('fp_c'+i).value)||0;if(!a)return;vaults[i].saved+=a;if(vaults[i].saved>=vaults[i].target){try{confetti({particleCount:100,spread:60,origin:{y:.6}});}catch(e){}showToast('🎉 '+vaults[i].name+' goal reached!');}else{showToast('$'+fmt0(a)+' added');}localStorage.setItem('montoya_vaults',JSON.stringify(vaults));openPanel('vaults');}
 function fpDelVault(i){if(!confirm('Delete "'+vaults[i].name+'"?'))return;vaults.splice(i,1);localStorage.setItem('montoya_vaults',JSON.stringify(vaults));showToast('Vault deleted');openPanel('vaults');}
 
-function buildPlaceholder(t,ic,d){return '<div style="text-align:center;padding:60px 20px;"><div style="font-size:3rem;margin-bottom:16px;">'+ic+'</div><div style="font-size:1rem;font-weight:600;color:#eef2ff;margin-bottom:8px;">'+t+'</div><div style="font-size:.82rem;color:#8899bb;line-height:1.6;">'+d+'</div></div>';}
+function buildPlaceholder(t,ic,d){return '<div style="text-align:center;padding:60px 20px;"><div style="font-size:3rem;margin-bottom:16px;">'+ic+'</div><div style="font-size:1rem;font-weight:600;color:#0f172a;margin-bottom:8px;">'+t+'</div><div style="font-size:.82rem;color:#475569;line-height:1.6;">'+d+'</div></div>';}
 
 // ── BILL REMINDERS PANEL ──
 function buildBillsPanel(){
@@ -6191,32 +6191,32 @@ function buildAiPanel(){
     h+='<div style="font-size:.75rem;color:#8899bb;margin-top:4px;">'+Math.round(pctUsed)+'% used · $'+fmt0(Math.abs(remaining))+' '+(remaining>=0?'left':'over')+' · '+daysLeft+' days left</div></div>';
     // Quick stats
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#34d399;margin-bottom:6px;">Daily Budget</div><div style="font-size:1.2rem;font-weight:700;color:#34d399;font-family:DM Mono,monospace;">$'+fmt0(Math.max(0,dailyBudget))+'</div></div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a78bfa;margin-bottom:6px;">Top Spend</div><div style="font-size:.92rem;font-weight:700;color:#a78bfa;">'+topCat+'</div><div style="font-size:.7rem;color:#8899bb;">$'+fmt0(topAmt)+'</div></div></div>';
+    h+='<div style="background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.15);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#16a34a;margin-bottom:6px;">Daily Budget</div><div style="font-size:1.2rem;font-weight:700;color:#16a34a;font-family:DM Mono,monospace;">$'+fmt0(Math.max(0,dailyBudget))+'</div></div>';
+    h+='<div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8b5cf6;margin-bottom:6px;">Top Spend</div><div style="font-size:.92rem;font-weight:700;color:#8b5cf6;">'+topCat+'</div><div style="font-size:.7rem;color:#64748b;">$'+fmt0(topAmt)+'</div></div></div>';
     // Needs vs Wants bar
     var needsPct=totalSpent>0?Math.round(needs/totalSpent*100):50;
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:14px 16px;margin-bottom:20px;">';
-    h+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:.75rem;color:#34d399;font-weight:600;">Needs $'+fmt0(needs)+' ('+needsPct+'%)</span><span style="font-size:.75rem;color:#a78bfa;font-weight:600;">Wants $'+fmt0(wants)+' ('+(100-needsPct)+'%)</span></div>';
-    h+='<div style="height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;display:flex;"><div style="height:100%;width:'+needsPct+'%;background:#34d399;"></div><div style="height:100%;width:'+(100-needsPct)+'%;background:#a78bfa;"></div></div></div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:14px;padding:14px 16px;margin-bottom:20px;">';
+    h+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:.75rem;color:#16a34a;font-weight:600;">Needs $'+fmt0(needs)+' ('+needsPct+'%)</span><span style="font-size:.75rem;color:#8b5cf6;font-weight:600;">Wants $'+fmt0(wants)+' ('+(100-needsPct)+'%)</span></div>';
+    h+='<div style="height:8px;background:#edf0f6;border-radius:100px;overflow:hidden;display:flex;"><div style="height:100%;width:'+needsPct+'%;background:#22c55e;"></div><div style="height:100%;width:'+(100-needsPct)+'%;background:#8b5cf6;"></div></div></div>';
     // ── AI CHAT SECTION ──
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a78bfa;margin:20px 0 10px;display:flex;align-items:center;gap:8px;"><div style="width:7px;height:7px;background:#a78bfa;border-radius:50%;box-shadow:0 0 8px #a78bfa;"></div> Ask AI About Your Finances</div>';
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8b5cf6;margin:20px 0 10px;display:flex;align-items:center;gap:8px;"><div style="width:7px;height:7px;background:#8b5cf6;border-radius:50%;"></div> Ask AI About Your Finances</div>';
     // Quick prompts
     h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
-    h+='<div onclick="fpAskAI(\'Give me a spending overview for this cycle. What should I focus on?\')" style="cursor:pointer;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#a78bfa;font-weight:600;">📊 Cycle overview</div>';
-    h+='<div onclick="fpAskAI(\'Where am I overspending? Which categories should I cut back on?\')" style="cursor:pointer;background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#fb7185;font-weight:600;">🚨 Overspending?</div>';
-    h+='<div onclick="fpAskAI(\'Give me 3 actionable money-saving tips based on my spending patterns.\')" style="cursor:pointer;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#34d399;font-weight:600;">💡 Saving tips</div>';
-    h+='<div onclick="fpAskAI(\'Based on my current spending, forecast my financial health. Will I stay on budget?\')" style="cursor:pointer;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#60a5fa;font-weight:600;">🔮 Forecast</div>';
-    h+='<div onclick="fpAskAI(\'Compare Brandon and Gina spending. Who is spending more and in what categories?\')" style="cursor:pointer;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#fbbf24;font-weight:600;">👥 Compare</div>';
-    h+='<div onclick="fpAskAI(\'Based on my mortgage and car loan, when will I be debt free?\')" style="cursor:pointer;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#2dd4bf;font-weight:600;">🏠 Debt payoff</div>';
+    h+='<div onclick="fpAskAI(\'Give me a spending overview for this cycle. What should I focus on?\')" style="cursor:pointer;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#8b5cf6;font-weight:600;">📊 Cycle overview</div>';
+    h+='<div onclick="fpAskAI(\'Where am I overspending? Which categories should I cut back on?\')" style="cursor:pointer;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#ef4444;font-weight:600;">🚨 Overspending?</div>';
+    h+='<div onclick="fpAskAI(\'Give me 3 actionable money-saving tips based on my spending patterns.\')" style="cursor:pointer;background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#16a34a;font-weight:600;">💡 Saving tips</div>';
+    h+='<div onclick="fpAskAI(\'Based on my current spending, forecast my financial health. Will I stay on budget?\')" style="cursor:pointer;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#3b82f6;font-weight:600;">🔮 Forecast</div>';
+    h+='<div onclick="fpAskAI(\'Compare Brandon and Gina spending. Who is spending more and in what categories?\')" style="cursor:pointer;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#d97706;font-weight:600;">👥 Compare</div>';
+    h+='<div onclick="fpAskAI(\'Based on my mortgage and car loan, when will I be debt free?\')" style="cursor:pointer;background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2);border-radius:100px;padding:7px 14px;font-size:.72rem;color:#0ea5e9;font-weight:600;">🏠 Debt payoff</div>';
     h+='</div>';
     // Chat input
     h+='<div style="display:flex;gap:8px;margin-bottom:16px;">';
-    h+='<input type="text" id="fp_aiInput" placeholder="Ask anything about your finances..." onkeydown="if(event.key===\'Enter\')fpAskAI()" style="flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(167,139,250,.25);border-radius:12px;padding:12px 16px;color:#eef2ff;font-size:.85rem;outline:none;font-family:DM Sans,sans-serif;">';
-    h+='<button onclick="fpAskAI()" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;font-weight:700;border:none;border-radius:12px;padding:12px 18px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🤖 Ask</button></div>';
+    h+='<input type="text" id="fp_aiInput" placeholder="Ask anything about your finances..." onkeydown="if(event.key===\'Enter\')fpAskAI()" style="flex:1;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:12px;padding:12px 16px;color:#0f172a;font-size:.85rem;outline:none;font-family:DM Sans,sans-serif;">';
+    h+='<button onclick="fpAskAI()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-weight:700;border:none;border-radius:12px;padding:12px 18px;cursor:pointer;font-size:.85rem;white-space:nowrap;">🤖 Ask</button></div>';
     // Response area
-    h+='<div id="fp_aiResponse" style="display:none;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:16px;padding:18px;margin-bottom:16px;">';
-    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><div style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,.2);display:flex;align-items:center;justify-content:center;font-size:.85rem;">🤖</div><span style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#a78bfa;">AI Finance Coach</span></div>';
-    h+='<div id="fp_aiText" style="font-size:.88rem;color:#eef2ff;line-height:1.7;"></div></div>';
+    h+='<div id="fp_aiResponse" style="display:none;background:rgba(139,92,246,.05);border:1px solid rgba(139,92,246,.2);border-radius:16px;padding:18px;margin-bottom:16px;">';
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><div style="width:28px;height:28px;border-radius:8px;background:rgba(139,92,246,.12);display:flex;align-items:center;justify-content:center;font-size:.85rem;">🤖</div><span style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8b5cf6;">AI Finance Coach</span></div>';
+    h+='<div id="fp_aiText" style="font-size:.88rem;color:#0f172a;line-height:1.7;"></div></div>';
     // Chat history
     h+='<div id="fp_aiHistory"></div>';
     return h;
@@ -6231,7 +6231,7 @@ function fpAskAI(preset){
     var respDiv = document.getElementById('fp_aiResponse');
     var textDiv = document.getElementById('fp_aiText');
     if(respDiv) respDiv.style.display = 'block';
-    if(textDiv) textDiv.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border:2px solid #a78bfa;border-top:2px solid transparent;border-radius:50%;animation:spin .8s linear infinite;"></div><span style="color:#8899bb;">Analyzing your data...</span></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
+    if(textDiv) textDiv.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border:2px solid #8b5cf6;border-top:2px solid transparent;border-radius:50%;animation:spin .8s linear infinite;"></div><span style="color:#64748b;">Analyzing your data...</span></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
     // Build context
     var spent=0;history.forEach(function(i){spent+=i.amount;});
     var bS=0,gS=0;history.forEach(function(i){if(!['Mortgage','Car','Utilities'].includes(i.category)){if(i.member==='Brandon')bS+=i.amount;else if(i.member==='Gina')gS+=i.amount;else if(i.member==='Split'){bS+=i.amount/2;gS+=i.amount/2;}}});
@@ -6346,11 +6346,11 @@ function buildNotesPanel(){
         var cat=n.category||'General';
         h+='<div style="display:flex;flex-direction:column;align-items:'+(isMe?'flex-end':'flex-start')+';margin-bottom:12px;">';
         var safeNId=safeIdValue(n.id)||'';
-        h+='<div style="font-size:.68rem;color:#8899bb;margin-bottom:3px;">'+escapeHtml(n.author||'')+'</div>';
-        h+='<div style="background:'+(isMe?'rgba(96,165,250,.12)':'rgba(255,255,255,.06)')+';border:1px solid '+(isMe?'rgba(96,165,250,.2)':'rgba(255,255,255,.08)')+';border-radius:16px;padding:12px 16px;max-width:85%;">';
-        h+='<div style="font-size:.65rem;color:'+(cat==='Urgent'?'#fb7185':'#8899bb')+';margin-bottom:4px;">'+(catEmojis[cat]||'💬')+' '+escapeHtml(cat)+'</div>';
-        h+='<div style="font-size:.85rem;color:#eef2ff;line-height:1.5;">'+escapeHtml(n.message||'')+'</div></div>';
-        h+='<div style="font-size:.62rem;color:#4a5a7a;margin-top:3px;display:flex;gap:8px;align-items:center;">'+ts+(isMe&&safeNId?' · <span onclick="fpDelNote(\''+safeNId+'\')" style="color:#fb7185;cursor:pointer;">Delete</span>':'')+'</div></div>';
+        h+='<div style="font-size:.68rem;color:#64748b;margin-bottom:3px;">'+escapeHtml(n.author||'')+'</div>';
+        h+='<div style="background:'+(isMe?'rgba(22,163,74,.08)':'#f7f9fc')+';border:1px solid '+(isMe?'rgba(22,163,74,.2)':'rgba(15,23,42,.07)')+';border-radius:16px;padding:12px 16px;max-width:85%;">';
+        h+='<div style="font-size:.65rem;color:'+(cat==='Urgent'?'#ef4444':'#64748b')+';margin-bottom:4px;">'+(catEmojis[cat]||'💬')+' '+escapeHtml(cat)+'</div>';
+        h+='<div style="font-size:.85rem;color:#0f172a;line-height:1.5;">'+escapeHtml(n.message||'')+'</div></div>';
+        h+='<div style="font-size:.62rem;color:#94a3b8;margin-top:3px;display:flex;gap:8px;align-items:center;">'+ts+(isMe&&safeNId?' · <span onclick="fpDelNote(\''+safeNId+'\')" style="color:#ef4444;cursor:pointer;">Delete</span>':'')+'</div></div>';
     });}
     return h;
 }
@@ -6368,24 +6368,24 @@ function buildFamilyFeedPanel(){
   // Member comparison
   var gridCols = partnerExists ? '1fr 1fr' : '1fr';
   h+='<div style="display:grid;grid-template-columns:'+gridCols+';gap:10px;margin-bottom:16px;">';
-  h+='<div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.15);border-radius:14px;padding:16px;text-align:center;"><div style="width:36px;height:36px;border-radius:10px;background:rgba(96,165,250,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-weight:700;color:#60a5fa;">'+myLabel[0].toUpperCase()+'</div><div style="font-size:.78rem;font-weight:600;color:#eef2ff;">'+myLabel+'</div><div style="font-size:1.1rem;font-weight:700;color:#60a5fa;font-family:DM Mono,monospace;">$'+fmt(bS)+'</div><div style="font-size:.68rem;color:#8899bb;">'+bC+' transactions</div></div>';
+  h+='<div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:14px;padding:16px;text-align:center;"><div style="width:36px;height:36px;border-radius:10px;background:rgba(59,130,246,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-weight:700;color:#3b82f6;">'+myLabel[0].toUpperCase()+'</div><div style="font-size:.78rem;font-weight:600;color:#0f172a;">'+myLabel+'</div><div style="font-size:1.1rem;font-weight:700;color:#3b82f6;font-family:DM Mono,monospace;">$'+fmt(bS)+'</div><div style="font-size:.68rem;color:#64748b;">'+bC+' transactions</div></div>';
   if(partnerExists && partnerLabel){
-    h+='<div class="member-card gina" style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:14px;padding:16px;text-align:center;"><div style="width:36px;height:36px;border-radius:10px;background:rgba(52,211,153,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-weight:700;color:#34d399;">'+partnerLabel[0].toUpperCase()+'</div><div style="font-size:.78rem;font-weight:600;color:#eef2ff;">'+partnerLabel+'</div><div style="font-size:1.1rem;font-weight:700;color:#34d399;font-family:DM Mono,monospace;">$'+fmt(gS)+'</div><div style="font-size:.68rem;color:#8899bb;">'+gC+' transactions</div></div>';
+    h+='<div class="member-card gina" style="background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.15);border-radius:14px;padding:16px;text-align:center;"><div style="width:36px;height:36px;border-radius:10px;background:rgba(236,72,153,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-weight:700;color:#ec4899;">'+partnerLabel[0].toUpperCase()+'</div><div style="font-size:.78rem;font-weight:600;color:#0f172a;">'+partnerLabel+'</div><div style="font-size:1.1rem;font-weight:700;color:#ec4899;font-family:DM Mono,monospace;">$'+fmt(gS)+'</div><div style="font-size:.68rem;color:#64748b;">'+gC+' transactions</div></div>';
   }
   h+='</div>';
   // Activity feed
-  h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:16px 0 10px;">Activity Feed</div>';
-  if(!combined.length){h+='<div style="text-align:center;color:#8899bb;padding:30px;font-size:.85rem;">No transactions this cycle.</div>';}
+  h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#64748b;margin:16px 0 10px;">Activity Feed</div>';
+  if(!combined.length){h+='<div style="text-align:center;color:#64748b;padding:30px;font-size:.85rem;">No transactions this cycle.</div>';}
   else{combined.slice(0,25).forEach(function(t){
     var isPartnerTxn = t.member==='Gina';
     var who = isPartnerTxn ? (partnerExists && partnerLabel ? partnerLabel : null) : myLabel;
     if (isPartnerTxn && !partnerExists) return;
     if (!who) return;
-    var avColor=isPartnerTxn?'#34d399':'#60a5fa';
+    var avColor=isPartnerTxn?'#ec4899':'#3b82f6';
     var d=new Date(t.created_at);var ts=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:14px 16px;margin-bottom:8px;">';
-    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="width:30px;height:30px;border-radius:8px;background:'+avColor+'22;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:'+avColor+';">'+who[0]+'</div><div><div style="font-size:.82rem;font-weight:600;color:'+avColor+';">'+who+'</div><div style="font-size:.65rem;color:#4a5a7a;">'+ts+'</div></div><div style="margin-left:auto;font-size:.68rem;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.06);color:#8899bb;">'+t.category+'</div></div>';
-    h+='<div style="font-size:.85rem;color:#eef2ff;">'+(t.note||t.category)+' <span style="font-weight:700;color:#fb7185;float:right;">-$'+t.amount.toFixed(2)+'</span></div></div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:14px;padding:14px 16px;margin-bottom:8px;">';
+    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="width:30px;height:30px;border-radius:8px;background:'+avColor+'1a;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:'+avColor+';">'+who[0]+'</div><div><div style="font-size:.82rem;font-weight:600;color:'+avColor+';">'+who+'</div><div style="font-size:.65rem;color:#94a3b8;">'+ts+'</div></div><div style="margin-left:auto;font-size:.68rem;padding:3px 8px;border-radius:6px;background:#edf0f6;color:#64748b;">'+t.category+'</div></div>';
+    h+='<div style="font-size:.85rem;color:#0f172a;">'+(t.note||t.category)+' <span style="font-weight:700;color:#ef4444;float:right;">-$'+t.amount.toFixed(2)+'</span></div></div>';
   });}
   return h;
 }
@@ -6405,24 +6405,24 @@ function buildAnalyticsPanel(){
     var trendColor=diff>0?'#fb7185':diff<0?'#34d399':'#8899bb';
     h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:0 0 10px;">Month-over-Month</div>';
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.6rem;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">This Cycle</div><div style="font-size:1.1rem;font-weight:700;color:#eef2ff;font-family:DM Mono,monospace;">$'+fmt(curSpend)+'</div></div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.6rem;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Last Cycle</div><div style="font-size:1.1rem;font-weight:700;color:#8899bb;font-family:DM Mono,monospace;">$'+fmt(prevSpend)+'</div></div></div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">This Cycle</div><div style="font-size:1.1rem;font-weight:700;color:#0f172a;font-family:DM Mono,monospace;">$'+fmt(curSpend)+'</div></div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:14px;padding:16px;text-align:center;"><div style="font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Last Cycle</div><div style="font-size:1.1rem;font-weight:700;color:#64748b;font-family:DM Mono,monospace;">$'+fmt(prevSpend)+'</div></div></div>';
     h+='<div style="text-align:center;font-size:.85rem;font-weight:700;color:'+trendColor+';margin-bottom:20px;">'+(diff>0?'▲ $'+fmt(Math.abs(diff))+' more ('+Math.abs(pct)+'% up)':diff<0?'▼ $'+fmt(Math.abs(diff))+' less ('+Math.abs(pct)+'% down)':'Same as last cycle')+'</div>';
     // Category breakdown
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:16px 0 10px;">Category Breakdown</div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;">';
-    if(!sorted.length){h+='<div style="color:#8899bb;font-size:.82rem;text-align:center;">No transactions this cycle.</div>';}
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#64748b;margin:16px 0 10px;">Category Breakdown</div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:16px;padding:18px;">';
+    if(!sorted.length){h+='<div style="color:#64748b;font-size:.82rem;text-align:center;">No transactions this cycle.</div>';}
     else{sorted.forEach(function(e,i){var p=totalSpent>0?Math.round(e[1]/totalSpent*100):0;var c=colors[i%colors.length];
-    h+='<div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;font-weight:600;color:#eef2ff;">'+e[0]+'</span><span style="font-size:.78rem;color:#8899bb;">$'+e[1].toFixed(2)+' ('+p+'%)</span></div><div style="height:6px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;"><div style="height:100%;width:'+p+'%;background:'+c+';border-radius:100px;"></div></div></div>';});}
+    h+='<div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:.82rem;font-weight:600;color:#0f172a;">'+e[0]+'</span><span style="font-size:.78rem;color:#64748b;">$'+e[1].toFixed(2)+' ('+p+'%)</span></div><div style="height:6px;background:#edf0f6;border-radius:100px;overflow:hidden;"><div style="height:100%;width:'+p+'%;background:'+c+';border-radius:100px;"></div></div></div>';});}
     h+='</div>';
     // Spend by day
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:20px 0 10px;">Spend by Day of Week</div>';
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;">';
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#64748b;margin:20px 0 10px;">Spend by Day of Week</div>';
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:16px;padding:18px;">';
     var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var dt=[0,0,0,0,0,0,0];
     history.forEach(function(t){dt[new Date(t.created_at).getDay()]+=t.amount;});var mx=Math.max.apply(null,dt)||1;
     h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:80px;margin-bottom:10px;">';
     dt.forEach(function(a,i){var ht=Math.round(a/mx*100);var isMax=a===mx&&a>0;
-    h+='<div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;"><div style="width:100%;height:'+ht+'%;background:'+(isMax?'linear-gradient(180deg,#f97316,#e8c252)':'rgba(255,255,255,.1)')+';border-radius:6px 6px 0 0;min-height:3px;"></div><div style="font-size:.58rem;color:'+(isMax?'#f97316':'#4a5a7a')+';font-weight:'+(isMax?'700':'400')+';">'+days[i]+'</div></div>';});
+    h+='<div style="display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;"><div style="width:100%;height:'+ht+'%;background:'+(isMax?'linear-gradient(180deg,#16a34a,#22c55e)':'#edf0f6')+';border-radius:6px 6px 0 0;min-height:3px;"></div><div style="font-size:.58rem;color:'+(isMax?'#16a34a':'#94a3b8')+';font-weight:'+(isMax?'700':'400')+';">'+days[i]+'</div></div>';});
     h+='</div></div>';
     return h;
 }
@@ -6430,17 +6430,17 @@ function buildAnalyticsPanel(){
 // ── CHALLENGES PANEL ──
 function buildChallengesPanel(){
     var h='';var ch=JSON.parse(localStorage.getItem('montoya_challenges')||'[]');
-    h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;margin-bottom:16px;">';
-    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#d4a843;margin-bottom:14px;">Start a Challenge</div>';
-    h+='<input type="text" id="fp_chName" placeholder="Challenge name (e.g. No coffee for a week)" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;margin-bottom:10px;">';
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;"><input type="number" id="fp_chDays" placeholder="Days (e.g. 7)" style="background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;"><input type="number" id="fp_chSave" placeholder="Save goal ($)" style="background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;"></div>';
-    h+='<button onclick="fpAddChallenge()" style="width:100%;background:linear-gradient(135deg,#d4a843,#b8941c);color:#0a0e1a;font-weight:700;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Start Challenge</button></div>';
-    if(!ch.length){h+='<div style="text-align:center;color:#8899bb;padding:40px;font-size:.85rem;">No active challenges. Start one above! 🏆</div>';}
+    h+='<div style="background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:16px;padding:18px;margin-bottom:16px;">';
+    h+='<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#16a34a;margin-bottom:14px;">Start a Challenge</div>';
+    h+='<input type="text" id="fp_chName" placeholder="Challenge name (e.g. No coffee for a week)" style="width:100%;box-sizing:border-box;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;margin-bottom:10px;">';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;"><input type="number" id="fp_chDays" placeholder="Days (e.g. 7)" style="background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;"><input type="number" id="fp_chSave" placeholder="Save goal ($)" style="background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;"></div>';
+    h+='<button onclick="fpAddChallenge()" style="width:100%;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;font-weight:700;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Start Challenge</button></div>';
+    if(!ch.length){h+='<div style="text-align:center;color:#64748b;padding:40px;font-size:.85rem;">No active challenges. Start one above! 🏆</div>';}
     else{ch.forEach(function(c,i){var elapsed=Math.floor((Date.now()-c.started)/(1000*60*60*24));var pct=Math.min(100,Math.round(elapsed/c.days*100));var done=elapsed>=c.days;
-    h+='<div style="background:#0a1525;border:1px solid '+(done?'rgba(52,211,153,.3)':'rgba(100,150,230,.12)')+';border-radius:16px;padding:18px;margin-bottom:12px;">';
-    h+='<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><div><div style="font-size:.92rem;font-weight:600;color:#eef2ff;">'+c.name+'</div><div style="font-size:.7rem;color:#8899bb;">Day '+Math.min(elapsed,c.days)+' of '+c.days+(c.saveGoal?' · Save $'+c.saveGoal:'')+'</div></div>'+(done?'<span style="font-size:1.2rem;">🏆</span>':'')+'</div>';
-    h+='<div style="height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:'+(done?'#34d399':'linear-gradient(90deg,#f97316,#e8c252)')+';border-radius:100px;"></div></div>';
-    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;"><span style="font-size:.72rem;color:'+(done?'#34d399':'#8899bb')+';">'+pct+'%'+(done?' Complete! 🎉':'')+'</span><button onclick="fpDelChallenge('+i+')" style="background:rgba(251,113,133,.1);color:#fb7185;border:1px solid rgba(251,113,133,.2);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:.68rem;"><i class="fa-solid fa-trash-can"></i></button></div></div>';
+    h+='<div style="background:#ffffff;border:1px solid '+(done?'rgba(22,163,74,.3)':'rgba(15,23,42,.08)')+';border-radius:16px;padding:18px;margin-bottom:12px;">';
+    h+='<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><div><div style="font-size:.92rem;font-weight:600;color:#0f172a;">'+c.name+'</div><div style="font-size:.7rem;color:#64748b;">Day '+Math.min(elapsed,c.days)+' of '+c.days+(c.saveGoal?' · Save $'+c.saveGoal:'')+'</div></div>'+(done?'<span style="font-size:1.2rem;">🏆</span>':'')+'</div>';
+    h+='<div style="height:8px;background:#edf0f6;border-radius:100px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:'+(done?'#16a34a':'linear-gradient(90deg,#f59e0b,#16a34a)')+';border-radius:100px;"></div></div>';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;"><span style="font-size:.72rem;color:'+(done?'#16a34a':'#64748b')+';">'+pct+'%'+(done?' Complete! 🎉':'')+'</span><button onclick="fpDelChallenge('+i+')" style="background:rgba(239,68,68,.08);color:#ef4444;border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:.68rem;"><i class="fa-solid fa-trash-can"></i></button></div></div>';
     });}
     return h;
 }
@@ -6451,13 +6451,13 @@ function fpDelChallenge(i){var ch=JSON.parse(localStorage.getItem('montoya_chall
 function buildReceiptPanel(){
     var h='';
     h+='<div style="text-align:center;padding:20px;"><div style="font-size:3rem;margin-bottom:12px;">📸</div>';
-    h+='<div style="font-size:.85rem;color:#8899bb;margin-bottom:20px;line-height:1.6;">Take a photo of any receipt and AI will extract the amount, store, and category.</div>';
-    h+='<label style="display:inline-block;background:linear-gradient(135deg,#d4a843,#b8941c);color:#0a0e1a;font-weight:700;border:none;border-radius:12px;padding:14px 28px;cursor:pointer;font-size:.9rem;">📷 Scan Receipt<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="fpScanReceipt(this)"></label></div>';
-    h+='<div id="fp_scanPreview" style="display:none;margin:16px 0;text-align:center;"><img id="fp_scanImg" style="max-width:100%;border-radius:12px;border:1px solid rgba(100,150,230,.12);"></div>';
-    h+='<div id="fp_scanStatus" style="text-align:center;padding:12px;font-size:.82rem;color:#8899bb;"></div>';
-    h+='<div id="fp_scanResult" style="display:none;background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:16px;padding:18px;margin-top:16px;">';
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;"><div><div style="font-size:.65rem;font-weight:600;color:#4a5a7a;margin-bottom:4px;text-transform:uppercase;">Amount</div><input type="number" id="fp_scanAmt" placeholder="$0.00" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px;color:#eef2ff;font-size:.82rem;outline:none;"></div><div><div style="font-size:.65rem;font-weight:600;color:#4a5a7a;margin-bottom:4px;text-transform:uppercase;">Store</div><input type="text" id="fp_scanNote" placeholder="Store name" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px;color:#eef2ff;font-size:.82rem;outline:none;"></div></div>';
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;"><div><div style="font-size:.65rem;font-weight:600;color:#4a5a7a;margin-bottom:4px;text-transform:uppercase;">Category</div><select id="fp_scanCat" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px;color:#eef2ff;font-size:.82rem;outline:none;"><option>Groceries</option><option>Dining</option><option>Utilities</option><option>Misc</option><option>Beauty</option><option>CreditCard</option></select></div><div><div style="font-size:.65rem;font-weight:600;color:#4a5a7a;margin-bottom:4px;text-transform:uppercase;">Member</div><select id="fp_scanMember" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px;color:#eef2ff;font-size:.82rem;outline:none;"><option>Brandon</option><option>Gina</option><option>Split</option></select></div></div>';
+    h+='<div style="font-size:.85rem;color:#64748b;margin-bottom:20px;line-height:1.6;">Take a photo of any receipt and AI will extract the amount, store, and category.</div>';
+    h+='<label style="display:inline-block;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;font-weight:700;border:none;border-radius:12px;padding:14px 28px;cursor:pointer;font-size:.9rem;">📷 Scan Receipt<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="fpScanReceipt(this)"></label></div>';
+    h+='<div id="fp_scanPreview" style="display:none;margin:16px 0;text-align:center;"><img id="fp_scanImg" style="max-width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.1);"></div>';
+    h+='<div id="fp_scanStatus" style="text-align:center;padding:12px;font-size:.82rem;color:#64748b;"></div>';
+    h+='<div id="fp_scanResult" style="display:none;background:#ffffff;border:1px solid rgba(15,23,42,.08);border-radius:16px;padding:18px;margin-top:16px;">';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;"><div><div style="font-size:.65rem;font-weight:600;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;">Amount</div><input type="number" id="fp_scanAmt" placeholder="$0.00" style="width:100%;box-sizing:border-box;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px;color:#0f172a;font-size:.82rem;outline:none;"></div><div><div style="font-size:.65rem;font-weight:600;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;">Store</div><input type="text" id="fp_scanNote" placeholder="Store name" style="width:100%;box-sizing:border-box;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px;color:#0f172a;font-size:.82rem;outline:none;"></div></div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;"><div><div style="font-size:.65rem;font-weight:600;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;">Category</div><select id="fp_scanCat" style="width:100%;box-sizing:border-box;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px;color:#0f172a;font-size:.82rem;outline:none;"><option>Groceries</option><option>Dining</option><option>Utilities</option><option>Misc</option><option>Beauty</option><option>CreditCard</option></select></div><div><div style="font-size:.65rem;font-weight:600;color:#94a3b8;margin-bottom:4px;text-transform:uppercase;">Member</div><select id="fp_scanMember" style="width:100%;box-sizing:border-box;background:#f7f9fc;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px;color:#0f172a;font-size:.82rem;outline:none;"><option>Brandon</option><option>Gina</option><option>Split</option></select></div></div>';
     h+='<button onclick="fpAddScanned()" style="width:100%;background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-weight:700;border:none;border-radius:12px;padding:12px;cursor:pointer;font-size:.85rem;">Sync Transaction</button></div>';
     return h;
 }
@@ -6502,18 +6502,18 @@ function buildSharePanel(){
     h += '<button onclick="fpCopyInviteLink()" style="width:100%;background:linear-gradient(135deg,rgba(45,212,191,.18),rgba(45,212,191,.08));color:#2dd4bf;font-weight:700;border:1px solid rgba(45,212,191,.3);border-radius:12px;padding:13px;cursor:pointer;font-size:.88rem;margin-bottom:24px;letter-spacing:.3px;">📋 Copy Invite Link</button>';
     // Who's on this ledger
     h += '<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#8899bb;margin:0 0 8px;">Who\'s on This Ledger</div>';
-    h += '<div id="ledgerMembersArea" style="background:#0a1525;border:1px solid rgba(100,150,230,.1);border-radius:14px;padding:14px;margin-bottom:20px;min-height:54px;display:flex;align-items:center;justify-content:center;"><span style="font-size:.78rem;color:#4a5a7a;">Loading members…</span></div>';
+    h += '<div id="ledgerMembersArea" style="background:#f7f9fc;border:1px solid rgba(15,23,42,.08);border-radius:14px;padding:14px;margin-bottom:20px;min-height:54px;display:flex;align-items:center;justify-content:center;"><span style="font-size:.78rem;color:#94a3b8;">Loading members…</span></div>';
     // Manual key entry (collapsed by default)
     h += '<details style="margin-bottom:16px;">';
-    h += '<summary style="font-size:.78rem;color:#4a5a7a;cursor:pointer;list-style:none;text-align:center;padding:6px 0;">▸ Enter a key manually</summary>';
-    h += '<div style="margin-top:10px;background:#0a1525;border:1px solid rgba(100,150,230,.1);border-radius:14px;padding:16px;">';
-    h += '<div style="font-size:.75rem;color:#8899bb;margin-bottom:8px;line-height:1.5;">Paste a partner\'s ledger key directly:</div>';
-    h += '<input type="text" id="fp_joinKey" placeholder="grp_…" style="width:100%;box-sizing:border-box;background:rgba(0,0,0,.3);border:1px solid rgba(100,150,230,.12);border-radius:10px;padding:10px 14px;color:#eef2ff;font-size:.82rem;outline:none;margin-bottom:10px;font-family:\'DM Mono\',monospace;">';
-    h += '<button onclick="fpJoinLedger()" style="width:100%;background:rgba(45,212,191,.1);color:#2dd4bf;font-weight:700;border:1px solid rgba(45,212,191,.2);border-radius:10px;padding:11px;cursor:pointer;font-size:.83rem;">Link Ledger</button>';
+    h += '<summary style="font-size:.78rem;color:#64748b;cursor:pointer;list-style:none;text-align:center;padding:6px 0;">▸ Enter a key manually</summary>';
+    h += '<div style="margin-top:10px;background:#f7f9fc;border:1px solid rgba(15,23,42,.08);border-radius:14px;padding:16px;">';
+    h += '<div style="font-size:.75rem;color:#64748b;margin-bottom:8px;line-height:1.5;">Paste a partner\'s ledger key directly:</div>';
+    h += '<input type="text" id="fp_joinKey" placeholder="grp_…" style="width:100%;box-sizing:border-box;background:#ffffff;border:1px solid rgba(15,23,42,.1);border-radius:10px;padding:10px 14px;color:#0f172a;font-size:.82rem;outline:none;margin-bottom:10px;font-family:\'DM Mono\',monospace;">';
+    h += '<button onclick="fpJoinLedger()" style="width:100%;background:rgba(14,165,233,.08);color:#0ea5e9;font-weight:700;border:1px solid rgba(14,165,233,.2);border-radius:10px;padding:11px;cursor:pointer;font-size:.83rem;">Link Ledger</button>';
     h += '</div></details>';
     // Leave ledger
-    h += '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:16px;">';
-    h += '<button onclick="fpLeaveLedger()" style="width:100%;background:rgba(251,113,133,.08);color:#fb7185;font-weight:600;border:1px solid rgba(251,113,133,.2);border-radius:12px;padding:11px;cursor:pointer;font-size:.82rem;">↩ Leave This Ledger</button>';
+    h += '<div style="border-top:1px solid rgba(15,23,42,.07);padding-top:16px;">';
+    h += '<button onclick="fpLeaveLedger()" style="width:100%;background:rgba(239,68,68,.06);color:#ef4444;font-weight:600;border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:11px;cursor:pointer;font-size:.82rem;">↩ Leave This Ledger</button>';
     h += '</div>';
     // Async-load members after render
     setTimeout(loadLedgerMembers, 80);
@@ -8754,16 +8754,16 @@ window.flintSaveProfileV2 = async function(){
 
 <style id="flint-dashboard-refresh">
   :root{
-    --text-soft:#9fb6d2;
-    --text-dim:#5f7694;
-    --border:rgba(100,150,230,.14);
-    --border-hi:rgba(132,176,245,.28);
+    --text-soft:#475569;
+    --text-dim:#94a3b8;
+    --border:rgba(15,23,42,.08);
+    --border-hi:rgba(15,23,42,.15);
   }
   .side-menu{
-    background:linear-gradient(180deg,#091427 0%,#0d1a30 100%) !important;
-    border-right:1px solid rgba(112,155,225,.14) !important;
+    background:#ffffff !important;
+    border-right:1px solid rgba(15,23,42,.08) !important;
   }
-  .nav-section-label{padding:18px 24px 8px !important;opacity:.82 !important;color:#5f7694 !important;}
+  .nav-section-label{padding:18px 24px 8px !important;opacity:.8 !important;color:#94a3b8 !important;}
   .nav-item{
     padding:13px 22px !important;
     margin:3px 12px !important;
@@ -8771,15 +8771,15 @@ window.flintSaveProfileV2 = async function(){
     gap:14px !important;
   }
   .nav-item-label{font-size:.9rem !important;font-weight:600 !important;}
-  .nav-item-sub{font-size:.64rem !important;color:var(--text-soft) !important;opacity:.52;}
-  .nav-item:hover{background:rgba(255,255,255,.065) !important;}
+  .nav-item-sub{font-size:.64rem !important;color:var(--text-soft) !important;opacity:.72;}
+  .nav-item:hover{background:var(--ink-4) !important;}
   .nav-item.active{
-    background:linear-gradient(135deg,rgba(212,168,67,.18),rgba(74,159,212,.08)) !important;
-    border:1px solid rgba(212,168,67,.24) !important;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.18);
+    background:rgba(22,163,74,.08) !important;
+    border:1px solid rgba(22,163,74,.18) !important;
+    box-shadow:none;
   }
   .nav-item.active::before{width:4px !important;height:66% !important;}
-  .nav-item.active .nav-item-sub{opacity:.9;color:#dbc17a !important;}
+  .nav-item.active .nav-item-sub{opacity:.9;color:rgba(22,163,74,.7) !important;}
 
   .dash-header{margin-bottom:28px !important;gap:18px !important;}
   .dash-greeting{font-size:.78rem !important;letter-spacing:.35px !important;color:var(--text-soft) !important;}
@@ -8797,21 +8797,21 @@ window.flintSaveProfileV2 = async function(){
     display:block !important;
     width:100% !important;
     margin-bottom:0 !important;
-    background:linear-gradient(180deg,rgba(11,22,39,.96),rgba(8,17,31,.94)) !important;
-    border:1px solid rgba(113,160,234,.16) !important;
+    background:var(--ink-2) !important;
+    border:1px solid var(--border) !important;
     border-radius:24px !important;
     padding:24px 24px 22px !important;
-    box-shadow:0 18px 40px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03);
+    box-shadow:0 4px 20px rgba(15,23,42,.06);
   }
-  .hero-balance-label{font-size:.66rem !important;color:#6f89aa !important;margin-bottom:10px !important;}
+  .hero-balance-label{font-size:.66rem !important;color:var(--text-dim) !important;margin-bottom:10px !important;}
   .hero-balance-num{font-size:clamp(3.5rem,4vw,4.6rem) !important;letter-spacing:-2.4px !important;margin-bottom:10px !important;}
   .flint-hero-support{font-size:.84rem;color:var(--text-soft);line-height:1.6;margin:0 0 16px;max-width:48rem;}
   .hero-balance-pills{margin:0 0 18px !important;gap:10px !important;}
-  .cycle-pill-inline{padding:8px 14px !important;border-color:rgba(255,255,255,.1) !important;color:var(--text) !important;background:rgba(255,255,255,.04) !important;}
+  .cycle-pill-inline{padding:8px 14px !important;border-color:var(--border-hi) !important;color:var(--text) !important;background:var(--ink-4) !important;}
   .hero-stat-cards{gap:12px !important;margin-top:0 !important;}
   .hero-stat-card{
-    background:rgba(255,255,255,.03) !important;
-    border:1px solid rgba(255,255,255,.06) !important;
+    background:var(--ink-2) !important;
+    border:1px solid var(--border) !important;
     border-radius:18px !important;
     padding:18px !important;
     min-height:106px;
@@ -8821,11 +8821,11 @@ window.flintSaveProfileV2 = async function(){
   .hero-stat-lbl{font-size:.62rem !important;color:var(--text-soft) !important;opacity:.72;}
 
   .flint-attention-card{
-    background:linear-gradient(180deg,rgba(12,21,36,.98),rgba(9,17,30,.94));
-    border:1px solid rgba(100,150,230,.14);
+    background:var(--ink-2);
+    border:1px solid var(--border);
     border-radius:24px;
     padding:20px 18px 18px;
-    box-shadow:0 16px 34px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.03);
+    box-shadow:0 4px 24px rgba(15,23,42,.06);
     min-height:100%;
   }
   .flint-attention-head,
@@ -8833,9 +8833,9 @@ window.flintSaveProfileV2 = async function(){
   .flint-attention-kicker{font-size:.68rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
   .flint-attention-copy{font-size:.82rem;color:var(--text-soft);line-height:1.55;max-width:30ch;}
   .flint-attention-link{
-    background:rgba(255,255,255,.04);
+    background:var(--ink-4);
     color:var(--text-soft);
-    border:1px solid rgba(255,255,255,.08);
+    border:1px solid var(--border-hi);
     border-radius:12px;
     padding:9px 12px;
     font-size:.74rem;
@@ -8845,7 +8845,7 @@ window.flintSaveProfileV2 = async function(){
     transition:all .18s ease;
     font-family:'DM Sans',sans-serif;
   }
-  .flint-attention-link:hover{background:rgba(255,255,255,.08);color:var(--text);border-color:rgba(212,168,67,.22);}
+  .flint-attention-link:hover{background:#ffffff;color:var(--text);border-color:rgba(22,163,74,.25);}
   .flint-attention-list{display:grid;gap:10px;margin:16px 0 14px;}
   .flint-attention-item{
     display:grid;
@@ -8854,10 +8854,10 @@ window.flintSaveProfileV2 = async function(){
     align-items:flex-start;
     padding:12px 12px 12px 10px;
     border-radius:16px;
-    background:rgba(255,255,255,.025);
-    border:1px solid rgba(255,255,255,.05);
+    background:var(--ink-4);
+    border:1px solid var(--border);
   }
-  .flint-attention-dot{width:10px;height:10px;border-radius:50%;margin-top:5px;box-shadow:0 0 0 4px rgba(255,255,255,.02);}
+  .flint-attention-dot{width:10px;height:10px;border-radius:50%;margin-top:5px;box-shadow:0 0 0 4px rgba(15,23,42,.04);}
   .tone-good .flint-attention-dot{background:var(--green);}
   .tone-warn .flint-attention-dot{background:#fbbf24;}
   .tone-danger .flint-attention-dot{background:var(--rose);}
@@ -8865,17 +8865,17 @@ window.flintSaveProfileV2 = async function(){
   .tone-accent .flint-attention-dot{background:var(--gold);}
   .flint-attention-title{font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.4;}
   .flint-attention-sub{font-size:.74rem;color:var(--text-soft);line-height:1.55;}
-  .flint-attention-meta{font-size:.72rem;color:#7390b3;font-weight:700;}
+  .flint-attention-meta{font-size:.72rem;color:var(--text-dim);font-weight:700;}
 
   .flint-debt-grid,
   .flint-member-grid{gap:12px !important;margin-bottom:14px !important;}
   .flint-debt-card{
     padding:16px 18px !important;
     border-radius:20px !important;
-    background:linear-gradient(180deg,rgba(13,24,40,.96),rgba(10,19,34,.92)) !important;
-    border:1px solid rgba(100,150,230,.13) !important;
+    background:var(--ink-2) !important;
+    border:1px solid var(--border) !important;
     min-height:auto !important;
-    box-shadow:none !important;
+    box-shadow:0 2px 12px rgba(15,23,42,.05) !important;
   }
   .flint-member-card{
     padding:14px 16px !important;
@@ -8889,69 +8889,70 @@ window.flintSaveProfileV2 = async function(){
   .add-txn-btn{margin-bottom:16px !important;border-radius:20px !important;}
 
   .flint-history-shell{
-    background:linear-gradient(180deg,rgba(11,22,38,.98),rgba(9,18,33,.96)) !important;
-    border:1px solid rgba(100,150,230,.14) !important;
+    background:var(--ink-2) !important;
+    border:1px solid var(--border) !important;
     border-radius:24px !important;
     padding:16px 18px 10px !important;
   }
-  .flint-history-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:0 2px 14px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:14px;}
+  .flint-history-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:0 2px 14px;border-bottom:1px solid var(--border);margin-bottom:14px;}
   .flint-history-kicker{font-size:.68rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
   .flint-history-copy{font-size:.82rem;color:var(--text-soft);line-height:1.6;max-width:760px;}
   
   #searchBar{font-size:.92rem !important;}
-  #searchBar::placeholder{color:#6e89ac;}
+  #searchBar::placeholder{color:var(--text-dim);}
   #historyCount{
     font-size:.68rem !important;
     color:var(--text-soft) !important;
-    background:rgba(255,255,255,.035) !important;
-    border-color:rgba(255,255,255,.08) !important;
+    background:var(--ink-4) !important;
+    border-color:var(--border-hi) !important;
   }
   .txn-filter-bar{gap:8px !important;padding-bottom:16px !important;}
   .txn-fp{
     padding:8px 14px !important;
     border-radius:999px !important;
     font-size:.72rem !important;
-    border:1px solid rgba(255,255,255,.08) !important;
+    border:1px solid var(--border-hi) !important;
     margin-left:0 !important;
     border-left-width:1px !important;
   }
   .txn-fp.active{
-    box-shadow:0 8px 20px rgba(212,168,67,.18);
+    box-shadow:0 4px 14px rgba(22,163,74,.18);
   }
   .hist-item{
     padding:12px 14px 12px 8px !important;
     border-radius:16px !important;
   }
-  .hist-item:hover{background:rgba(255,255,255,.04) !important;}
+  .hist-item:hover{background:var(--ink-4) !important;}
   .hist-note{font-size:.92rem !important;}
-  .hist-date{font-size:.64rem !important;color:#7592b5 !important;}
-  .txn-group-label{font-size:.62rem !important;color:#7895b8 !important;}
-  .txn-group-total{font-size:.72rem !important;color:#7f9abc !important;}
+  .hist-date{font-size:.64rem !important;color:var(--text-dim) !important;}
+  .txn-group-label{font-size:.62rem !important;color:var(--text-dim) !important;}
+  .txn-group-total{font-size:.72rem !important;color:var(--text-soft) !important;}
   .act-btn{opacity:.82;}
   .txn-reaction-row{padding-left:71px !important;padding-bottom:12px !important;}
 
   #marketPanel,
   .flint-rail{
-    background:linear-gradient(180deg,#0a1628 0%, #0c1a30 44%, #091428 100%) !important;
+    background:var(--ink-3) !important;
+    border-right: 1px solid var(--border) !important;
   }
   #aiTipPanel.flint-ai-rail-card{
-    background:rgba(255,255,255,.03);
-    border:1px solid rgba(255,255,255,.06);
+    background:var(--ink-4);
+    border:1px solid var(--border);
     border-radius:18px;
     padding:14px;
   }
   .flint-empty-market{
     display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-    gap:10px;padding:22px 16px;border:1px dashed rgba(255,255,255,.12);border-radius:18px;background:rgba(255,255,255,.025);
+    gap:10px;padding:22px 16px;border:1px dashed var(--border-hi);border-radius:18px;background:var(--ink-4);
   }
   .flint-empty-market .icon{font-size:1.8rem;}
   .flint-empty-market .title{font-size:.86rem;font-weight:700;color:var(--text);}
   .flint-empty-market .copy{font-size:.74rem;color:var(--text-soft);line-height:1.55;max-width:24ch;}
   .flint-empty-market .retry{
-    background:rgba(212,168,67,.14);border:1px solid rgba(212,168,67,.26);color:var(--gold);
+    background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.25);color:var(--gold);
     border-radius:12px;padding:8px 12px;font-size:.74rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;
   }
-  .flint-market-status{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);font-size:.72rem;color:var(--text-soft);line-height:1.45;}
+  .flint-market-status{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--ink-4);border:1px solid var(--border);font-size:.72rem;color:var(--text-soft);line-height:1.45;}
   .flint-market-status .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;flex-shrink:0;}
 
   @media (min-width:1024px){
