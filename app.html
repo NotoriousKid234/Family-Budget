@@ -6009,7 +6009,7 @@ function _buildAndShowPanel(id) {
     if (['analyticsModal','aiInsights','notesManager','profileManager','configManager'].indexOf(id) >= 0) panelSize = 'full';
     panel.innerHTML = '<div class="flint-panel-shell flint-panel-' + panelSize + '">' +
         '<div class="flint-panel-head">' +
-            
+            '<button class="flint-panel-back" onclick="closePanel()" aria-label="Back to dashboard"><i class="fa-solid fa-arrow-left"></i></button>' +
             '<div class="flint-panel-title">' + title + '</div>' +
         '</div>' +
         '<div id="flintPanelContent" class="flint-panel-body">' + content + '</div>' +
