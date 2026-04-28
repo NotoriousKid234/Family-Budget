@@ -3209,24 +3209,27 @@ try {
     _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     try { if (typeof captureInviteParam === 'function') captureInviteParam(); } catch(e) { /* never block auth */ }
 
-    _sb.auth.getSession().then(({ data:{ session } }) => {
+    let _appInitialized = false;
+
+    function initSession(session) {
         if (!session) { document.body.classList.remove('logged-in'); return; }
+        if (_appInitialized) return;
+        _appInitialized = true;
         currentUser  = session.user.id;
         currentEmail = session.user.email || '';
-        document.body.classList.add('logged-in'); currentSession = session;;
+        document.body.classList.add('logged-in');
+        currentSession = session;
         // ── SECURITY: Resolve display name from authenticated session metadata,
         // NOT by sniffing the email string (trivially spoofable).
-        // Set user_metadata.display_name when creating accounts via Supabase Auth.
         const displayName = (session.user.user_metadata?.display_name || '').toUpperCase();
         currentDisplayName = displayName || 'PARTNER';
         let name = currentDisplayName;
         const wEl = document.getElementById('welcomeTitle');
-                if (wEl) wEl.innerText = name === 'PARTNER' ? 'Welcome Back' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-                const greetEl = document.getElementById('timeOfDay');
-                if (greetEl) { const h = new Date().getHours(); greetEl.innerText = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'; }
-                showWelcomeSplash(name);
+        if (wEl) wEl.innerText = name === 'PARTNER' ? 'Welcome Back' : name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+        const greetEl = document.getElementById('timeOfDay');
+        if (greetEl) { const h = new Date().getHours(); greetEl.innerText = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'; }
+        showWelcomeSplash(name);
         loadApp().then && loadApp().then(function(){
-          // After loadApp, re-read display_name from app_settings config and update greeting
           try {
             var finalName = (window.config && window.config.display_name) ? String(window.config.display_name).toUpperCase() : currentDisplayName;
             if (finalName && finalName !== 'PARTNER' && finalName !== '') {
@@ -3239,6 +3242,22 @@ try {
             }
           } catch(e2) {}
         });
+    }
+
+    // onAuthStateChange handles SIGNED_IN so login never needs a page reload.
+    // SIGNED_OUT is handled by logoutApp() which redirects to '/'.
+    _sb.auth.onAuthStateChange(function(event, session) {
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+            initSession(session);
+        } else if (event === 'SIGNED_OUT') {
+            _appInitialized = false;
+        }
+    });
+
+    // getSession() covers the initial page load when a session already exists
+    // in localStorage (onAuthStateChange alone may fire after the first render).
+    _sb.auth.getSession().then(({ data:{ session } }) => {
+        initSession(session);
     });
 } catch(e){
     console.error('[Flint] Init error:', e);
@@ -4341,7 +4360,7 @@ async function authenticateUser() {
             showToast('Check your email to confirm your account!','success');
             btn.innerText='Check your email'; return;
         }
-        if(data.session) location.reload();
+        // onAuthStateChange SIGNED_IN event calls initSession — no reload needed
     }catch(e){
         const msg = (e?.message || '').toLowerCase();
         if (msg.includes('invalid login') || msg.includes('invalid_credentials') || msg.includes('email not confirmed')) {
