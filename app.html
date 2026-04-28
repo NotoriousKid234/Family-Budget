@@ -3754,40 +3754,54 @@ async function runInsight(type) {
     await askAI();
 }
 
+let _aiChatHistory = [];
+
 async function askAI() {
     const q=document.getElementById('aiQuestion').value.trim(); if(!q) return;
     const body=document.getElementById('aiBody');
     body.innerHTML='<div class="ai-body loading"><div class="ai-spinner"></div>Analyzing your ledger…</div>';
 
-    // Build context from real transaction data
+    // Build full context from real transaction data
     let spent=0; history.forEach(i=>spent+=i.amount);
     let bS=0,gS=0; history.forEach(i=>{ if(!['Mortgage','Car','Utilities'].includes(i.category)){if(i.member==='Brandon')bS+=i.amount;else if(i.member==='Gina')gS+=i.amount;else if(i.member==='Split'){bS+=i.amount/2;gS+=i.amount/2;}} });
     let cats={};history.forEach(i=>cats[i.category]=(cats[i.category]||0)+i.amount);
     const catStr=Object.entries(cats).map(([k,v])=>`${k}: $${v.toFixed(2)}`).join(', ');
+    const nwHome=parseFloat(netWorth.home)||0, nwCash=parseFloat(netWorth.cash)||0, nwInvest=parseFloat(netWorth.invest)||0;
+    const totalAssets=nwHome+nwCash+(parseFloat(netWorth.other)||0)+nwInvest;
+    const totalDebts=(parseFloat(config.m_balance)||0)+(parseFloat(config.c_balance)||0);
+    const vaultTotal=vaults.reduce((s,v)=>s+(parseFloat(v.saved)||0),0);
 
-    const context=`Family finance data for current billing cycle:
-- Monthly budget: $${config.budget}
-- Total spent: $${spent.toFixed(2)}
-- Remaining: $${(config.budget-spent).toFixed(2)}
-- Brandon's spend: $${bS.toFixed(2)}
-- Gina's spend: $${gS.toFixed(2)}
-- Mortgage balance: $${config.m_balance||0}
-- Car loan balance: $${config.c_balance||0}
+    const context=`Family finance data — current cycle:
+- Budget: $${config.budget} | Spent: $${spent.toFixed(2)} | Remaining: $${(config.budget-spent).toFixed(2)}
+- Brandon spent: $${bS.toFixed(2)} | Gina spent: $${gS.toFixed(2)}
 - Spending by category: ${catStr||'No transactions yet'}
-- Number of transactions: ${history.length}`;
+- Transactions: ${history.length}
+- Mortgage balance: $${config.m_balance||0} | Car loan: $${config.c_balance||0}
+- Assets: $${totalAssets} (Home $${nwHome}, Cash $${nwCash}, Investments $${nwInvest})
+- Total debts: $${totalDebts} | Net worth: $${totalAssets-totalDebts}
+- Savings vaults: ${vaults.length} active, $${vaultTotal.toFixed(2)} saved`;
+
+    // Send conversation history so follow-up questions work (last 3 exchanges)
+    const messages = [];
+    _aiChatHistory.slice(-3).forEach(pair => {
+        messages.push({ role: 'user', content: pair.q });
+        messages.push({ role: 'assistant', content: pair.a });
+    });
+    messages.push({ role: 'user', content: q });
 
     try {
         const res=await fetch('/.netlify/functions/ai-proxy',{
             method:'POST',
             headers:{'Content-Type':'application/json','Authorization':'Bearer '+(currentSession&&currentSession.access_token||'')},
             body:JSON.stringify({
-                system:`You are a friendly, direct financial coach for a family. You have access to their real spending data. Give concise, actionable advice in 2-4 sentences. Use specific numbers from the data. Be encouraging but honest. No markdown, just plain conversational text.`,
-                prompt:`${context}\n\nUser question: ${q}`
+                system:`You are a friendly, direct financial coach for a family. Give concise, actionable advice in 2-4 sentences. Always use specific numbers from the data. Be encouraging but honest. No markdown.\n\n${context}`,
+                messages
             })
         });
         const d=await res.json();
         const text=d.content?.[0]?.text||'Unable to get a response. Please try again.';
         body.innerText=text;
+        _aiChatHistory.push({q, a: text});
         addAIHistory(q,text);
     } catch(e){ body.innerText='Connection error. Please try again in a moment.'; }
     document.getElementById('aiQuestion').value='';
@@ -4732,16 +4746,12 @@ async function generateWeeklyRecap() {
     body.innerHTML = '<div class="ai-tip-loading"><div class="ai-spinner" style="border-top-color:var(--gold);width:18px;height:18px;"></div><span>Generating recap…</span></div>';
 
     try {
-        const prompt = `You are a friendly personal finance coach. Generate a warm, encouraging weekly spending recap in 2-3 sentences.
-
-Week data: $${weekTotal.toFixed(0)} total spent, $${weekNeeds.toFixed(0)} on needs, $${weekWants.toFixed(0)} on wants, ${txCount} transactions, top category: ${topCat}. Budget this cycle: $${config.budget||0}.
-
-Be specific, warm, and end with one actionable tip for next week. Keep it under 60 words.`;
+        const recapPrompt = `Week data: $${weekTotal.toFixed(0)} total spent, $${weekNeeds.toFixed(0)} on needs, $${weekWants.toFixed(0)} on wants, ${txCount} transactions, top category: ${topCat}. Cycle budget: $${config.budget||0}. Write a warm 2-3 sentence recap using these exact numbers. End with one concrete tip for next week. Under 60 words.`;
 
         const res = await fetch('/.netlify/functions/ai-proxy', {
             method: 'POST',
             headers: {'Content-Type':'application/json','Authorization':'Bearer '+(currentSession&&currentSession.access_token||'')},
-            body: JSON.stringify({ message: prompt, system: 'You are a concise, warm family finance coach.' })
+            body: JSON.stringify({ prompt: recapPrompt, system: 'You are a concise, warm family finance coach. Always reference the real numbers. No markdown.' })
         });
         const data = await res.json();
         const text = data.content?.[0]?.text || '';
@@ -5352,6 +5362,18 @@ function renderVaultMini() {
 }
 
 // ── AI Daily Tip ──
+function _buildAiTipHtml(lines) {
+    const icons = ['📊','💡','🎯'];
+    let h = '<div style="display:flex;flex-direction:column;gap:10px;">';
+    lines.forEach(function(txt, i) {
+        h += '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.07);">'
+           + '<span style="font-size:.85rem;flex-shrink:0;">' + (icons[i]||'💡') + '</span>'
+           + '<span style="font-size:.78rem;line-height:1.55;color:rgba(240,244,255,.85);">' + escapeHtml(txt) + '</span>'
+           + '</div>';
+    });
+    return h + '</div>';
+}
+
 let aiTipFetched = false;
 let aiTipDate = localStorage.getItem('aiTipDate');
 let aiTipCache = localStorage.getItem('aiTipCache');
@@ -5362,12 +5384,13 @@ async function fetchAiTip(force = false) {
 
     const today = new Date().toDateString();
 
-    // Validate cache — reject the broken "TIP" placeholder
-    const cacheValid = aiTipCache && aiTipDate === today &&
-        aiTipCache.length > 120 && !aiTipCache.includes('>TIP<');
+    // Cache stores a JSON array of plain-text strings (not HTML) to avoid re-injecting raw HTML
+    const cacheValid = aiTipCache && aiTipDate === today && aiTipCache.startsWith('[');
     if (!force && cacheValid) {
-        body.innerHTML = aiTipCache;
-        return;
+        try {
+            const lines = JSON.parse(aiTipCache);
+            if (Array.isArray(lines) && lines.length) { body.innerHTML = _buildAiTipHtml(lines); return; }
+        } catch(e) { /* fall through to fresh fetch */ }
     }
 
     body.innerHTML = '<div class="ai-tip-loading"><div class="ai-spinner" style="border-top-color:var(--gold);width:18px;height:18px;"></div><span>Analyzing your spending\u2026</span></div>';
@@ -5419,30 +5442,18 @@ async function fetchAiTip(force = false) {
 
         if (!text || text.length < 20) throw new Error('empty');
 
-        // Parse numbered lines — flexible matching
-        const lines = text.split('\n').map(l => l.trim()).filter(l => /^[1-3][\.\)]\s/.test(l));
-        const icons  = ['📊','💡','🎯'];
-        const colors = ['#60a5fa','#34d399','#f97316'];
+        // Parse numbered lines — flexible matching; strip numbering, keep plain text
+        const rawLines = text.split('\n').map(l => l.trim()).filter(l => /^[1-3][\.\)]\s/.test(l));
+        const safeLines = rawLines.length > 0
+            ? rawLines.map(l => sanitizePlainString(l.replace(/^[1-3][\.\)]\s*/, ''), 240))
+            : [sanitizePlainString(text, 400)];
 
-        let html = '<div style="display:flex;flex-direction:column;gap:10px;">';
-        if (lines.length > 0) {
-            lines.forEach((line, i) => {
-                const txt = escapeHtml(sanitizePlainString(line.replace(/^[1-3][\.\)]\s*/, ''), 240));
-                html += '<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.07);">'
-                      + '<span style="font-size:.85rem;flex-shrink:0;">' + (icons[i]||'💡') + '</span>'
-                      + '<span style="font-size:.78rem;line-height:1.55;color:rgba(240,244,255,.85);">' + txt + '</span>'
-                      + '</div>';
-            });
-        } else {
-            // Fallback: show raw text formatted
-            html += '<div style="font-size:.78rem;line-height:1.65;color:rgba(240,244,255,.8);">' + escapeHtml(sanitizePlainString(text, 1200)).replace(/\n/g,'<br>') + '</div>';
-        }
-        html += '</div>';
-
-        body.innerHTML = html;
-        localStorage.setItem('aiTipCache', html);
+        body.innerHTML = _buildAiTipHtml(safeLines);
+        // Store plain text lines as JSON — never cache raw HTML in localStorage
+        const cacheVal = JSON.stringify(safeLines);
+        localStorage.setItem('aiTipCache', cacheVal);
         localStorage.setItem('aiTipDate', today);
-        aiTipCache = html;
+        aiTipCache = cacheVal;
         aiTipDate  = today;
 
     } catch(e) {
@@ -6255,12 +6266,20 @@ function fpAskAI(preset){
         '- Total debts: $'+totalDebts+'\n'+
         '- Net worth: $'+(totalAssets-totalDebts)+'\n'+
         '- Savings vaults: '+vaults.length+' (total saved: $'+vaults.reduce(function(s,v){return s+(parseFloat(v.saved)||0);},0)+')';
+    // Send conversation history so follow-up questions work (last 3 exchanges, oldest first)
+    var messages = [];
+    _fpAiChatHistory.slice(0,3).reverse().forEach(function(pair){
+        messages.push({role:'user',content:pair.q});
+        messages.push({role:'assistant',content:pair.a});
+    });
+    messages.push({role:'user',content:q});
+
     fetch('/.netlify/functions/ai-proxy',{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+(currentSession&&currentSession.access_token||'')},
         body:JSON.stringify({
-            system:'You are Flint AI — a smart, friendly financial coach for a family. You have access to their real spending, assets, debts, and savings data. Give concise, specific, actionable advice using their actual numbers. Be encouraging but honest. Use plain text, no markdown. Keep responses to 3-5 sentences unless they ask for more detail.',
-            prompt:context+'\n\nUser question: '+q
+            system:'You are Flint AI — a smart, friendly financial coach for a family. Give concise, specific, actionable advice using their actual numbers. Be encouraging but honest. Use plain text, no markdown. Keep responses to 3-5 sentences unless asked for more detail.\n\n'+context,
+            messages:messages
         })
     }).then(function(r){return r.json();}).then(function(d){
         var text=d.content&&d.content[0]?d.content[0].text:'Sorry, I couldn\'t get a response. Try again.';
@@ -6281,9 +6300,9 @@ function fpRenderAiHistory(){
         if(i===0) return; // Skip most recent (shown in response area)
         h+='<div style="background:#0a1525;border:1px solid rgba(100,150,230,.12);border-radius:14px;padding:14px 16px;margin-bottom:8px;">';
         h+='<div style="font-size:.72rem;font-weight:700;color:#a78bfa;margin-bottom:6px;">You asked</div>';
-        h+='<div style="font-size:.82rem;color:#8899bb;margin-bottom:10px;">'+item.q+'</div>';
+        h+='<div style="font-size:.82rem;color:#8899bb;margin-bottom:10px;">'+escapeHtml(sanitizePlainString(item.q,500))+'</div>';
         h+='<div style="font-size:.72rem;font-weight:700;color:#d4a843;margin-bottom:6px;">🤖 Flint AI</div>';
-        h+='<div style="font-size:.82rem;color:#eef2ff;line-height:1.6;">'+item.a+'</div></div>';
+        h+='<div style="font-size:.82rem;color:#eef2ff;line-height:1.6;">'+escapeHtml(sanitizePlainString(item.a,2000))+'</div></div>';
     });
     hist.innerHTML=h;
 }
