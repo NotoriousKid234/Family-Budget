@@ -1926,27 +1926,7 @@ button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
   .prof-danger-btn{background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.25);color:var(--rose);font-weight:600;font-size:.83rem;border-radius:12px;padding:11px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;transition:background .2s}
   .prof-danger-btn:hover{background:rgba(251,113,133,.2)}
 </style>
-<script src="/.netlify/functions/get-config"></script>
-<script>
-(function(){
-    // Auto-heal: if credentials didn't load and we haven't tried yet, clear stale
-    // SW/cache and reload once. sessionStorage guard prevents an infinite loop.
-    if (!window.__APP_SUPABASE_URL && !sessionStorage.getItem('flint_auto_fixed')) {
-        sessionStorage.setItem('flint_auto_fixed', '1');
-        Promise.all([
-            navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(regs){
-                return Promise.all(regs.map(function(r){ return r.unregister(); }));
-            }) : Promise.resolve(),
-            window.caches ? caches.keys().then(function(keys){
-                return Promise.all(keys.map(function(k){ return caches.delete(k); }));
-            }) : Promise.resolve()
-        ]).then(function(){ location.reload(true); }).catch(function(){ location.reload(true); });
-    } else {
-        // Clear the guard so a future genuine stale-cache situation can self-heal again
-        sessionStorage.removeItem('flint_auto_fixed');
-    }
-})();
-</script></head>
+<script src="/config.js"></script></head>
 <body>
 
 <div class="scene"><div class="scene-grid"></div><div class="scene-noise"></div></div>
@@ -3261,34 +3241,6 @@ try {
     });
 } catch(e){
     console.error('[Flint] Init error:', e);
-    if (!_sb) {
-        window.addEventListener('DOMContentLoaded', function() {
-            var btn = document.getElementById('authBtn');
-            if (btn) { btn.disabled = true; btn.innerText = 'App Error — tap Fix below'; }
-            var form = document.getElementById('authForm') || document.querySelector('.auth-card') || document.body;
-            var msg = document.createElement('div');
-            msg.style.cssText = 'background:#7f1d1d;color:#fecaca;padding:16px 18px;border-radius:12px;font-size:.85rem;margin-top:16px;text-align:center;line-height:1.6;';
-            msg.innerHTML = '⚠️ App credentials didn\'t load.<br><button id="flintFixBtn" style="margin-top:10px;background:#dc2626;color:#fff;border:none;padding:10px 22px;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;">Clear Cache &amp; Fix</button>';
-            form.appendChild(msg);
-            document.getElementById('flintFixBtn').addEventListener('click', function() {
-                this.innerText = 'Clearing…';
-                var self = this;
-                // Unregister all service workers, delete all caches, then hard-reload
-                Promise.all([
-                    navigator.serviceWorker ? navigator.serviceWorker.getRegistrations().then(function(regs) {
-                        return Promise.all(regs.map(function(r){ return r.unregister(); }));
-                    }) : Promise.resolve(),
-                    window.caches ? caches.keys().then(function(keys) {
-                        return Promise.all(keys.map(function(k){ return caches.delete(k); }));
-                    }) : Promise.resolve()
-                ]).then(function() {
-                    location.reload(true);
-                }).catch(function() {
-                    location.reload(true);
-                });
-            });
-        });
-    }
 }
 
 // ── Load ──
@@ -10985,16 +10937,18 @@ window.flintSaveProfileV2 = async function(){
 })();
 </script>
 
-<!-- ── Service Worker Registration ── -->
+<!-- ── Service Worker Cleanup ── -->
+<!-- sw.js is not used; this unregisters any stale SW that may have cached stale credentials -->
 <script>
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function () {
-        navigator.serviceWorker.register('/sw.js')
-            .catch(function (err) {
-                console.warn('Service worker registration failed:', err);
-            });
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+        regs.forEach(function(r) { r.unregister(); });
     });
-    // SW_UPDATED message — intentionally NOT auto-reloading to avoid loops.
+    if (window.caches) {
+        caches.keys().then(function(keys) {
+            keys.forEach(function(k) { caches.delete(k); });
+        });
+    }
 }
 </script>
 
