@@ -2128,6 +2128,10 @@ button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
             <i class="fa-solid fa-camera"></i>
             <div class="nav-item-content"><span class="nav-item-label">Receipt Scanner</span><span class="nav-item-sub" id="navSub-receiptScanner">Snap &amp; log</span></div>
         </div>
+        <div class="nav-item" onclick="openPanel('calPanel')" id="nav-calPanel">
+            <i class="fa-solid fa-calendar-days"></i>
+            <div class="nav-item-content"><span class="nav-item-label">Spending Calendar</span><span class="nav-item-sub" id="navSub-calPanel">Monthly heatmap</span></div>
+        </div>
 
         <div class="nav-section-label">Family</div>
         <div class="nav-item" onclick="openPanel('notesManager')" id="nav-notesManager">
@@ -3056,30 +3060,78 @@ button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
             <div id="feedList"></div>
         </div>
 
+        <!-- ══ SPENDING CALENDAR ══ -->
+        <div id="calPanel" class="app-panel">
+            <div class="top-bar">
+                <div class="top-left"></div>
+                <div class="page-title">SPENDING CALENDAR</div>
+                <div class="top-right"><i class="fa-solid fa-house" style="cursor:pointer;color:var(--text-soft);" onclick="switchView('app')"></i></div>
+            </div>
+
+            <!-- Month nav -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <button onclick="calShift(-1)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text-soft);border-radius:10px;padding:8px 16px;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;transition:all .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-soft)'">← Prev</button>
+                <div id="calMonthLabel" style="font-family:'DM Mono',monospace;font-size:.9rem;font-weight:700;color:var(--text);letter-spacing:1px;"></div>
+                <button onclick="calShift(1)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text-soft);border-radius:10px;padding:8px 16px;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;transition:all .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-soft)'">Next →</button>
+            </div>
+
+            <!-- Summary strip -->
+            <div id="calSummaryStrip" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;"></div>
+
+            <!-- Calendar grid -->
+            <div class="card card-hi" style="padding:16px;margin-bottom:14px;">
+                <div id="calGrid"></div>
+            </div>
+
+            <!-- Selected day breakdown -->
+            <div id="calDayDetail" style="display:none;">
+                <div class="sec-head" id="calDayTitle">Transactions</div>
+                <div id="calDayList"></div>
+            </div>
+
+            <!-- Category breakdown bars -->
+            <div class="sec-head" style="margin-top:4px;">Spending by Category</div>
+            <div class="card" style="padding:16px;margin-bottom:14px;">
+                <div id="calCatBars"></div>
+            </div>
+
+            <!-- Export -->
+            <div style="margin-bottom:24px;">
+                <button onclick="exportCSV()" style="width:100%;padding:13px;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);color:var(--gold);border-radius:14px;font-weight:700;font-size:.88rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='rgba(212,168,67,.18)'" onmouseout="this.style.background='rgba(212,168,67,.1)'">
+                    <i class="fa-solid fa-file-csv"></i> Export This Month to CSV
+                </button>
+            </div>
+        </div>
+
     </div><!-- end wrap -->
 </div><!-- end dashboard -->
 
 <!-- ++ MOBILE BOTTOM NAV ++ -->
 <div id="mobileNav">
     <div class="mob-nav-inner">
-        <button class="mob-nav-btn" onclick="toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-            <span>Menu</span>
-        </button>
-        <div class="mob-nav-divider"></div>
-        <button class="mob-nav-btn mob-home" onclick="switchView('app')">
+        <button class="mob-nav-btn mob-home" id="mobBtnHome" onclick="switchView('app')">
             <i class="fa-solid fa-house"></i>
             <span>Home</span>
         </button>
         <div class="mob-nav-divider"></div>
-        <button class="mob-nav-btn" onclick="openSheet()" style="color:var(--gold);">
-            <i class="fa-solid fa-plus"></i>
+        <button class="mob-nav-btn" id="mobBtnAI" onclick="openPanel('aiInsights')">
+            <i class="fa-solid fa-robot"></i>
+            <span>AI</span>
+        </button>
+        <div class="mob-nav-divider"></div>
+        <button class="mob-nav-btn" onclick="openSheet()" style="color:var(--gold);" id="mobBtnAdd">
+            <i class="fa-solid fa-plus-circle" style="font-size:1.4rem;"></i>
             <span>Add</span>
         </button>
         <div class="mob-nav-divider"></div>
-        <button class="mob-nav-btn" onclick="goBack()">
-            <i class="fa-solid fa-arrow-left"></i>
-            <span>Back</span>
+        <button class="mob-nav-btn" id="mobBtnVaults" onclick="openPanel('vaults')">
+            <i class="fa-solid fa-piggy-bank"></i>
+            <span>Vaults</span>
+        </button>
+        <div class="mob-nav-divider"></div>
+        <button class="mob-nav-btn" onclick="toggleMenu()" id="mobBtnMenu">
+            <i class="fa-solid fa-bars"></i>
+            <span>More</span>
         </button>
     </div>
 </div>
@@ -9818,6 +9870,14 @@ window.flintSaveProfileV2 = async function(){
   @media (min-width: 1024px){
     body.logged-in .wrap{margin-right:32px !important;}
     #marketPanel{display:none !important;}
+    /* Expand content to fill the screen instead of being capped at 780px */
+    #app, .app-panel{max-width:1160px !important;}
+    /* Show 4 hero stats in a wider strip */
+    .hero-stat-cards{grid-template-columns:repeat(4,minmax(0,1fr)) !important;}
+  }
+  /* On medium-large desktops show 3 stat cards if viewport is tight */
+  @media (min-width:1024px) and (max-width:1280px){
+    .hero-stat-cards{grid-template-columns:repeat(4,minmax(0,1fr)) !important;}
   }
   #weeklyRecapCard,#budgetWarningCard,#anomalyCard{display:none !important;}
   /* hero stat cards: all 4 visible on desktop */
@@ -9854,6 +9914,48 @@ window.flintSaveProfileV2 = async function(){
     .simplify-lower-grid{grid-template-columns:1fr;}
     .simplify-ai-mount{margin-bottom:14px;}
   }
+</style>
+
+<style id="flint-calendar-css">
+/* ── Spending Calendar ── */
+.cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;}
+.cal-dow{text-align:center;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);padding:6px 0;}
+.cal-grid-cells{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-cell{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:all .18s;border:1px solid transparent;position:relative;min-height:40px;}
+.cal-cell.empty{cursor:default;background:transparent !important;border-color:transparent !important;}
+.cal-cell:not(.empty){background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.06);}
+.cal-cell:not(.empty):hover{transform:scale(1.06);border-color:rgba(212,168,67,.4);z-index:1;}
+.cal-cell.cal-today{border-color:rgba(212,168,67,.5) !important;box-shadow:0 0 0 1px rgba(212,168,67,.2);}
+.cal-cell.cal-selected{border-color:rgba(212,168,67,.8) !important;background:rgba(212,168,67,.15) !important;box-shadow:0 0 0 2px rgba(212,168,67,.3);}
+/* Heat levels */
+.cal-h1{background:rgba(212,168,67,.06) !important;}
+.cal-h2{background:rgba(212,168,67,.13) !important;}
+.cal-h3{background:rgba(212,168,67,.22) !important;}
+.cal-h4{background:rgba(212,168,67,.34) !important;}
+.cal-h5{background:rgba(212,168,67,.5) !important;}
+.cal-day-num{font-size:.72rem;font-weight:600;color:var(--text);line-height:1;}
+.cal-day-amt{font-size:.52rem;color:var(--gold);font-family:'DM Mono',monospace;line-height:1;}
+/* Summary strip */
+.cal-sum-tile{background:var(--ink-2);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center;}
+.cal-sum-val{font-family:'DM Mono',monospace;font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+.cal-sum-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-dim);}
+/* Category bars */
+.cat-bar-row{margin-bottom:10px;}
+.cat-bar-head{display:flex;justify-content:space-between;margin-bottom:5px;}
+.cat-bar-name{font-size:.78rem;font-weight:600;color:var(--text-soft);}
+.cat-bar-val{font-size:.75rem;font-family:'DM Mono',monospace;color:var(--text-dim);}
+.cat-bar-track{height:6px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden;}
+.cat-bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--gold-dim),var(--gold));transition:width .5s cubic-bezier(.4,0,.2,1);}
+/* Selected day list */
+.cal-txn-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.cal-txn-row:last-child{border-bottom:none;}
+.cal-txn-name{font-size:.82rem;font-weight:600;color:var(--text);}
+.cal-txn-cat{font-size:.62rem;color:var(--text-dim);}
+.cal-txn-amt{font-family:'DM Mono',monospace;font-size:.85rem;font-weight:600;color:var(--rose);}
+@media(max-width:600px){
+  .cal-day-amt{display:none;}
+  .cal-cell{border-radius:7px;}
+}
 </style>
 
 
@@ -10127,6 +10229,186 @@ window.flintSaveProfileV2 = async function(){
       return res;
     };
   }
+})();
+</script>
+
+<script>
+// ══════════════════════════════════════
+//  SPENDING CALENDAR + CSV EXPORT
+// ══════════════════════════════════════
+
+(function(){
+  var _calYear, _calMonth, _calSelected = null;
+
+  function calInit() {
+    var now = new Date();
+    _calYear = now.getFullYear();
+    _calMonth = now.getMonth();
+    _calSelected = null;
+    renderCal();
+  }
+
+  window.calShift = function(delta) {
+    _calMonth += delta;
+    if (_calMonth > 11) { _calMonth = 0; _calYear++; }
+    if (_calMonth < 0)  { _calMonth = 11; _calYear--; }
+    _calSelected = null;
+    renderCal();
+  };
+
+  window.showCalDay = function(y, m, d) {
+    _calSelected = d;
+    renderCal();
+    var detail = document.getElementById('calDayDetail');
+    var title  = document.getElementById('calDayTitle');
+    var list   = document.getElementById('calDayList');
+    if (!detail || !title || !list) return;
+    var txns = getDayTxns(y, m, d);
+    title.textContent = new Date(y, m, d).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    if (!txns.length) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-size:.82rem;padding:12px 0;">No transactions this day.</div>';
+    } else {
+      list.innerHTML = '<div class="card" style="padding:14px;">' + txns.map(function(t){
+        return '<div class="cal-txn-row">' +
+          '<div><div class="cal-txn-name">' + escapeHtml(t.note || t.category) + '</div>' +
+          '<div class="cal-txn-cat">' + escapeHtml(t.category) + (t.member ? ' · ' + escapeHtml(t.member) : '') + '</div></div>' +
+          '<div class="cal-txn-amt">-$' + (t.amount||0).toFixed(2) + '</div>' +
+          '</div>';
+      }).join('') + '</div>';
+    }
+    detail.style.display = 'block';
+    detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  function getDayTxns(y, m, d) {
+    var arr = Array.isArray(history) ? history : [];
+    return arr.filter(function(t) {
+      var dt = new Date(t.created_at);
+      return dt.getFullYear() === y && dt.getMonth() === m && dt.getDate() === d;
+    });
+  }
+
+  function renderCal() {
+    var y = _calYear, m = _calMonth;
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var lbl = document.getElementById('calMonthLabel');
+    if (lbl) lbl.textContent = months[m] + ' ' + y;
+
+    // Build day → amount map
+    var arr = Array.isArray(history) ? history : [];
+    var dayTotals = {}, catTotals = {}, totalSpend = 0, txnCount = 0;
+    arr.forEach(function(t) {
+      var dt = new Date(t.created_at);
+      if (dt.getFullYear() === y && dt.getMonth() === m) {
+        var d = dt.getDate();
+        dayTotals[d] = (dayTotals[d] || 0) + (t.amount || 0);
+        catTotals[t.category] = (catTotals[t.category] || 0) + (t.amount || 0);
+        totalSpend += (t.amount || 0);
+        txnCount++;
+      }
+    });
+    var maxDay = Math.max.apply(null, Object.values(dayTotals).concat([1]));
+
+    // Summary strip
+    var strip = document.getElementById('calSummaryStrip');
+    if (strip) {
+      strip.innerHTML =
+        '<div class="cal-sum-tile"><div class="cal-sum-val">$' + totalSpend.toFixed(0) + '</div><div class="cal-sum-lbl">Total Spent</div></div>' +
+        '<div class="cal-sum-tile"><div class="cal-sum-val">' + txnCount + '</div><div class="cal-sum-lbl">Transactions</div></div>' +
+        '<div class="cal-sum-tile"><div class="cal-sum-val">' + (txnCount > 0 ? '$' + (totalSpend/txnCount).toFixed(0) : '—') + '</div><div class="cal-sum-lbl">Avg per Txn</div></div>';
+    }
+
+    // Day-of-week headers
+    var dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var dowHtml = '<div class="cal-dow-row">' + dows.map(function(d){ return '<div class="cal-dow">'+d+'</div>'; }).join('') + '</div>';
+
+    // Cells
+    var firstDow = new Date(y, m, 1).getDay();
+    var daysInMonth = new Date(y, m+1, 0).getDate();
+    var today = new Date();
+    var cellsHtml = '<div class="cal-grid-cells">';
+    for (var i = 0; i < firstDow; i++) cellsHtml += '<div class="cal-cell empty"></div>';
+    for (var d = 1; d <= daysInMonth; d++) {
+      var spend = dayTotals[d] || 0;
+      var heat = spend > 0 ? Math.min(5, Math.ceil(spend / maxDay * 5)) : 0;
+      var isToday = today.getFullYear()===y && today.getMonth()===m && today.getDate()===d;
+      var isSel = _calSelected === d;
+      var cls = 'cal-cell' + (heat > 0 ? ' cal-h'+heat : '') + (isToday ? ' cal-today' : '') + (isSel ? ' cal-selected' : '');
+      cellsHtml += '<div class="'+cls+'" onclick="showCalDay('+y+','+m+','+d+')">' +
+        '<span class="cal-day-num">'+d+'</span>' +
+        (spend > 0 ? '<span class="cal-day-amt">$'+spend.toFixed(0)+'</span>' : '') +
+        '</div>';
+    }
+    cellsHtml += '</div>';
+
+    var grid = document.getElementById('calGrid');
+    if (grid) grid.innerHTML = dowHtml + cellsHtml;
+
+    // Category bars
+    var sorted = Object.keys(catTotals).sort(function(a,b){ return catTotals[b]-catTotals[a]; }).slice(0,8);
+    var catHtml = '';
+    sorted.forEach(function(cat) {
+      var pct = totalSpend > 0 ? Math.min(100, catTotals[cat] / totalSpend * 100) : 0;
+      catHtml += '<div class="cat-bar-row">' +
+        '<div class="cat-bar-head"><span class="cat-bar-name">'+escapeHtml(cat)+'</span><span class="cat-bar-val">$'+catTotals[cat].toFixed(0)+'</span></div>' +
+        '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:'+pct+'%"></div></div>' +
+        '</div>';
+    });
+    var catEl = document.getElementById('calCatBars');
+    if (catEl) catEl.innerHTML = catHtml || '<div style="color:var(--text-dim);font-size:.82rem;">No data for this month.</div>';
+
+    // Hide day detail when re-rendering a fresh month
+    if (!_calSelected) {
+      var det = document.getElementById('calDayDetail');
+      if (det) det.style.display = 'none';
+    }
+  }
+
+  // Hook openPanel to init calendar when calPanel is opened
+  var _origOpenPanel = window.openPanel;
+  if (typeof _origOpenPanel === 'function') {
+    window.openPanel = function(id) {
+      _origOpenPanel.apply(this, arguments);
+      if (id === 'calPanel') setTimeout(calInit, 80);
+    };
+  }
+  var _origSwitchView = window.switchView;
+  if (typeof _origSwitchView === 'function') {
+    window.switchView = function(id) {
+      _origSwitchView.apply(this, arguments);
+      if (id === 'calPanel') setTimeout(calInit, 80);
+    };
+  }
+
+  // ── CSV Export ──
+  window.exportCSV = function() {
+    var y = _calYear != null ? _calYear : new Date().getFullYear();
+    var m = _calMonth != null ? _calMonth : new Date().getMonth();
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var arr = Array.isArray(history) ? history : [];
+    var rows = arr.filter(function(t) {
+      var dt = new Date(t.created_at);
+      return dt.getFullYear() === y && dt.getMonth() === m;
+    });
+    if (!rows.length) { showToast && showToast('No transactions to export.'); return; }
+
+    var header = ['Date','Description','Category','Amount','Member','Intent','Recurring'];
+    var lines = [header.join(',')];
+    rows.forEach(function(t) {
+      var dt = new Date(t.created_at).toLocaleDateString('en-US');
+      function q(v){ return '"' + String(v||'').replace(/"/g,'""') + '"'; }
+      lines.push([dt, q(t.note||''), q(t.category||''), (t.amount||0).toFixed(2), q(t.member||''), q(t.intent||''), t.is_recurring?'Yes':'No'].join(','));
+    });
+
+    var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'flint-' + months[m].toLowerCase() + '-' + y + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    if (typeof showToast === 'function') showToast('Exported ' + rows.length + ' transactions ✓');
+  };
 })();
 </script>
 
