@@ -6183,7 +6183,7 @@ function openPanel(id) {
     if(nav) nav.classList.add('active');
 
     // For data-dependent panels, refresh from Supabase first
-    var needsRefresh = ['notesManager','familyFeed','subManager','analyticsModal','aiInsights','calPanel'].indexOf(id) >= 0;
+    var needsRefresh = ['notesManager','familyFeed','subManager','analyticsModal','aiInsights'].indexOf(id) >= 0;
     if(needsRefresh && currentGroup) {
         fetchData().then(function(){ _buildAndShowPanel(id); });
     } else {
@@ -6232,6 +6232,7 @@ function _buildAndShowPanel(id) {
     '</div>';
     document.body.appendChild(panel); var backBtn=document.querySelector('.mob-nav-btn:last-child'); if(backBtn) backBtn.style.opacity='1';
     if(window.innerWidth < 1024) panel.style.left = '0';
+    if(id === 'calPanel' && typeof window.calInit === 'function') setTimeout(window.calInit, 50);
 }
 
 function closePanel() {
@@ -10296,13 +10297,13 @@ window.flintSaveProfileV2 = async function(){
 (function(){
   var _calYear, _calMonth, _calSelected = null;
 
-  function calInit() {
+  window.calInit = function calInit() {
     var now = new Date();
     _calYear = now.getFullYear();
     _calMonth = now.getMonth();
     _calSelected = null;
     renderCal();
-  }
+  };
 
   window.calShift = function(delta) {
     _calMonth += delta;
@@ -10418,22 +10419,6 @@ window.flintSaveProfileV2 = async function(){
       var det = document.getElementById('calDayDetail');
       if (det) det.style.display = 'none';
     }
-  }
-
-  // Hook openPanel to init calendar when calPanel is opened
-  var _origOpenPanel = window.openPanel;
-  if (typeof _origOpenPanel === 'function') {
-    window.openPanel = function(id) {
-      _origOpenPanel.apply(this, arguments);
-      if (id === 'calPanel') setTimeout(calInit, 80);
-    };
-  }
-  var _origSwitchView = window.switchView;
-  if (typeof _origSwitchView === 'function') {
-    window.switchView = function(id) {
-      _origSwitchView.apply(this, arguments);
-      if (id === 'calPanel') setTimeout(calInit, 80);
-    };
   }
 
   // ── CSV Export ──
