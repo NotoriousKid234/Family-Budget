@@ -6115,6 +6115,61 @@ function switchView(id, isBack) { var fp=document.getElementById('flintPanel'); 
     if(document.getElementById('sideMenu').classList.contains('open')) toggleMenu();
 }
 
+function buildCalendarPanel() {
+    return `
+    <style>
+    .cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;}
+    .cal-dow{text-align:center;font-size:.68rem;font-weight:700;color:var(--text-dim);letter-spacing:.5px;padding:4px 0;}
+    .cal-grid-cells{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+    .cal-cell{aspect-ratio:1;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.04);transition:all .15s;position:relative;}
+    .cal-cell:hover{transform:scale(1.06);z-index:1;}
+    .cal-cell.empty{background:transparent;cursor:default;pointer-events:none;}
+    .cal-cell.cal-today{box-shadow:0 0 0 2px var(--gold);}
+    .cal-cell.cal-selected{box-shadow:0 0 0 2px rgba(212,168,67,.8);background:rgba(212,168,67,.15);}
+    .cal-h1{background:rgba(212,168,67,.08);}
+    .cal-h2{background:rgba(212,168,67,.16);}
+    .cal-h3{background:rgba(212,168,67,.26);}
+    .cal-h4{background:rgba(212,168,67,.38);}
+    .cal-h5{background:rgba(212,168,67,.55);}
+    .cal-day-num{font-size:.75rem;font-weight:700;color:var(--text);}
+    .cal-day-amt{font-size:.6rem;color:var(--text-soft);margin-top:1px;}
+    .cal-sum-tile{background:rgba(255,255,255,.05);border-radius:14px;padding:14px 10px;text-align:center;}
+    .cal-sum-val{font-size:1.25rem;font-weight:800;color:var(--text);font-family:'DM Mono',monospace;}
+    .cal-sum-lbl{font-size:.7rem;color:var(--text-dim);margin-top:3px;font-weight:600;letter-spacing:.4px;}
+    .cat-bar-row{margin-bottom:12px;}
+    .cat-bar-head{display:flex;justify-content:space-between;margin-bottom:5px;font-size:.78rem;}
+    .cat-bar-name{color:var(--text);font-weight:600;}
+    .cat-bar-val{color:var(--text-soft);}
+    .cat-bar-track{background:rgba(255,255,255,.07);border-radius:99px;height:6px;overflow:hidden;}
+    .cat-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),#f5c842);border-radius:99px;transition:width .5s;}
+    .cal-txn-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+    .cal-txn-row:last-child{border-bottom:none;}
+    @media(max-width:600px){.cal-day-amt{display:none;}}
+    </style>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <button onclick="calShift(-1)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text-soft);border-radius:10px;padding:8px 16px;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;transition:all .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-soft)'">← Prev</button>
+        <div id="calMonthLabel" style="font-family:'DM Mono',monospace;font-size:.9rem;font-weight:700;color:var(--text);letter-spacing:1px;"></div>
+        <button onclick="calShift(1)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text-soft);border-radius:10px;padding:8px 16px;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;transition:all .2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-soft)'">Next →</button>
+    </div>
+    <div id="calSummaryStrip" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;"></div>
+    <div class="card card-hi" style="padding:16px;margin-bottom:14px;">
+        <div id="calGrid"></div>
+    </div>
+    <div id="calDayDetail" style="display:none;">
+        <div class="sec-head" id="calDayTitle" style="margin-bottom:10px;">Transactions</div>
+        <div class="card" style="padding:14px 16px;margin-bottom:14px;"><div id="calDayList"></div></div>
+    </div>
+    <div class="sec-head" style="margin-top:4px;">Spending by Category</div>
+    <div class="card" style="padding:16px;margin-bottom:14px;">
+        <div id="calCatBars"></div>
+    </div>
+    <div style="margin-bottom:24px;">
+        <button onclick="exportCSV()" style="width:100%;padding:13px;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.25);color:var(--gold);border-radius:14px;font-weight:700;font-size:.88rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='rgba(212,168,67,.18)'" onmouseout="this.style.background='rgba(212,168,67,.1)'">
+            <i class="fa-solid fa-file-csv"></i> Export This Month to CSV
+        </button>
+    </div>`;
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // ── FLINT PANEL OVERLAY SYSTEM (completely independent of switchView) ──
 // ═══════════════════════════════════════════════════════════════════════
@@ -6128,7 +6183,7 @@ function openPanel(id) {
     if(nav) nav.classList.add('active');
 
     // For data-dependent panels, refresh from Supabase first
-    var needsRefresh = ['notesManager','familyFeed','subManager','analyticsModal','aiInsights'].indexOf(id) >= 0;
+    var needsRefresh = ['notesManager','familyFeed','subManager','analyticsModal','aiInsights','calPanel'].indexOf(id) >= 0;
     if(needsRefresh && currentGroup) {
         fetchData().then(function(){ _buildAndShowPanel(id); });
     } else {
@@ -6153,6 +6208,7 @@ function _buildAndShowPanel(id) {
         case 'configManager': title='CONFIG'; content=buildConfigPanel(); break;
         case 'shareManager': title='SHARE LEDGER'; content=buildSharePanel(); break;
         case 'profileManager': title='PROFILE'; content=buildProfilePanel(); break;
+        case 'calPanel': title='SPENDING CALENDAR'; content=buildCalendarPanel(); break;
         default: title=id; content='<div style="text-align:center;padding:60px;color:var(--text-dim);">Coming soon</div>';
     }
 
@@ -6165,7 +6221,7 @@ function _buildAndShowPanel(id) {
     panel.className = 'flint-panel-overlay';
     panel.style.cssText = 'position:fixed;top:0;right:0;bottom:0;left:240px;z-index:900;background:#060d1c;overflow-y:auto;padding:0;';
     var panelSize = 'compact';
-    if (['networth','vaults','bills','subManager','challenges','familyFeed','shareManager'].indexOf(id) >= 0) panelSize = 'wide';
+    if (['networth','vaults','bills','subManager','challenges','familyFeed','shareManager','calPanel'].indexOf(id) >= 0) panelSize = 'wide';
     if (['analyticsModal','aiInsights','notesManager','profileManager','configManager'].indexOf(id) >= 0) panelSize = 'full';
     panel.innerHTML = '<div class="flint-panel-shell flint-panel-' + panelSize + '">' +
         '<div class="flint-panel-head">' +
