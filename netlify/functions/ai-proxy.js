@@ -133,10 +133,22 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing prompt or messages' }) };
   }
 
-  // Validate mediaType if image data is provided (for future vision calls)
   const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   if (body.image && body.mediaType && !ALLOWED_MEDIA_TYPES.includes(body.mediaType)) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid or unsupported image media type' }) };
+  }
+
+  // Build a user message with optional vision content (for receipt scanner)
+  function buildSingleUserMessage(promptText, imageData, mediaType) {
+    if (imageData && mediaType && ALLOWED_MEDIA_TYPES.includes(mediaType)) {
+      const MAX_IMG_B64 = 2 * 1024 * 1024;
+      const data = typeof imageData === 'string' ? imageData.slice(0, MAX_IMG_B64) : '';
+      return [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data } },
+        { type: 'text', text: promptText }
+      ]}];
+    }
+    return [{ role: 'user', content: promptText }];
   }
 
   // Sanitize messages array: cap count, cap content length, enforce valid roles
@@ -145,7 +157,7 @@ exports.handler = async function (event) {
         role: m.role === 'assistant' ? 'assistant' : 'user',
         content: typeof m.content === 'string' ? m.content.substring(0, MAX_MSG_CONTENT) : ''
       })).filter(m => m.content.length > 0)
-    : [{ role: 'user', content: prompt }];
+    : buildSingleUserMessage(prompt, body.image, body.mediaType);
 
   if (!messages.length) {
     return { statusCode: 400, body: JSON.stringify({ error: 'No valid messages to send' }) };
